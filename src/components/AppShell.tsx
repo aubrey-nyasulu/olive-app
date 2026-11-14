@@ -245,7 +245,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       // If the window did not resize, shift dock so it sits exactly 12px above keyboard
       const shift = windowDidResize
         ? 0
-        : Math.max(0, kh + 12 - normalDockBottom);
+        : Math.max(0, kh + 32 - normalDockBottom);
 
       const duration = Platform.OS === "ios" ? e.duration ?? 250 : 180;
 
