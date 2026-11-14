@@ -18,7 +18,7 @@ import { router, usePathname } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useOlive } from "../context/OliveProvider";
 import { GuidanceModal } from "./GuidanceModal";
-import { TypeSearch, VisualSearch, VoiceSearch } from "./SearchModes";
+import { TypeSearch, VisualSearch } from "./SearchModes";
 
 const SEARCH_OPTIONS = [
   { icon: "mic" as const, label: "Voice", mode: "voice" as const },
@@ -353,7 +353,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       )}
 
       {/* Mode Search Content Panel */}
-      {panelOpen && (
+      {panelOpen && activeMode !== "voice" && (
         <Animated.View
           style={[
             styles.panelContainer,
@@ -379,7 +379,6 @@ export function AppShell({ children }: { children: ReactNode }) {
                 onClose={handleCloseSearch}
               />
             )}
-            {activeMode === "voice" && <VoiceSearch listening={isListening} />}
             {activeMode === "visual" && <VisualSearch />}
           </View>
         </Animated.View>

@@ -29,7 +29,7 @@ export function TypeSearch({
     ? POSTS.filter((post) =>
         `${post.title} ${post.body} ${post.author} ${post.category} ${post.place}`
           .toLowerCase()
-          .includes(q),
+          .includes(q)
       )
     : [];
 
@@ -63,7 +63,9 @@ export function TypeSearch({
                   <Text style={[styles.resultTitle, { color: colors.text }]}>
                     {item.author}
                   </Text>
-                  <Text style={[styles.resultSubtitle, { color: colors.muted }]}>
+                  <Text
+                    style={[styles.resultSubtitle, { color: colors.muted }]}
+                  >
                     {item.title}
                   </Text>
                 </View>
@@ -83,7 +85,8 @@ export function TypeSearch({
         ) : (
           <View style={styles.emptyBox}>
             <Text style={[styles.emptyPrompt, { color: colors.muted }]}>
-              Nothing nearby matches "{query}". Try searching for "coffee", "fuel", or "market".
+              Nothing nearby matches "{query}". Try searching for "coffee",
+              "fuel", or "market".
             </Text>
           </View>
         )
@@ -118,81 +121,6 @@ export function TypeSearch({
   );
 }
 
-export function VoiceSearch({ listening }: { listening: boolean }) {
-  const { colors } = useOlive();
-  const wave1 = useRef(new Animated.Value(0.4)).current;
-  const wave2 = useRef(new Animated.Value(0.7)).current;
-  const wave3 = useRef(new Animated.Value(0.3)).current;
-
-  useEffect(() => {
-    if (!listening) return;
-
-    const animateWave = (anim: Animated.Value, duration: number) => {
-      return Animated.loop(
-        Animated.sequence([
-          Animated.timing(anim, {
-            toValue: 1.4,
-            duration,
-            easing: Easing.inOut(Easing.quad),
-            useNativeDriver: true,
-          }),
-          Animated.timing(anim, {
-            toValue: 0.35,
-            duration,
-            easing: Easing.inOut(Easing.quad),
-            useNativeDriver: true,
-          }),
-        ]),
-      );
-    };
-
-    const l1 = animateWave(wave1, 700);
-    const l2 = animateWave(wave2, 550);
-    const l3 = animateWave(wave3, 850);
-
-    l1.start();
-    l2.start();
-    l3.start();
-
-    return () => {
-      l1.stop();
-      l2.stop();
-      l3.stop();
-    };
-  }, [listening, wave1, wave2, wave3]);
-
-  return (
-    <View style={styles.voiceContainer}>
-      <View style={styles.waveGroup}>
-        <Animated.View
-          style={[
-            styles.waveBar,
-            { backgroundColor: colors.signal, transform: [{ scaleY: wave1 }] },
-          ]}
-        />
-        <Animated.View
-          style={[
-            styles.waveBar,
-            { backgroundColor: colors.signal, transform: [{ scaleY: wave2 }] },
-          ]}
-        />
-        <Animated.View
-          style={[
-            styles.waveBar,
-            { backgroundColor: colors.signal, transform: [{ scaleY: wave3 }] },
-          ]}
-        />
-      </View>
-      <Text style={[styles.voicePrompt, { color: colors.signal }]}>
-        {listening ? "Listening to your voice…" : "Tap mic to speak"}
-      </Text>
-      <Text style={[styles.voiceSub, { color: colors.muted }]}>
-        e.g. "Find the nearest bakery with croissants"
-      </Text>
-    </View>
-  );
-}
-
 export function VisualSearch() {
   const { colors } = useOlive();
 
@@ -210,7 +138,8 @@ export function VisualSearch() {
         Visual Finder
       </Text>
       <Text style={[styles.visualSub, { color: colors.muted }]}>
-        Point your camera at the world and Olive will pinpoint where to get it nearby.
+        Point your camera at the world and Olive will pinpoint where to get it
+        nearby.
       </Text>
     </View>
   );
