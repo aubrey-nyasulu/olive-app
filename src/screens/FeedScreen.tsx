@@ -35,7 +35,7 @@ export default function FeedScreen() {
           renderItem={({ item }) => <PostCard post={item} />}
           contentContainerStyle={[
             styles.listContent,
-            { paddingTop: headerHeight + 8 },
+            { paddingTop: headerHeight + 24 },
           ]}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
@@ -44,7 +44,8 @@ export default function FeedScreen() {
                 No places within {config.radiusKm} km
               </Text>
               <Text style={[styles.emptySubtitle, { color: colors.muted }]}>
-                Try expanding your search radius or enabling more categories in your Profile settings.
+                Try expanding your search radius or enabling more categories in
+                your Profile settings.
               </Text>
             </View>
           }

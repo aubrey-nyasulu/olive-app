@@ -54,11 +54,9 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const insets = useSafeAreaInsets();
   const [screenHeight, setScreenHeight] = useState(
-    Dimensions.get("window").height,
+    Dimensions.get("window").height
   );
-  const [rootHeight, setRootHeight] = useState(
-    Dimensions.get("window").height,
-  );
+  const [rootHeight, setRootHeight] = useState(Dimensions.get("window").height);
   const initialRootHeightRef = useRef(Dimensions.get("window").height);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
 
@@ -87,7 +85,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   // LFOs for acoustic voice/sound intake resonance
   const lfoValues = useRef(
-    LFO_DURATIONS.map(() => new Animated.Value(0)),
+    LFO_DURATIONS.map(() => new Animated.Value(0))
   ).current;
 
   // 1. Line Sweep Animation (3.4s linear infinite, representing active scanning)
@@ -98,7 +96,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         duration: 3400,
         easing: Easing.linear,
         useNativeDriver: true,
-      }),
+      })
     );
     sweepLoop.start();
     return () => sweepLoop.stop();
@@ -120,7 +118,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           easing: Easing.inOut(Easing.quad),
           useNativeDriver: true,
         }),
-      ]),
+      ])
     );
     pulseLoop.start();
     return () => pulseLoop.stop();
@@ -144,7 +142,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             easing: Easing.inOut(Easing.sin),
             useNativeDriver: true,
           }),
-        ]),
+        ])
       );
     });
 
@@ -197,7 +195,13 @@ export function AppShell({ children }: { children: ReactNode }) {
         }),
       ]).start();
     }
-  }, [isVoice, isListening, sweepOpacityAnim, voiceOpacityAnim, voiceScaleYAnim]);
+  }, [
+    isVoice,
+    isListening,
+    sweepOpacityAnim,
+    voiceOpacityAnim,
+    voiceScaleYAnim,
+  ]);
 
   // Pre-calculate strand scale interpolations based on LFOs and acoustic envelope
   const strandInterpolations = useMemo(() => {
@@ -243,7 +247,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         ? 0
         : Math.max(0, kh + 12 - normalDockBottom);
 
-      const duration = Platform.OS === "ios" ? (e.duration ?? 250) : 180;
+      const duration = Platform.OS === "ios" ? e.duration ?? 250 : 180;
 
       Animated.timing(keyboardShiftAnim, {
         toValue: shift,
@@ -255,7 +259,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
     const handleHide = (e: KeyboardEvent) => {
       setKeyboardHeight(0);
-      const duration = Platform.OS === "ios" ? (e.duration ?? 250) : 180;
+      const duration = Platform.OS === "ios" ? e.duration ?? 250 : 180;
 
       Animated.timing(keyboardShiftAnim, {
         toValue: 0,
@@ -290,7 +294,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     screenHeight -
       (keyboardHeight > 0 ? keyboardHeight + 110 : normalDockBottom + 100) -
       insets.top -
-      50,
+      50
   );
 
   const handleCloseSearch = () => {
@@ -326,7 +330,10 @@ export function AppShell({ children }: { children: ReactNode }) {
       onLayout={(e: LayoutChangeEvent) => {
         const h = e.nativeEvent.layout.height;
         if (h > 0) {
-          if (!initialRootHeightRef.current || h > initialRootHeightRef.current) {
+          if (
+            !initialRootHeightRef.current ||
+            h > initialRootHeightRef.current
+          ) {
             initialRootHeightRef.current = h;
           }
           setRootHeight(h);
@@ -372,9 +379,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 onClose={handleCloseSearch}
               />
             )}
-            {activeMode === "voice" && (
-              <VoiceSearch listening={isListening} />
-            )}
+            {activeMode === "voice" && <VoiceSearch listening={isListening} />}
             {activeMode === "visual" && <VisualSearch />}
           </View>
         </Animated.View>
@@ -453,14 +458,18 @@ export function AppShell({ children }: { children: ReactNode }) {
                     panelOpen || searchOpen
                       ? colors.signal
                       : onFeed
-                        ? colors.signal
-                        : colors.bg,
+                      ? colors.signal
+                      : colors.bg,
                   opacity: pressed ? 0.75 : 1,
                 },
               ]}
             >
               {panelOpen || searchOpen ? (
-                <Ionicons name="close" size={20} color={colors.signalForeground} />
+                <Ionicons
+                  name="close"
+                  size={20}
+                  color={colors.signalForeground}
+                />
               ) : (
                 <Animated.View
                   style={[
@@ -568,11 +577,11 @@ export function AppShell({ children }: { children: ReactNode }) {
                       ? "Stop listening"
                       : "Start listening"
                     : activeMode === "type"
-                      ? "Submit"
-                      : "Close"
+                    ? "Submit"
+                    : "Close"
                   : searchOpen
-                    ? "Close search"
-                    : "Open search"
+                  ? "Close search"
+                  : "Open search"
               }
               onPress={handleSearchAction}
               style={({ pressed }) => [

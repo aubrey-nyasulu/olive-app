@@ -44,7 +44,7 @@ function useImageAspectRatio(source: ImageSourcePropType): number {
         (w, h) => {
           if (w > 0 && h > 0) setAspectRatio(w / h);
         },
-        () => {},
+        () => {}
       );
     }
   }, [source]);
@@ -75,7 +75,7 @@ export function PostCard({ post }: { post: Post }) {
 
   const computedHeight = Math.min(
     Math.max(containerWidth / (dynamicAspectRatio || 4 / 3), MIN_IMAGE_HEIGHT),
-    MAX_IMAGE_HEIGHT,
+    MAX_IMAGE_HEIGHT
   );
 
   const reviews = REVIEWS[post.id] ?? [];
@@ -110,27 +110,6 @@ export function PostCard({ post }: { post: Post }) {
             </Text>
           </View>
         </Pressable>
-
-        {/* Bookmark Icon */}
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={saved ? "Remove bookmark" : "Save place"}
-          onPress={() => toggleSave(post.id)}
-          style={({ pressed }) => [
-            styles.saveBtn,
-            {
-              backgroundColor: saved ? colors.signalLight : colors.surfaceMuted,
-              borderColor: saved ? colors.signal : colors.line,
-              opacity: pressed ? 0.6 : 1,
-            },
-          ]}
-        >
-          <Ionicons
-            name={saved ? "bookmark" : "bookmark-outline"}
-            size={18}
-            color={saved ? colors.signal : colors.muted}
-          />
-        </Pressable>
       </View>
 
       {/* Image with Time Badge */}
@@ -156,39 +135,62 @@ export function PostCard({ post }: { post: Post }) {
         </View>
       </Pressable>
 
-      {/* Details / Reviews / Related Tabs */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.tabsScroll}
-      >
-        {TABS.map((tab) => {
-          const badgeCount =
-            tab === "Reviews" && reviews.length > 0
-              ? ` · ${reviews.length}`
-              : "";
-          return (
-            <Pressable
-              key={tab}
-              accessibilityRole="button"
-              onPress={() => setActiveModalTab(tab)}
-              style={({ pressed }) => [
-                styles.tabChip,
-                {
-                  backgroundColor: colors.surfaceMuted,
-                  borderColor: colors.line,
-                  opacity: pressed ? 0.7 : 1,
-                },
-              ]}
-            >
-              <Text style={[styles.tabChipText, { color: colors.text }]}>
-                {tab}
-                {badgeCount}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </ScrollView>
+      <View style={styles.tabContainer}>
+        {/* Details / Reviews / Related Tabs */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.tabsScroll}
+        >
+          {TABS.map((tab) => {
+            const badgeCount =
+              tab === "Reviews" && reviews.length > 0
+                ? ` · ${reviews.length}`
+                : "";
+            return (
+              <Pressable
+                key={tab}
+                accessibilityRole="button"
+                onPress={() => setActiveModalTab(tab)}
+                style={({ pressed }) => [
+                  styles.tabChip,
+                  {
+                    backgroundColor: colors.surfaceMuted,
+                    borderColor: colors.line,
+                    opacity: pressed ? 0.7 : 1,
+                  },
+                ]}
+              >
+                <Text style={[styles.tabChipText, { color: colors.text }]}>
+                  {tab}
+                  {badgeCount}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
+
+        {/* Bookmark Icon */}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={saved ? "Remove bookmark" : "Save place"}
+          onPress={() => toggleSave(post.id)}
+          style={({ pressed }) => [
+            styles.saveBtn,
+            {
+              backgroundColor: saved ? colors.signalLight : colors.surfaceMuted,
+              borderColor: saved ? colors.signal : colors.line,
+              opacity: pressed ? 0.6 : 1,
+            },
+          ]}
+        >
+          <Ionicons
+            name={saved ? "bookmark" : "bookmark-outline"}
+            size={18}
+            color={saved ? colors.signal : colors.muted}
+          />
+        </Pressable>
+      </View>
 
       {/* Post snippet */}
       <Pressable onPress={openPlace}>
@@ -222,7 +224,10 @@ export function PostCard({ post }: { post: Post }) {
               onPress={() => setActiveModalTab(null)}
               style={[
                 styles.modalClose,
-                { backgroundColor: colors.surfaceMuted, borderColor: colors.line },
+                {
+                  backgroundColor: colors.surfaceMuted,
+                  borderColor: colors.line,
+                },
               ]}
             >
               <Ionicons name="close" size={18} color={colors.text} />
@@ -239,7 +244,9 @@ export function PostCard({ post }: { post: Post }) {
                   styles.modalTabBtn,
                   {
                     backgroundColor:
-                      activeModalTab === tab ? colors.text : colors.surfaceMuted,
+                      activeModalTab === tab
+                        ? colors.text
+                        : colors.surfaceMuted,
                     borderColor:
                       activeModalTab === tab ? colors.text : colors.line,
                   },
@@ -270,7 +277,9 @@ export function PostCard({ post }: { post: Post }) {
                 <Text style={[styles.detailTitle, { color: colors.text }]}>
                   {post.title}
                 </Text>
-                <Text style={[styles.detailBody, { color: colors.textSecondary }]}>
+                <Text
+                  style={[styles.detailBody, { color: colors.textSecondary }]}
+                >
                   {post.body}
                 </Text>
 
@@ -496,14 +505,7 @@ const styles = StyleSheet.create({
     fontSize: 12.5,
     marginTop: 1,
   },
-  saveBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    borderWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+
   imageWrap: {
     width: "100%",
     borderRadius: 18,
@@ -533,6 +535,18 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingTop: 10,
     paddingBottom: 4,
+  },
+  tabContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  saveBtn: {
+    padding: 6,
+    borderRadius: 18,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
   },
   tabChip: {
     paddingHorizontal: 12,
