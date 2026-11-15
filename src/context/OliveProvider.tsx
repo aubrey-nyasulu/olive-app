@@ -39,6 +39,21 @@ type OliveContextType = {
   setTypeQuery: (q: string) => void;
   closeSearch: () => void;
 
+  // Profile screen tab state (synced with bottom floating dock)
+  profileTab: "saved" | "settings";
+  setProfileTab: (
+    tab:
+      | "saved"
+      | "settings"
+      | ((prev: "saved" | "settings") => "saved" | "settings"),
+  ) => void;
+
+  // Scanning state for home feed live scanning vs paused
+  isScanning: boolean;
+  setIsScanning: (
+    scanning: boolean | ((prev: boolean) => boolean),
+  ) => void;
+
   // In-app Guidance state
   activeGuidance: GuidanceSession | null;
   startGuidance: (post: Post) => void;
@@ -58,6 +73,12 @@ export function OliveProvider({ children }: { children: ReactNode }) {
   const [activeMode, setActiveMode] = useState<SearchMode | null>(null);
   const [isListening, setIsListening] = useState(false);
   const [typeQuery, setTypeQuery] = useState("");
+
+  // Profile screen tab state
+  const [profileTab, setProfileTab] = useState<"saved" | "settings">("saved");
+
+  // Scanning state (live searching vs paused)
+  const [isScanning, setIsScanning] = useState(true);
 
   // In-app Guidance state
   const [activeGuidance, setActiveGuidance] = useState<GuidanceSession | null>(
@@ -159,6 +180,10 @@ export function OliveProvider({ children }: { children: ReactNode }) {
         typeQuery,
         setTypeQuery,
         closeSearch,
+        profileTab,
+        setProfileTab,
+        isScanning,
+        setIsScanning,
         activeGuidance,
         startGuidance,
         nextGuidanceStep,

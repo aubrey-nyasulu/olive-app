@@ -119,9 +119,9 @@ export default function ProfileScreen() {
     savedIds,
     toggleSave,
     closeSearch,
+    profileTab,
+    setProfileTab,
   } = useOlive();
-
-  const [activeTab, setActiveTab] = useState<"saved" | "settings">("saved");
 
   const savedPosts = POSTS.filter((p) => savedIds.includes(p.id));
 
@@ -167,26 +167,26 @@ export default function ProfileScreen() {
           >
             <Pressable
               accessibilityRole="button"
-              onPress={() => setActiveTab("saved")}
+              onPress={() => setProfileTab("saved")}
               style={[
                 styles.segmentBtn,
-                activeTab === "saved" && [
+                profileTab === "saved" && [
                   styles.segmentBtnActive,
                   { backgroundColor: colors.surface, shadowColor: colors.text },
                 ],
               ]}
             >
               <Ionicons
-                name={activeTab === "saved" ? "bookmark" : "bookmark-outline"}
+                name={profileTab === "saved" ? "bookmark" : "bookmark-outline"}
                 size={16}
-                color={activeTab === "saved" ? colors.signal : colors.muted}
+                color={profileTab === "saved" ? colors.signal : colors.muted}
               />
               <Text
                 style={[
                   styles.segmentText,
                   {
-                    color: activeTab === "saved" ? colors.text : colors.muted,
-                    fontWeight: activeTab === "saved" ? "700" : "500",
+                    color: profileTab === "saved" ? colors.text : colors.muted,
+                    fontWeight: profileTab === "saved" ? "700" : "500",
                   },
                 ]}
               >
@@ -196,26 +196,26 @@ export default function ProfileScreen() {
 
             <Pressable
               accessibilityRole="button"
-              onPress={() => setActiveTab("settings")}
+              onPress={() => setProfileTab("settings")}
               style={[
                 styles.segmentBtn,
-                activeTab === "settings" && [
+                profileTab === "settings" && [
                   styles.segmentBtnActive,
                   { backgroundColor: colors.surface, shadowColor: colors.text },
                 ],
               ]}
             >
               <Ionicons
-                name={activeTab === "settings" ? "settings" : "settings-outline"}
+                name={profileTab === "settings" ? "settings" : "settings-outline"}
                 size={16}
-                color={activeTab === "settings" ? colors.signal : colors.muted}
+                color={profileTab === "settings" ? colors.signal : colors.muted}
               />
               <Text
                 style={[
                   styles.segmentText,
                   {
-                    color: activeTab === "settings" ? colors.text : colors.muted,
-                    fontWeight: activeTab === "settings" ? "700" : "500",
+                    color: profileTab === "settings" ? colors.text : colors.muted,
+                    fontWeight: profileTab === "settings" ? "700" : "500",
                   },
                 ]}
               >
@@ -225,7 +225,7 @@ export default function ProfileScreen() {
           </View>
 
           {/* Tab 1: Saved Places */}
-          {activeTab === "saved" ? (
+          {profileTab === "saved" ? (
             savedPosts.length === 0 ? (
               <View style={styles.emptySavedWrap}>
                 <Ionicons

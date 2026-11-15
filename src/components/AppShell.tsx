@@ -50,6 +50,10 @@ export function AppShell({ children }: { children: ReactNode }) {
     typeQuery,
     setTypeQuery,
     closeSearch,
+    profileTab,
+    setProfileTab,
+    isScanning,
+    setIsScanning,
   } = useOlive();
 
   const insets = useSafeAreaInsets();
@@ -90,6 +94,11 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   // 1. Line Sweep Animation (3.4s linear infinite, representing active scanning)
   useEffect(() => {
+    if (!isScanning) {
+      sweepAnim.stopAnimation();
+      return;
+    }
+    sweepAnim.setValue(0);
     const sweepLoop = Animated.loop(
       Animated.timing(sweepAnim, {
         toValue: 1,
@@ -100,10 +109,15 @@ export function AppShell({ children }: { children: ReactNode }) {
     );
     sweepLoop.start();
     return () => sweepLoop.stop();
-  }, [sweepAnim]);
+  }, [sweepAnim, isScanning]);
 
   // 2. Signal Dot Pulse Animation (2s ease-in-out infinite)
   useEffect(() => {
+    if (!isScanning) {
+      dotPulseAnim.stopAnimation();
+      return;
+    }
+    dotPulseAnim.setValue(1);
     const pulseLoop = Animated.loop(
       Animated.sequence([
         Animated.timing(dotPulseAnim, {
@@ -122,7 +136,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     );
     pulseLoop.start();
     return () => pulseLoop.stop();
-  }, [dotPulseAnim]);
+  }, [dotPulseAnim, isScanning]);
 
   // 3. Acoustic LFO Oscillators for Sound Intake
   useEffect(() => {
@@ -303,6 +317,10 @@ export function AppShell({ children }: { children: ReactNode }) {
   };
 
   const handleSearchAction = () => {
+    if (onProfile) {
+      setProfileTab((prev) => (prev === "settings" ? "saved" : "settings"));
+      return;
+    }
     if (panelOpen) {
       if (activeMode === "voice") {
         setIsListening((l) => !l);
@@ -320,6 +338,14 @@ export function AppShell({ children }: { children: ReactNode }) {
     Keyboard.dismiss();
     if (panelOpen || searchOpen) {
       closeSearch();
+    } else if (onProfile) {
+      if (router.canGoBack()) {
+        router.back();
+      } else {
+        router.navigate("/");
+      }
+    } else if (onFeed) {
+      setIsScanning((prev) => !prev);
     } else if (!onFeed) {
       router.navigate("/");
     }
@@ -399,7 +425,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           pointerEvents="box-none"
         >
           {/* Vertical Floating Mode Options (Voice / Type / Visual) */}
-          {searchOpen && !panelOpen && (
+          {searchOpen && !panelOpen && onFeed && (
             <View style={styles.modesPopup}>
               {SEARCH_OPTIONS.map(({ icon, label, mode }) => (
                 <Pressable
@@ -445,10 +471,20 @@ export function AppShell({ children }: { children: ReactNode }) {
               },
             ]}
           >
-            {/* Left Button: Feed / Home or Dismiss */}
+            {/* Left Button: Back (on profile), Feed/Searching/Paused (on feed), or Close (when search open) */}
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={panelOpen ? "Cancel search" : "Home feed"}
+              accessibilityLabel={
+                panelOpen || searchOpen
+                  ? "Cancel search"
+                  : onProfile
+                  ? "Back to feed"
+                  : onFeed
+                  ? isScanning
+                    ? "Pause scanning"
+                    : "Start scanning"
+                  : "Home feed"
+              }
               onPress={handleLeftPill}
               style={({ pressed }) => [
                 styles.dockSideBtn,
@@ -456,8 +492,12 @@ export function AppShell({ children }: { children: ReactNode }) {
                   backgroundColor:
                     panelOpen || searchOpen
                       ? colors.signal
+                      : onProfile
+                      ? colors.bg
                       : onFeed
-                      ? colors.signal
+                      ? isScanning
+                        ? colors.signal
+                        : colors.bg
                       : colors.bg,
                   opacity: pressed ? 0.75 : 1,
                 },
@@ -469,7 +509,13 @@ export function AppShell({ children }: { children: ReactNode }) {
                   size={20}
                   color={colors.signalForeground}
                 />
-              ) : (
+              ) : onProfile ? (
+                <Ionicons
+                  name="arrow-back"
+                  size={20}
+                  color={colors.text}
+                />
+              ) : isScanning ? (
                 <Animated.View
                   style={[
                     styles.signalDot,
@@ -480,6 +526,13 @@ export function AppShell({ children }: { children: ReactNode }) {
                       opacity: dotPulseAnim,
                     },
                   ]}
+                />
+              ) : (
+                <Ionicons
+                  name="play"
+                  size={18}
+                  color={colors.signal}
+                  style={{ marginLeft: 2 }}
                 />
               )}
             </Pressable>
@@ -566,11 +619,15 @@ export function AppShell({ children }: { children: ReactNode }) {
               )}
             </View>
 
-            {/* Right Action Button: Search Trigger / Send / Voice Toggle */}
+            {/* Right Action Button: Settings (on profile), Search / Send / Voice Toggle (on feed) */}
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={
-                panelOpen
+                onProfile
+                  ? profileTab === "settings"
+                    ? "View saved places"
+                    : "Settings"
+                  : panelOpen
                   ? activeMode === "voice"
                     ? isListening
                       ? "Stop listening"
@@ -586,13 +643,30 @@ export function AppShell({ children }: { children: ReactNode }) {
               style={({ pressed }) => [
                 styles.dockSideBtn,
                 {
-                  backgroundColor:
-                    panelOpen || searchOpen ? colors.signal : colors.bg,
+                  backgroundColor: onProfile
+                    ? profileTab === "settings"
+                      ? colors.signal
+                      : colors.bg
+                    : panelOpen || searchOpen
+                    ? colors.signal
+                    : colors.bg,
                   opacity: pressed ? 0.75 : 1,
                 },
               ]}
             >
-              {panelOpen ? (
+              {onProfile ? (
+                <Ionicons
+                  name={
+                    profileTab === "settings" ? "settings" : "settings-outline"
+                  }
+                  size={20}
+                  color={
+                    profileTab === "settings"
+                      ? colors.signalForeground
+                      : colors.signal
+                  }
+                />
+              ) : panelOpen ? (
                 activeMode === "voice" ? (
                   <Ionicons
                     name={isListening ? "mic" : "mic-outline"}
