@@ -39,13 +39,25 @@ type OliveContextType = {
   setTypeQuery: (q: string) => void;
   closeSearch: () => void;
 
-  // Profile screen tab state (synced with bottom floating dock)
-  profileTab: "saved" | "settings";
+  // Profile screen tab state (synced with bottom floating dock & header)
+  profileTab: "posts" | "about";
   setProfileTab: (
     tab:
+      | "posts"
+      | "about"
       | "saved"
       | "settings"
-      | ((prev: "saved" | "settings") => "saved" | "settings"),
+      | ((prev: "posts" | "about") => "posts" | "about")
+  ) => void;
+
+  // Profile modal sheet state (Saved / Settings popup)
+  profileModal: "saved" | "settings" | null;
+  setProfileModal: (
+    modal:
+      | "saved"
+      | "settings"
+      | null
+      | ((prev: "saved" | "settings" | null) => "saved" | "settings" | null)
   ) => void;
 
   // Scanning state for home feed live scanning vs paused
@@ -74,8 +86,30 @@ export function OliveProvider({ children }: { children: ReactNode }) {
   const [isListening, setIsListening] = useState(false);
   const [typeQuery, setTypeQuery] = useState("");
 
-  // Profile screen tab state
-  const [profileTab, setProfileTab] = useState<"saved" | "settings">("saved");
+  // Profile screen tab state (defaults to "about" as first tab)
+  const [profileTab, setProfileTabState] = useState<"about" | "posts">("about");
+  const [profileModal, setProfileModal] = useState<"saved" | "settings" | null>(
+    null
+  );
+
+  const setProfileTab = (
+    tab:
+      | "posts"
+      | "about"
+      | "saved"
+      | "settings"
+      | ((prev: "posts" | "about") => "posts" | "about")
+  ) => {
+    if (tab === "saved") {
+      setProfileModal("saved");
+    } else if (tab === "settings") {
+      setProfileModal("settings");
+    } else if (typeof tab === "function") {
+      setProfileTabState(tab);
+    } else {
+      setProfileTabState(tab);
+    }
+  };
 
   // Scanning state (live searching vs paused)
   const [isScanning, setIsScanning] = useState(true);
@@ -182,6 +216,8 @@ export function OliveProvider({ children }: { children: ReactNode }) {
         closeSearch,
         profileTab,
         setProfileTab,
+        profileModal,
+        setProfileModal,
         isScanning,
         setIsScanning,
         activeGuidance,

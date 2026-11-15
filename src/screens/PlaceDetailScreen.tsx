@@ -72,10 +72,22 @@ export default function PlaceDetailScreen() {
           {post.category} · {post.distanceKm} km · {post.when}
         </Text>
 
-        {/* Place Author / Title */}
-        <Text style={[styles.authorHeadline, { color: colors.text }]}>
-          {post.author}
-        </Text>
+        {/* Place Author / Title (tap to view profile) */}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`View ${post.author}'s profile`}
+          onPress={() => {
+            closeSearch();
+            router.push({
+              pathname: "/profile",
+              params: { author: post.author, id: post.id },
+            });
+          }}
+        >
+          <Text style={[styles.authorHeadline, { color: colors.text }]}>
+            {post.author}
+          </Text>
+        </Pressable>
 
         {/* Description */}
         <Text style={[styles.bodyDescription, { color: colors.textSecondary }]}>

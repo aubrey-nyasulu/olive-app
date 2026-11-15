@@ -8,6 +8,7 @@ import {
   LayoutChangeEvent,
   Platform,
   Pressable,
+  Share,
   StyleSheet,
   Text,
   TextInput,
@@ -24,6 +25,12 @@ const SEARCH_OPTIONS = [
   { icon: "mic" as const, label: "Voice", mode: "voice" as const },
   { icon: "keypad" as const, label: "Type", mode: "type" as const },
   { icon: "camera" as const, label: "Visual", mode: "visual" as const },
+];
+
+const PROFILE_OPTIONS = [
+  { icon: "settings" as const, label: "Settings", id: "settings" as const },
+  { icon: "bookmark" as const, label: "Saved", id: "saved" as const },
+  { icon: "share-social" as const, label: "Share", id: "share" as const },
 ];
 
 // Acoustic LFO frequencies & strand layout for sound intake shapeshifting
@@ -52,6 +59,8 @@ export function AppShell({ children }: { children: ReactNode }) {
     closeSearch,
     profileTab,
     setProfileTab,
+    profileModal,
+    setProfileModal,
     isScanning,
     setIsScanning,
   } = useOlive();
@@ -74,6 +83,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const onProfile = pathname === "/profile";
   const showDock = onFeed || onProfile;
   const panelOpen = activeMode !== null;
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
 
   const isVoice = activeMode === "voice";
 
@@ -313,12 +323,13 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const handleCloseSearch = () => {
     Keyboard.dismiss();
+    setProfileMenuOpen(false);
     closeSearch();
   };
 
   const handleSearchAction = () => {
     if (onProfile) {
-      setProfileTab((prev) => (prev === "settings" ? "saved" : "settings"));
+      setProfileMenuOpen((prev) => !prev);
       return;
     }
     if (panelOpen) {
@@ -336,6 +347,10 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const handleLeftPill = () => {
     Keyboard.dismiss();
+    if (profileMenuOpen) {
+      setProfileMenuOpen(false);
+      return;
+    }
     if (panelOpen || searchOpen) {
       closeSearch();
     } else if (onProfile) {
@@ -369,10 +384,10 @@ export function AppShell({ children }: { children: ReactNode }) {
     >
       <View style={styles.contentWrap}>{children}</View>
 
-      {/* Dimmed backdrop when search is open */}
-      {(searchOpen || panelOpen) && (
+      {/* Dimmed backdrop when search is open or profile menu is open */}
+      {(searchOpen || panelOpen || profileMenuOpen) && (
         <Pressable
-          accessibilityLabel="Dismiss search"
+          accessibilityLabel="Dismiss options"
           onPress={handleCloseSearch}
           style={[styles.backdrop, { backgroundColor: colors.overlay }]}
         />
@@ -424,7 +439,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           ]}
           pointerEvents="box-none"
         >
-          {/* Vertical Floating Mode Options (Voice / Type / Visual) */}
+          {/* Vertical Floating Mode Options (Voice / Type / Visual on Feed) */}
           {searchOpen && !panelOpen && onFeed && (
             <View style={styles.modesPopup}>
               {SEARCH_OPTIONS.map(({ icon, label, mode }) => (
@@ -436,6 +451,50 @@ export function AppShell({ children }: { children: ReactNode }) {
                     setSearchOpen(false);
                     setActiveMode(mode);
                     setIsListening(mode === "voice");
+                  }}
+                  style={({ pressed }) => [
+                    styles.modeOptionRow,
+                    { opacity: pressed ? 0.8 : 1 },
+                  ]}
+                >
+                  <Text style={[styles.modeLabel, { color: colors.text }]}>
+                    {label}
+                  </Text>
+                  <View
+                    style={[
+                      styles.modeCircle,
+                      {
+                        backgroundColor: colors.text,
+                        shadowColor: colors.text,
+                      },
+                    ]}
+                  >
+                    <Ionicons name={icon} size={18} color={colors.bg} />
+                  </View>
+                </Pressable>
+              ))}
+            </View>
+          )}
+
+          {/* Vertical Floating Profile Options (Settings / Saved / Share on Profile) */}
+          {profileMenuOpen && onProfile && (
+            <View style={styles.modesPopup}>
+              {PROFILE_OPTIONS.map(({ icon, label, id }) => (
+                <Pressable
+                  key={label}
+                  accessibilityRole="button"
+                  accessibilityLabel={label}
+                  onPress={() => {
+                    setProfileMenuOpen(false);
+                    if (id === "settings") {
+                      setProfileModal("settings");
+                    } else if (id === "saved") {
+                      setProfileModal("saved");
+                    } else if (id === "share") {
+                      Share.share({
+                        message: "Olive — Hyperlocal Social Calendar in Lisbon",
+                      });
+                    }
                   }}
                   style={({ pressed }) => [
                     styles.modeOptionRow,
@@ -619,14 +678,14 @@ export function AppShell({ children }: { children: ReactNode }) {
               )}
             </View>
 
-            {/* Right Action Button: Settings (on profile), Search / Send / Voice Toggle (on feed) */}
+            {/* Right Action Button: Profile options caret (on profile), Search / Send / Voice Toggle (on feed) */}
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={
                 onProfile
-                  ? profileTab === "settings"
-                    ? "View saved places"
-                    : "Settings"
+                  ? profileMenuOpen
+                    ? "Close profile options"
+                    : "Open profile options"
                   : panelOpen
                   ? activeMode === "voice"
                     ? isListening
@@ -644,7 +703,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 styles.dockSideBtn,
                 {
                   backgroundColor: onProfile
-                    ? profileTab === "settings"
+                    ? profileMenuOpen
                       ? colors.signal
                       : colors.bg
                     : panelOpen || searchOpen
@@ -656,14 +715,10 @@ export function AppShell({ children }: { children: ReactNode }) {
             >
               {onProfile ? (
                 <Ionicons
-                  name={
-                    profileTab === "settings" ? "settings" : "settings-outline"
-                  }
-                  size={20}
+                  name={profileMenuOpen ? "close" : "chevron-up"}
+                  size={profileMenuOpen ? 20 : 22}
                   color={
-                    profileTab === "settings"
-                      ? colors.signalForeground
-                      : colors.signal
+                    profileMenuOpen ? colors.signalForeground : colors.text
                   }
                 />
               ) : panelOpen ? (

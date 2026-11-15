@@ -98,6 +98,51 @@ export const POSTS: Post[] = [
     image: evCharge,
     ratio: "4/3",
   },
+  {
+    id: "amara-campo-bakery",
+    author: "Amara Boateng",
+    kind: "Person",
+    category: "Bakery",
+    title: "Quiet morning terrace & warm sourdough",
+    body: "Morning cycle through Campo de Ourique. Sourdough loaves just cooled on the rack, terrace is sunny and peaceful.",
+    place: "R. Ferreira Borges 78",
+    lat: 38.717,
+    lng: -9.163,
+    distanceKm: 0.7,
+    when: "Fresh · 08:30",
+    image: bakery,
+    ratio: "4/3",
+  },
+  {
+    id: "amara-estrela-sunset",
+    author: "Amara Boateng",
+    kind: "Person",
+    category: "Concert",
+    title: "Acoustic strings by the gazebo",
+    body: "Spontaneous acoustic cello and Portuguese guitar session under the ficus trees. Bring a blanket; grass is dry.",
+    place: "Jardim da Estrela",
+    lat: 38.7136,
+    lng: -9.1597,
+    distanceKm: 1.2,
+    when: "Tonight · 19:30",
+    image: concert,
+    ratio: "1/1",
+  },
+  {
+    id: "amara-market-finds",
+    author: "Amara Boateng",
+    kind: "Person",
+    category: "Market",
+    title: "Fresh Alentejo figs & wildflowers",
+    body: "Saturday morning corner stalls are buzzing. Organic herb grower from Sintra is back near the central fountain.",
+    place: "Mercado de Campo de Ourique",
+    lat: 38.7162,
+    lng: -9.1654,
+    distanceKm: 0.5,
+    when: "Open until 14:00",
+    image: market,
+    ratio: "4/3",
+  },
 ];
 
 export const CATEGORIES = Array.from(new Set(POSTS.map((p) => p.category)));
@@ -122,6 +167,15 @@ export const REVIEWS: Record<string, Review[]> = {
   ],
   "ev-charge": [
     { by: "Miguel", stars: 5, text: "Chargers actually work, café is a bonus." },
+  ],
+  "amara-campo-bakery": [
+    { by: "Lucas", stars: 5, text: "Found this spot through Amara's recommendation. Sourdough is incredible!" },
+  ],
+  "amara-estrela-sunset": [
+    { by: "Matilde", stars: 5, text: "Magical atmosphere in the park, thank you for sharing." },
+  ],
+  "amara-market-finds": [
+    { by: "Bruno", stars: 5, text: "The Alentejo figs were so sweet!" },
   ],
 };
 

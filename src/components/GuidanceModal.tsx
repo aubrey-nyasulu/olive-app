@@ -11,8 +11,7 @@ import { useOlive } from "../context/OliveProvider";
 import { PlaceMap } from "./PlaceMap";
 
 export function GuidanceModal() {
-  const { colors, activeGuidance, nextGuidanceStep, stopGuidance } =
-    useOlive();
+  const { colors, activeGuidance, nextGuidanceStep, stopGuidance } = useOlive();
 
   if (!activeGuidance) return null;
 
@@ -30,242 +29,275 @@ export function GuidanceModal() {
   const progressPercent = ((currentStepIndex + 1) / steps.length) * 100;
 
   const modeIcon =
-    mode === "walking"
-      ? "walk"
-      : mode === "cycling"
-        ? "bicycle"
-        : "car";
+    mode === "walking" ? "walk" : mode === "cycling" ? "bicycle" : "car";
 
   return (
     <Modal
       visible={true}
+      transparent={true}
       animationType="slide"
-      presentationStyle="pageSheet"
       onRequestClose={stopGuidance}
     >
-      <View style={[styles.container, { backgroundColor: colors.bg }]}>
-        {/* Top Handle & Dismiss */}
-        <View style={styles.topBar}>
-          <View style={[styles.handleBar, { backgroundColor: colors.line }]} />
-          <Pressable
-            accessibilityLabel="Close guidance"
-            onPress={stopGuidance}
-            style={({ pressed }) => [
-              styles.closeBtn,
-              {
-                backgroundColor: colors.surfaceMuted,
-                borderColor: colors.line,
-                opacity: pressed ? 0.6 : 1,
-              },
-            ]}
-          >
-            <Ionicons name="close" size={20} color={colors.text} />
-          </Pressable>
-        </View>
-
-        <ScrollView
-          style={styles.scroll}
-          contentContainerStyle={styles.contentContainer}
-          showsVerticalScrollIndicator={false}
+      <View style={styles.modalOverlay}>
+        <Pressable
+          accessibilityLabel="Dismiss guidance"
+          style={[styles.modalBackdrop, { backgroundColor: colors.overlay }]}
+          onPress={stopGuidance}
+        />
+        <View
+          style={[
+            styles.container,
+            {
+              backgroundColor: colors.bg,
+              borderColor: colors.signal,
+            },
+          ]}
         >
-          {/* Active Status Header */}
-          <View style={styles.statusRow}>
+          {/* Top Handle & Dismiss */}
+          <View style={styles.topBar}>
             <View
-              style={[
-                styles.modeBadge,
-                { backgroundColor: colors.signalLight, borderColor: colors.signal },
-              ]}
-            >
-              <Ionicons name={modeIcon} size={16} color={colors.signal} />
-              <Text style={[styles.modeBadgeText, { color: colors.signal }]}>
-                {mode.toUpperCase()} GUIDANCE
-              </Text>
-            </View>
-
-            <View style={styles.etaBox}>
-              <Text style={[styles.etaValue, { color: colors.text }]}>
-                {etaMinutes}{" "}
-                <Text style={{ fontSize: 14, fontWeight: "500", color: colors.muted }}>
-                  min
-                </Text>
-              </Text>
-              <Text style={[styles.distRemaining, { color: colors.muted }]}>
-                {distanceRemainingKm} km away
-              </Text>
-            </View>
-          </View>
-
-          {/* Place Title */}
-          <View style={styles.venueInfo}>
-            <Text style={[styles.venueName, { color: colors.text }]}>
-              {post.author}
-            </Text>
-            <Text style={[styles.venuePlace, { color: colors.muted }]}>
-              {post.place} · {post.category}
-            </Text>
-          </View>
-
-          {/* Progress Bar */}
-          <View style={[styles.progressTrack, { backgroundColor: colors.surfaceMuted }]}>
-            <View
-              style={[
-                styles.progressFill,
+              style={[styles.handleBar, { backgroundColor: colors.line }]}
+            />
+            <Pressable
+              accessibilityLabel="Close guidance"
+              onPress={stopGuidance}
+              style={({ pressed }) => [
+                styles.closeBtn,
                 {
-                  width: `${progressPercent}%`,
-                  backgroundColor: colors.signal,
+                  backgroundColor: colors.surfaceMuted,
+                  borderColor: colors.line,
+                  opacity: pressed ? 0.6 : 1,
                 },
               ]}
-            />
+            >
+              <Ionicons name="close" size={20} color={colors.text} />
+            </Pressable>
           </View>
-          <Text style={[styles.stepCountText, { color: colors.muted }]}>
-            Step {currentStepIndex + 1} of {steps.length}
-          </Text>
 
-          {/* Large Turn-by-Turn Guidance Banner */}
+          <ScrollView
+            style={styles.scroll}
+            contentContainerStyle={styles.contentContainer}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Active Status Header */}
+            <View style={styles.statusRow}>
+              <View
+                style={[
+                  styles.modeBadge,
+                  {
+                    backgroundColor: colors.signalLight,
+                    borderColor: colors.signal,
+                  },
+                ]}
+              >
+                <Ionicons name={modeIcon} size={16} color={colors.signal} />
+                <Text style={[styles.modeBadgeText, { color: colors.signal }]}>
+                  {mode.toUpperCase()} GUIDANCE
+                </Text>
+              </View>
+
+              <View style={styles.etaBox}>
+                <Text style={[styles.etaValue, { color: colors.text }]}>
+                  {etaMinutes}{" "}
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      fontWeight: "500",
+                      color: colors.muted,
+                    }}
+                  >
+                    min
+                  </Text>
+                </Text>
+                <Text style={[styles.distRemaining, { color: colors.muted }]}>
+                  {distanceRemainingKm} km away
+                </Text>
+              </View>
+            </View>
+
+            {/* Place Title */}
+            <View style={styles.venueInfo}>
+              <Text style={[styles.venueName, { color: colors.text }]}>
+                {post.author}
+              </Text>
+              <Text style={[styles.venuePlace, { color: colors.muted }]}>
+                {post.place} · {post.category}
+              </Text>
+            </View>
+
+            {/* Progress Bar */}
+            <View
+              style={[
+                styles.progressTrack,
+                { backgroundColor: colors.surfaceMuted },
+              ]}
+            >
+              <View
+                style={[
+                  styles.progressFill,
+                  {
+                    width: `${progressPercent}%`,
+                    backgroundColor: colors.signal,
+                  },
+                ]}
+              />
+            </View>
+            <Text style={[styles.stepCountText, { color: colors.muted }]}>
+              Step {currentStepIndex + 1} of {steps.length}
+            </Text>
+
+            {/* Large Turn-by-Turn Guidance Banner */}
+            <View
+              style={[
+                styles.instructionCard,
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: colors.line,
+                  shadowColor: colors.text,
+                },
+              ]}
+            >
+              <View
+                style={[
+                  styles.stepIconWrap,
+                  {
+                    backgroundColor: isFinalStep ? colors.signal : colors.text,
+                  },
+                ]}
+              >
+                <Ionicons
+                  name={currentStep.iconName}
+                  size={28}
+                  color={colors.bg}
+                />
+              </View>
+
+              <View style={styles.instructionTextWrap}>
+                <Text
+                  style={[styles.instructionDistance, { color: colors.signal }]}
+                >
+                  In {currentStep.distance}
+                </Text>
+                <Text style={[styles.instructionMain, { color: colors.text }]}>
+                  {currentStep.instruction}
+                </Text>
+                <Text
+                  style={[styles.instructionLandmark, { color: colors.muted }]}
+                >
+                  {currentStep.landmark}
+                </Text>
+              </View>
+            </View>
+
+            {/* Live In-App Route Visualizer */}
+            <View style={styles.mapWrap}>
+              <PlaceMap post={post} height={200} interactive={false} />
+            </View>
+
+            {/* All Steps Preview */}
+            <View style={styles.allStepsWrap}>
+              <Text style={[styles.allStepsHeader, { color: colors.muted }]}>
+                ROUTE ITINERARY
+              </Text>
+              {steps.map((step, idx) => {
+                const isPast = idx < currentStepIndex;
+                const isCurrent = idx === currentStepIndex;
+                return (
+                  <View
+                    key={step.id}
+                    style={[
+                      styles.stepRow,
+                      {
+                        borderColor: colors.line,
+                        opacity: isPast ? 0.45 : 1,
+                      },
+                    ]}
+                  >
+                    <View
+                      style={[
+                        styles.stepMiniDot,
+                        {
+                          backgroundColor: isCurrent
+                            ? colors.signal
+                            : isPast
+                            ? colors.muted
+                            : colors.line,
+                        },
+                      ]}
+                    />
+                    <View style={styles.stepRowContent}>
+                      <Text
+                        style={[
+                          styles.stepRowInstruction,
+                          {
+                            color: isCurrent ? colors.signal : colors.text,
+                            fontWeight: isCurrent ? "700" : "500",
+                          },
+                        ]}
+                      >
+                        {step.instruction}
+                      </Text>
+                      <Text
+                        style={[styles.stepRowSub, { color: colors.muted }]}
+                      >
+                        {step.distance} · {step.landmark}
+                      </Text>
+                    </View>
+                  </View>
+                );
+              })}
+            </View>
+          </ScrollView>
+
+          {/* Bottom Actions */}
           <View
             style={[
-              styles.instructionCard,
+              styles.bottomDock,
               {
                 backgroundColor: colors.surface,
-                borderColor: colors.line,
-                shadowColor: colors.text,
+                borderTopColor: colors.line,
               },
             ]}
           >
-            <View
-              style={[
-                styles.stepIconWrap,
+            <Pressable
+              accessibilityRole="button"
+              onPress={isFinalStep ? stopGuidance : nextGuidanceStep}
+              style={({ pressed }) => [
+                styles.primaryBtn,
                 {
-                  backgroundColor: isFinalStep ? colors.signal : colors.text,
+                  backgroundColor: colors.signal,
+                  opacity: pressed ? 0.85 : 1,
                 },
               ]}
             >
               <Ionicons
-                name={currentStep.iconName}
-                size={28}
-                color={colors.bg}
+                name={isFinalStep ? "checkmark-circle" : "arrow-forward"}
+                size={18}
+                color={colors.signalForeground}
               />
-            </View>
-
-            <View style={styles.instructionTextWrap}>
-              <Text style={[styles.instructionDistance, { color: colors.signal }]}>
-                In {currentStep.distance}
+              <Text
+                style={[
+                  styles.primaryBtnText,
+                  { color: colors.signalForeground },
+                ]}
+              >
+                {isFinalStep ? "Arrived at Destination" : "Next Direction"}
               </Text>
-              <Text style={[styles.instructionMain, { color: colors.text }]}>
-                {currentStep.instruction}
-              </Text>
-              <Text style={[styles.instructionLandmark, { color: colors.muted }]}>
-                {currentStep.landmark}
-              </Text>
-            </View>
-          </View>
+            </Pressable>
 
-          {/* Live In-App Route Visualizer */}
-          <View style={styles.mapWrap}>
-            <PlaceMap post={post} height={200} interactive={false} />
-          </View>
-
-          {/* All Steps Preview */}
-          <View style={styles.allStepsWrap}>
-            <Text style={[styles.allStepsHeader, { color: colors.muted }]}>
-              ROUTE ITINERARY
-            </Text>
-            {steps.map((step, idx) => {
-              const isPast = idx < currentStepIndex;
-              const isCurrent = idx === currentStepIndex;
-              return (
-                <View
-                  key={step.id}
-                  style={[
-                    styles.stepRow,
-                    {
-                      borderColor: colors.line,
-                      opacity: isPast ? 0.45 : 1,
-                    },
-                  ]}
-                >
-                  <View
-                    style={[
-                      styles.stepMiniDot,
-                      {
-                        backgroundColor: isCurrent
-                          ? colors.signal
-                          : isPast
-                            ? colors.muted
-                            : colors.line,
-                      },
-                    ]}
-                  />
-                  <View style={styles.stepRowContent}>
-                    <Text
-                      style={[
-                        styles.stepRowInstruction,
-                        {
-                          color: isCurrent ? colors.signal : colors.text,
-                          fontWeight: isCurrent ? "700" : "500",
-                        },
-                      ]}
-                    >
-                      {step.instruction}
-                    </Text>
-                    <Text style={[styles.stepRowSub, { color: colors.muted }]}>
-                      {step.distance} · {step.landmark}
-                    </Text>
-                  </View>
-                </View>
-              );
-            })}
-          </View>
-        </ScrollView>
-
-        {/* Bottom Actions */}
-        <View
-          style={[
-            styles.bottomDock,
-            {
-              backgroundColor: colors.surface,
-              borderTopColor: colors.line,
-            },
-          ]}
-        >
-          <Pressable
-            accessibilityRole="button"
-            onPress={isFinalStep ? stopGuidance : nextGuidanceStep}
-            style={({ pressed }) => [
-              styles.primaryBtn,
-              {
-                backgroundColor: colors.signal,
-                opacity: pressed ? 0.85 : 1,
-              },
-            ]}
-          >
-            <Ionicons
-              name={isFinalStep ? "checkmark-circle" : "arrow-forward"}
-              size={18}
-              color={colors.signalForeground}
-            />
-            <Text
-              style={[
-                styles.primaryBtnText,
-                { color: colors.signalForeground },
+            <Pressable
+              accessibilityRole="button"
+              onPress={stopGuidance}
+              style={({ pressed }) => [
+                styles.cancelBtn,
+                { opacity: pressed ? 0.6 : 1 },
               ]}
             >
-              {isFinalStep ? "Arrived at Destination" : "Next Direction"}
-            </Text>
-          </Pressable>
-
-          <Pressable
-            accessibilityRole="button"
-            onPress={stopGuidance}
-            style={({ pressed }) => [
-              styles.cancelBtn,
-              { opacity: pressed ? 0.6 : 1 },
-            ]}
-          >
-            <Text style={[styles.cancelBtnText, { color: colors.muted }]}>
-              End guidance
-            </Text>
-          </Pressable>
+              <Text style={[styles.cancelBtnText, { color: colors.muted }]}>
+                End guidance
+              </Text>
+            </Pressable>
+          </View>
         </View>
       </View>
     </Modal>
@@ -273,8 +305,27 @@ export function GuidanceModal() {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  modalOverlay: {
     flex: 1,
+    justifyContent: "flex-end",
+    alignItems: "center",
+    paddingHorizontal: 8,
+    paddingBottom: 12,
+  },
+  modalBackdrop: {
+    ...StyleSheet.absoluteFill,
+  },
+  container: {
+    width: "100%",
+    maxHeight: "88%",
+    borderRadius: 32,
+    borderWidth: 2,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 10,
   },
   topBar: {
     height: 48,
