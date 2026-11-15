@@ -140,7 +140,7 @@ export default function ProfileScreen() {
     id?: string;
   }>();
   const profile: UserProfile = getProfile(author || id);
-  const isMe = profile.id === "amara";
+  const isMe = profile.id === "chisomo" || profile.id === "amara";
 
   // Ensure that posts in the posts tab were actually made by the profile owner
   const ownerPosts = profile.posts.filter((p) => {

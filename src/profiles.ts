@@ -9,7 +9,8 @@ const concert = require("../assets/images/place-concert.jpg");
 const bakery = require("../assets/images/place-bakery.jpg");
 const market = require("../assets/images/place-market.jpg");
 const pharmacy = require("../assets/images/place-pharmacy.jpg");
-const evCharge = require("../assets/images/place-ev-charge.jpg");
+const chambo = require("../assets/images/place-chambo.jpg");
+const evCharge = require("../assets/images/place-chambo.jpg");
 
 export type ProfileKind = "Person" | "Business" | "Event";
 
@@ -47,294 +48,298 @@ export type UserProfile = {
 };
 
 export const PROFILES: Record<string, UserProfile> = {
-  amara: {
-    id: "amara",
-    name: "Amara Boateng",
-    handle: "@amara",
+  chisomo: {
+    id: "chisomo",
+    name: "Chisomo Banda",
+    handle: "@chisomo",
     kind: "Person",
-    category: "Local Guide & Curator",
-    neighborhood: "Campo de Ourique, Lisboa",
+    category: "Local Guide & Cultural Curator",
+    neighborhood: "Area 10 & Old Town, Lilongwe",
     avatar: avatarAmara,
     cover: coverAmara,
-    bio: "Exploring Lisbon's quiet corners, artisanal bakeries, and open-air acoustic sets. Morning cyclist & neighborhood archivist.",
+    bio: "Exploring Lilongwe's quiet shaded lanes, artisanal coffee roasters, and live acoustic sessions by the sanctuary. Cyclist & neighborhood archivist.",
     stats: {
       postsCount: 3,
-      statA: { label: "Saved", value: 4 },
-      statB: { label: "Following", value: 142 },
-      statC: { label: "Followers", value: 318 },
+      statA: { label: "Saved", value: 6 },
+      statB: { label: "Following", value: 168 },
+      statC: { label: "Followers", value: 412 },
     },
     info: {
-      headline: "Hyperlocal Curator & Morning Cyclist",
+      headline: "Hyperlocal Lilongwe Curator & Morning Cyclist",
       about:
-        "Passionate about neighborhood mobility, independent bakeries, and sunset live sets across Lisbon's public parks. I track morning sourdough batches and free outdoor acoustic concerts in Estrela and Campo de Ourique.",
-      hoursOrSchedule: "Active weekday mornings (07:30–10:00) & weekend afternoons",
-      location: "Campo de Ourique, 1350-001 Lisboa",
-      memberSince: "Member since March 2024",
+        "Passionate about neighborhood mobility, independent bakeries, and open-air acoustic sets across Lilongwe. I track fresh morning sourdough batches in Area 10, acoustic sessions along the Lingadzi river trails, and organic produce drops in Old Town.",
+      hoursOrSchedule: "Active weekday mornings (07:00–09:30) & weekend afternoons",
+      location: "Presidential Way, Area 10, Lilongwe",
+      memberSince: "Member since January 2024",
       badges: [
         "Verified Guide",
         "Early Riser",
-        "Estrela Local",
+        "Area 10 Local",
         "Acoustic Enthusiast",
       ],
       calendarHabits:
-        "Shares fresh bakery batches, weekly flea markets, and live park session reminders.",
-      social: "@amara_lisboa",
+        "Shares fresh bakery batches, weekly farmer produce drops, and live acoustic sanctuary session reminders.",
+      social: "@chisomo_llw",
     },
     posts: [
-      POSTS[6], // amara-campo-bakery
-      POSTS[7], // amara-estrela-sunset
-      POSTS[8], // amara-market-finds
+      POSTS[6], // chisomo-bakery
+      POSTS[7], // chisomo-acoustic-set
+      POSTS[8], // chisomo-market-finds
     ],
   },
 
   forno: {
     id: "forno",
-    name: "Forno Lento",
-    handle: "@fornolento",
+    name: "Mabu Artisan Bakes",
+    handle: "@mabubakes",
     kind: "Business",
-    category: "Artisanal Wood-Fired Bakery",
-    neighborhood: "Estrela, Lisboa",
+    category: "Artisanal Wood-Fired Bakery & Café",
+    neighborhood: "Area 10, Lilongwe",
     avatar: bakery,
     cover: bakery,
-    bio: "Artisanal wood-fired bakery in Estrela. Natural sourdough loaves and warm almond croissants baked fresh twice daily with organic local flour.",
+    bio: "Artisanal bakery and specialty café in Area 10. Slow-fermented sourdough loaves, cardamom morning buns, and warm almond croissants baked fresh twice daily.",
     stats: {
       postsCount: 2,
       statA: { label: "Rating", value: "4.9 ★" },
       statB: { label: "Batches", value: "2 / day" },
-      statC: { label: "Followers", value: "1.2k" },
+      statC: { label: "Followers", value: "1.4k" },
     },
     info: {
       headline: "Wood-Fired Bakery & Specialty Coffee",
       about:
-        "Every loaf is naturally fermented for 28 hours and baked in our custom wood-fired oven using ancient grain flours sourced from the Alentejo. Come early for warm croissants or stop by for afternoon baguettes.",
-      hoursOrSchedule: "Tue – Sun: 07:30 – 19:00 (Mon closed)",
-      location: "R. da Esperança 41, 1200-655 Lisboa",
-      phone: "+351 21 892 4110",
-      website: "fornolento.pt",
-      social: "@fornolento_lisboa",
+        "Every loaf is naturally fermented for 24 hours using local stoneground flours and baked fresh in our brick oven. Pair our famous warm croissants with single-origin coffee from northern Malawi's Misuku Hills.",
+      hoursOrSchedule: "Tue – Sun: 07:00 – 18:00 (Mon closed)",
+      location: "14 Presidential Way, Area 10, Lilongwe",
+      phone: "+265 1 772 400",
+      website: "mabubakes.mw",
+      social: "@mabubakes_llw",
       memberSince: "Partner since Jan 2023",
       badges: [
-        "Organic Flour",
-        "Wood Fired Oven",
-        "Outdoor Benches",
-        "Cards Accepted",
-        "Dog Friendly",
+        "Stoneground Flour",
+        "Misuku Coffee",
+        "Garden Seating",
+        "Airtel / Mo626 Accepted",
+        "Pet Friendly",
       ],
       calendarHabits:
-        "Batch 1: 08:00 (Sourdough & warm croissants)\nBatch 2: 14:00 (Rustic baguettes & cinnamon buns)",
+        "Batch 1: 07:30 (Sourdough & warm croissants)\nBatch 2: 13:30 (Country boules & rosemary focaccia)",
     },
     posts: [
       POSTS[2],
       {
         ...POSTS[2],
         id: "forno-afternoon",
-        title: "Afternoon country loaves ready",
-        when: "Fresh batch · 14:00",
+        title: "Afternoon country boules ready",
+        when: "Fresh batch · 13:30",
       },
     ],
   },
 
   "park-live": {
     id: "park-live",
-    name: "Jardim Sessions",
-    handle: "@jardimsessions",
+    name: "Lingadzi Sessions",
+    handle: "@lingadzisessions",
     kind: "Event",
-    category: "Live Music Collective",
-    neighborhood: "Jardim da Estrela, Lisboa",
+    category: "Live Music & Arts Collective",
+    neighborhood: "Lilongwe Wildlife Sanctuary, Kenyatta Drive",
     avatar: concert,
     cover: concert,
-    bio: "Sunset acoustic sessions and open-air live music across Lisbon's botanical gardens and public parks. Free entry, acoustic & indie folk.",
+    bio: "Sunset acoustic sessions and open-air performances under the sanctuary forest canopy. Acoustic folk, afro-soul, and indie strings. Free entry.",
     stats: {
       postsCount: 2,
-      statA: { label: "Events", value: 28 },
+      statA: { label: "Sessions", value: 32 },
       statB: { label: "Rating", value: "5.0 ★" },
-      statC: { label: "Followers", value: "2.8k" },
+      statC: { label: "Followers", value: "3.2k" },
     },
     info: {
       headline: "Open-Air Music & Cultural Gatherings",
       about:
-        "We curate independent musicians and intimate acoustic acts in Lisbon's heritage parks. Bring picnic blankets, wine, and friends. Low decibel, community-focused, and family friendly.",
-      hoursOrSchedule: "Bi-weekly Fri & Sat: 19:00 – 23:00 (Live sets start at 21:00)",
-      location: "Jardim da Estrela, 1200-667 Lisboa",
-      website: "jardimsessions.org",
-      social: "@jardimsessions",
+        "We curate independent Malawian musicians and intimate acoustic performances beneath the ancient indigenous trees of the Lilongwe Wildlife Sanctuary. Bring picnic blankets, baobab juice, and friends. Low decibel, family friendly.",
+      hoursOrSchedule: "Bi-weekly Fri & Sat: 17:30 – 21:30 (Acoustic sets start at 18:30)",
+      location: "Lilongwe Wildlife Sanctuary, Kenyatta Drive, Lilongwe",
+      website: "lingadzisessions.mw",
+      social: "@lingadzisessions",
       memberSince: "Host since June 2023",
       badges: [
         "Free Entry",
         "All Ages",
-        "Food Trucks",
+        "Artisan Stalls",
         "Picnic Friendly",
         "Acoustic Only",
       ],
       calendarHabits:
-        "Bi-weekly weekend evening acoustic sets from April through October.",
+        "Bi-weekly dry season weekend acoustic sets along the sanctuary nature trail.",
     },
     posts: [
       POSTS[1],
       {
         ...POSTS[1],
         id: "park-live-next",
-        title: "Sunday Sunset Jazz Trio",
-        when: "Sunday · 18:30",
+        title: "Sunday Sunset Kalimba & Guitar Trio",
+        when: "Sunday · 18:00",
       },
     ],
   },
 
   "saturday-market": {
     id: "saturday-market",
-    name: "Marta Reis",
-    handle: "@martareis",
+    name: "Tamanda Gondwe",
+    handle: "@tamandagondwe",
     kind: "Person",
-    category: "Market Host & Botanical Artist",
-    neighborhood: "Praça das Flores, Lisboa",
+    category: "Market Host & Botanical Herbalist",
+    neighborhood: "Four Seasons, Area 12, Lilongwe",
     avatar: market,
     cover: market,
-    bio: "Hosting Saturday flea markets, craft tables, and bike fix-it corners in Praça das Flores. Passionate about urban gardening and zero waste living.",
+    bio: "Hosting Saturday garden markets, indigenous botanical craft stalls, and seed-saving corners at Four Seasons. Passionate about agroecology and local food heritage.",
     stats: {
       postsCount: 2,
-      statA: { label: "Drops", value: 16 },
-      statB: { label: "Trust", value: "99%" },
-      statC: { label: "Followers", value: 420 },
+      statA: { label: "Markets", value: 24 },
+      statB: { label: "Trust", value: "100%" },
+      statC: { label: "Followers", value: 580 },
     },
     info: {
-      headline: "Community Organizer & Botanical Illustrator",
+      headline: "Market Coordinator & Botanical Herbalist",
       about:
-        "Living around Praça das Flores for 8 years. I organize our Saturday morning market connecting local Alentejo organic growers, handmade soap crafters, and a friendly community bike tool corner.",
+        "Organizing the Four Seasons Saturday gathering for 5 years. Connecting Dedza organic vegetable growers, Salima fruit farmers, natural beeswax crafters, and local herbal tea blenders in a relaxed garden atmosphere.",
       hoursOrSchedule: "Every Saturday: 08:00 – 14:00",
-      location: "Praça das Flores, 1200-192 Lisboa",
-      social: "@marta_ilustra",
+      location: "Four Seasons Gardens, Presidential Way, Area 12, Lilongwe",
+      social: "@tamanda_herbs",
       memberSince: "Member since Sept 2023",
       badges: [
         "Community Host",
-        "Zero Waste",
-        "Bike Fix-It",
+        "Zero Chemical",
+        "Seed Swap",
         "Dog Friendly",
       ],
       calendarHabits:
-        "Saturday morning fresh farm produce drops and monthly botanical plant swaps.",
+        "Saturday morning organic harvest drops and monthly indigenous plant swaps.",
     },
     posts: [
       POSTS[3],
       {
         ...POSTS[3],
-        id: "market-plants",
-        title: "Neighborhood Plant & Cutting Swap",
-        when: "Next Sat · 11:00",
+        id: "market-herbs",
+        title: "Indigenous Tree & Herb Seedling Swap",
+        when: "Next Sat · 10:30",
       },
     ],
   },
 
   "harbour-fuel": {
     id: "harbour-fuel",
-    name: "Harbour Fuel",
-    handle: "@harbourfuel",
+    name: "Puma Energy",
+    handle: "@pumaenergy",
     kind: "Business",
-    category: "24/7 Station & Waterfront Stop",
-    neighborhood: "Av. Brasília, Lisboa",
+    category: "24/7 Station & Quick-Shop",
+    neighborhood: "Kenyatta Drive, Area 3, Lilongwe",
     avatar: fuel,
     cover: fuel,
-    bio: "24/7 service station with fuel, air, vacuum, soft-touch automated wash, and fresh Delta barista coffee along the riverfront highway.",
+    bio: "24/7 service station with clean fuels, tyre service, automated wash, and a 24hr Quick-Shop for snacks and fresh barista coffee on Kenyatta Drive.",
     stats: {
       postsCount: 1,
-      statA: { label: "Rating", value: "4.6 ★" },
+      statA: { label: "Rating", value: "4.8 ★" },
       statB: { label: "Status", value: "24 / 7" },
-      statC: { label: "Reviews", value: 112 },
+      statC: { label: "Reviews", value: 142 },
     },
     info: {
-      headline: "Full-Service Waterfront Station & Mart",
+      headline: "Full-Service 24/7 Fuel Station & Quick-Shop",
       about:
-        "Conveniently located along the Tagus riverfront just off the bridge bypass. 24/7 fueling bays, soft-cloth express wash, fresh bakery pastries, and convenience essentials.",
+        "Centrally positioned on Kenyatta Drive in Area 3. Clean fuel dispensers, high-pressure foam wash, 24hr Quick-Shop, ATM, and reliable power backup.",
       hoursOrSchedule: "Open 24 hours, 7 days a week",
-      location: "Av. Brasília 12, 1300-598 Lisboa",
-      phone: "+351 21 390 1200",
+      location: "Kenyatta Drive, Area 3, Lilongwe",
+      phone: "+265 1 754 110",
       badges: [
         "Open 24/7",
-        "Car Wash",
-        "Air & Water",
-        "Espresso Bar",
-        "Contactless",
+        "24hr Quick-Shop",
+        "Express Wash",
+        "Tyre Service",
+        "Card & Mobile Money",
       ],
       calendarHabits:
-        "Real-time morning diesel/petrol price adjustments and express wash bay queue alerts.",
+        "Fuel availability confirmations and peak morning rush wash bay queue alerts.",
     },
     posts: [POSTS[0]],
   },
 
   pharmacy: {
     id: "pharmacy",
-    name: "Farmácia Central",
-    handle: "@farmaciacentral",
+    name: "Bwaila Community Pharmacy",
+    handle: "@bwailapharmacy",
     kind: "Business",
     category: "On-Duty Community Pharmacy",
-    neighborhood: "Calçada do Combro, Lisboa",
+    neighborhood: "Old Town / Area 2, Lilongwe",
     avatar: pharmacy,
     cover: pharmacy,
-    bio: "Neighborhood dispensary with late-night on-duty shifts, prescription fulfillment, natural cosmetics, and healthcare consultation.",
+    bio: "Trusted community dispensary on Kamuzu Procession Rd. Night-duty shifts, certified prescription fulfillment, rapid diagnostic tests, and health care.",
     stats: {
       postsCount: 1,
-      statA: { label: "Rating", value: "4.7 ★" },
+      statA: { label: "Rating", value: "4.8 ★" },
       statB: { label: "Shift", value: "On-Duty" },
-      statC: { label: "Reviews", value: 48 },
+      statC: { label: "Reviews", value: 64 },
     },
     info: {
-      headline: "Trusted Community Pharmacy Since 1928",
+      headline: "Trusted Community Pharmacy & Health Depot",
       about:
-        "Serving the Santa Catarina and Bica quarters for generations. Dedicated night service window, blood pressure monitoring, traveler medical consultation, and multi-lingual staff.",
-      hoursOrSchedule: "Mon – Sat: 08:30 – 00:00 (On-duty rotation nights)",
-      location: "Calçada do Combro 8, 1200-114 Lisboa",
-      phone: "+351 21 342 5678",
+        "Serving Lilongwe residents for over two decades. Dedicated night-duty dispensing window, licensed clinical pharmacists, blood pressure & glucose checks, and traveler consultations.",
+      hoursOrSchedule: "Mon – Sat: 08:00 – 23:00 (On-duty emergency rotation 24h)",
+      location: "Kamuzu Procession Rd 44, Area 2, Lilongwe",
+      phone: "+265 1 751 890",
       badges: [
         "Late Night On-Duty",
-        "English Spoken",
+        "Licensed Pharmacist",
         "Blood Pressure Check",
-        "Wheelchair Access",
+        "Wheelchair Friendly",
       ],
       calendarHabits:
-        "Official late-night on-duty emergency shifts and seasonal vaccine availability.",
+        "Official late-night emergency rota updates and seasonal pediatric & antimalarial stock alerts.",
     },
     posts: [POSTS[4]],
   },
 
-  "ev-charge": {
-    id: "ev-charge",
-    name: "VoltPoint",
-    handle: "@voltpoint",
+  "chambo-grill": {
+    id: "chambo-grill",
+    name: "Kachere Chambo & Braai",
+    handle: "@kacherebraai",
     kind: "Business",
-    category: "Ultra-Fast EV Charging Hub",
-    neighborhood: "LxFactory / Alcântara, Lisboa",
-    avatar: evCharge,
-    cover: evCharge,
-    bio: "150 kW CCS fast chargers powered by 100% renewable energy. Covered bays with high-speed Wi-Fi and artisan bakery adjacent.",
+    category: "Lake Malawi Chambo & Charcoal Braai",
+    neighborhood: "Gateway Mall, Area 47, Lilongwe",
+    avatar: chambo,
+    cover: chambo,
+    bio: "Authentic charcoal braai specializing in fresh Lake Malawi Chambo fish, seasoned beef cuts, spiced kachumbari relish, and chilled drinks on our garden lawn.",
     stats: {
       postsCount: 1,
-      statA: { label: "Chargers", value: "4 / 4" },
-      statB: { label: "Speed", value: "150 kW" },
-      statC: { label: "Green", value: "100%" },
+      statA: { label: "Rating", value: "4.9 ★" },
+      statB: { label: "Daily Catch", value: "Fresh" },
+      statC: { label: "Reviews", value: 92 },
     },
     info: {
-      headline: "100% Renewable Ultra-Fast Charging Station",
+      headline: "Fresh Lake Malawi Chambo & Authentic Charcoal Braai",
       about:
-        "Clean energy mobility hub next to LxFactory. Features 4x 150 kW DC fast chargers with CCS2 and CHAdeMO connectors. Automated app-free contactless payment.",
-      hoursOrSchedule: "Open 24 hours, 7 days a week",
-      location: "R. Rodrigues Faria 103, 1300-501 Lisboa",
-      phone: "+351 21 800 9000",
-      website: "voltpoint.energy",
+        "Freshly caught Chambo delivered daily from Lake Malawi. Each fish is seasoned with aromatic herbs and slow-grilled over charcoal to tender perfection. Enjoy with crispy potato wedges or hot nsima and freshly diced kachumbari.",
+      hoursOrSchedule: "Mon – Sun: 11:30 – 22:30",
+      location: "Gateway Mall Terrace, Area 47, Lilongwe",
+      phone: "+265 1 774 880",
+      website: "kacherebraai.mw",
       badges: [
-        "150 kW Fast Charge",
-        "100% Green Energy",
-        "Covered Canopy",
-        "Contactless",
-        "Free Wi-Fi",
+        "Fresh Lake Catch",
+        "Charcoal Braai",
+        "Garden Terrace",
+        "Takeaway & Dine-In",
+        "Airtel / Mo626",
       ],
       calendarHabits:
-        "Live charger occupancy updates and off-peak green charging discounts.",
+        "Fresh lake catch arrivals at 11:00 and sunset weekend braai specials.",
     },
     posts: [POSTS[5]],
   },
 };
 
+// Aliases for backward compatibility
+PROFILES["ev-charge"] = PROFILES["chambo-grill"];
+PROFILES.amara = PROFILES.chisomo;
+
 export function getProfile(query?: string | null): UserProfile {
-  if (!query) return PROFILES.amara;
+  if (!query) return PROFILES.chisomo;
 
   const normalized = query.toLowerCase().trim();
 
@@ -369,5 +374,5 @@ export function getProfile(query?: string | null): UserProfile {
     }
   }
 
-  return PROFILES.amara;
+  return PROFILES.chisomo;
 }

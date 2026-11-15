@@ -492,7 +492,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                       setProfileModal("saved");
                     } else if (id === "share") {
                       Share.share({
-                        message: "Olive — Hyperlocal Social Calendar in Lisbon",
+                        message: "Olive — Hyperlocal Social Calendar in Lilongwe",
                       });
                     }
                   }}

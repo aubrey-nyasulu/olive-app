@@ -122,7 +122,7 @@ export function PlaceMap({
             { color: colors.muted },
           ]}
         >
-          Av. Central
+          Presidential Way
         </Text>
         <Text
           style={[

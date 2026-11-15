@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { SettingsState } from "./models";
 
-export const CATEGORIES = ["Fuel", "Concert", "Bakery", "Market", "Pharmacy"];
+export const CATEGORIES = ["Fuel", "Concert", "Bakery", "Market", "Pharmacy", "Dining"];
 
 export const DEFAULT_SETTINGS: SettingsState = {
   radiusKm: 3,
@@ -15,7 +15,7 @@ export const DEFAULT_SAVED_IDS = [
   "forno",
   "park-live",
   "saturday-market",
-  "ev-charge",
+  "chambo-grill",
 ];
 
 const SETTINGS_KEY = "olive:settings";
