@@ -9,6 +9,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { AppShell } from "../components/AppShell";
@@ -19,6 +20,7 @@ import type { Post, TravelMode } from "../models";
 import { CATEGORIES, POSTS } from "../places";
 
 const avatarImage = require("../../assets/images/profile-avatar.jpg");
+const coverImage = require("../../assets/images/profile-cover.jpg");
 
 const RADII = [1, 3, 5, 10];
 
@@ -139,15 +141,53 @@ export default function ProfileScreen() {
       <Screen>
         <ScrollView
           style={styles.scroll}
-          contentContainerStyle={[
-            styles.contentContainer,
-            { paddingTop: insets.top + 24 },
-          ]}
+          contentContainerStyle={styles.contentContainer}
           showsVerticalScrollIndicator={false}
         >
-          {/* User Profile Header */}
-          <View style={styles.profileHeader}>
-            <Image source={avatarImage} style={styles.largeAvatar} />
+          {/* Cover Image Banner */}
+          <View style={[styles.coverContainer, { height: insets.top + 160 }]}>
+            <Image source={coverImage} style={styles.coverImage} />
+            <LinearGradient
+              colors={["rgba(0,0,0,0.38)", "transparent", "rgba(0,0,0,0.18)"]}
+              locations={[0, 0.45, 1]}
+              style={StyleSheet.absoluteFill}
+            />
+          </View>
+
+          {/* Profile Section with Horizontal Padding */}
+          <View style={styles.profileSection}>
+            {/* Avatar Row overlapping Cover */}
+            <View style={styles.avatarRow}>
+              <Image
+                source={avatarImage}
+                style={[
+                  styles.largeAvatar,
+                  { borderColor: colors.bg, backgroundColor: colors.surface },
+                ]}
+              />
+              <View
+                style={[
+                  styles.locationBadge,
+                  {
+                    backgroundColor: colors.surfaceMuted,
+                    borderColor: colors.line,
+                  },
+                ]}
+              >
+                <Ionicons
+                  name="location-sharp"
+                  size={13}
+                  color={colors.signal}
+                />
+                <Text
+                  style={[styles.locationBadgeText, { color: colors.text }]}
+                >
+                  Lisboa
+                </Text>
+              </View>
+            </View>
+
+            {/* User Profile Info */}
             <View style={styles.profileInfo}>
               <Text style={[styles.profileName, { color: colors.text }]}>
                 Amara Boateng
@@ -156,15 +196,14 @@ export default function ProfileScreen() {
                 @amara · Campo de Ourique
               </Text>
             </View>
-          </View>
 
-          {/* Segmented Tab Switcher (Saved vs Settings) */}
-          <View
-            style={[
-              styles.segmentedBar,
-              { backgroundColor: colors.surfaceMuted, borderColor: colors.line },
-            ]}
-          >
+            {/* Segmented Tab Switcher (Saved vs Settings) */}
+            <View
+              style={[
+                styles.segmentedBar,
+                { backgroundColor: colors.surfaceMuted, borderColor: colors.line },
+              ]}
+            >
             <Pressable
               accessibilityRole="button"
               onPress={() => setProfileTab("saved")}
@@ -391,6 +430,7 @@ export default function ProfileScreen() {
               </Pressable>
             </View>
           )}
+          </View>
         </ScrollView>
       </Screen>
     </AppShell>
@@ -402,23 +442,53 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   contentContainer: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 0,
+    paddingTop: 0,
     paddingBottom: 130, // clearance for floating dock
   },
-  profileHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 16,
-    marginBottom: 24,
+  coverContainer: {
+    width: "100%",
+    position: "relative",
+    overflow: "hidden",
   },
-  largeAvatar: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+  coverImage: {
+    width: "100%",
+    height: "100%",
     resizeMode: "cover",
   },
+  profileSection: {
+    paddingHorizontal: 16,
+  },
+  avatarRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    justifyContent: "space-between",
+    marginTop: -44,
+    marginBottom: 12,
+  },
+  largeAvatar: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    borderWidth: 4,
+    resizeMode: "cover",
+  },
+  locationBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 11,
+    paddingVertical: 6,
+    borderRadius: 9999,
+    borderWidth: 1,
+    marginBottom: 4,
+  },
+  locationBadgeText: {
+    fontSize: 12.5,
+    fontWeight: "600",
+  },
   profileInfo: {
-    flex: 1,
+    marginBottom: 20,
   },
   profileName: {
     fontSize: 22,
@@ -426,7 +496,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.5,
   },
   profileHandle: {
-    fontSize: 13,
+    fontSize: 13.5,
     marginTop: 2,
   },
   segmentedBar: {
