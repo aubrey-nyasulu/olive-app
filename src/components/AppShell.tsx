@@ -492,7 +492,8 @@ export function AppShell({ children }: { children: ReactNode }) {
                       setProfileModal("saved");
                     } else if (id === "share") {
                       Share.share({
-                        message: "Olive — Hyperlocal Social Calendar in Lilongwe",
+                        message:
+                          "Olive — Hyperlocal Social Calendar in Lilongwe",
                       });
                     }
                   }}
@@ -569,11 +570,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   color={colors.signalForeground}
                 />
               ) : onProfile ? (
-                <Ionicons
-                  name="arrow-back"
-                  size={20}
-                  color={colors.text}
-                />
+                <Ionicons name="arrow-back" size={20} color={colors.text} />
               ) : isScanning ? (
                 <Animated.View
                   style={[
