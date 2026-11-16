@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppShell } from "../components/AppShell";
 import { PostCard } from "../components/PostCard";
 import { getHeaderHeight, Screen } from "../components/Screen";
+import { StoriesBar } from "../components/StoriesBar";
 import { useOlive } from "../context/OliveProvider";
 import { POSTS } from "../places";
 
@@ -13,9 +14,23 @@ export default function FeedScreen() {
   const headerHeight = getHeaderHeight(insets.top);
 
   // Filter and sort posts according to user settings (radius & selected categories)
+  // Only keep posts posted by OTHER people/businesses (exclude profile owner's posts)
   const sortedPosts = useMemo(() => {
     return [...POSTS]
       .filter((post) => {
+        // Exclude posts authored by the profile owner (Chisomo Banda / Amara)
+        const authorNorm = post.author.toLowerCase().trim();
+        const isOwner =
+          authorNorm === "chisomo banda" ||
+          authorNorm === "chisomo" ||
+          authorNorm === "amara boateng" ||
+          authorNorm === "amara" ||
+          authorNorm.includes("chisomo") ||
+          authorNorm.includes("amara") ||
+          post.id.startsWith("chisomo-") ||
+          post.id.startsWith("amara-");
+        if (isOwner) return false;
+
         // If user filtered lanes in settings
         const categoryMatch =
           config.lanes.length === 0 || config.lanes.includes(post.category);
@@ -33,9 +48,10 @@ export default function FeedScreen() {
           data={sortedPosts}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => <PostCard post={item} />}
+          ListHeaderComponent={<StoriesBar />}
           contentContainerStyle={[
             styles.listContent,
-            { paddingTop: headerHeight + 24 },
+            { paddingTop: headerHeight + 14 },
           ]}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
