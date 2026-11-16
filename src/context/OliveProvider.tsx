@@ -123,8 +123,8 @@ export function OliveProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Scanning state (live searching vs paused)
-  const [isScanning, setIsScanning] = useState(true);
+  // Scanning state (live feed realtime syncing vs paused - defaults to false)
+  const [isScanning, setIsScanning] = useState(false);
 
   // In-app Guidance state
   const [activeGuidance, setActiveGuidance] = useState<GuidanceSession | null>(

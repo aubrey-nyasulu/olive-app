@@ -144,8 +144,8 @@ export function AppShell({ children }: { children: ReactNode }) {
     return () => clearTimeout(timer);
   }, []);
 
-  // Animating line is ONLY visible during initial load OR when actively searching
-  const showAnimatingLine = isInitialLoading || isSearching;
+  // Animating line is visible during initial load (~2.6s), active search, or when realtime feed syncing is on
+  const showAnimatingLine = isInitialLoading || isSearching || isScanning;
 
   // States for other user interactions (Message, Report, Alerts, Toast)
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -298,7 +298,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           useNativeDriver: true,
         }),
         Animated.timing(sweepOpacityAnim, {
-          toValue: 1,
+          toValue: showAnimatingLine ? 1 : 0,
           duration: 220,
           easing: Easing.out(Easing.quad),
           useNativeDriver: true,
@@ -308,6 +308,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   }, [
     isVoice,
     isListening,
+    showAnimatingLine,
     sweepOpacityAnim,
     voiceOpacityAnim,
     voiceScaleYAnim,
@@ -326,10 +327,10 @@ export function AppShell({ children }: { children: ReactNode }) {
     });
   }, [lfoValues]);
 
-  const barWidth = Math.max(30, trackWidth * 0.35);
+  const barWidth = Math.max(45, trackWidth * 0.42);
   const sweepTranslateX = sweepAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [-barWidth, trackWidth],
+    outputRange: [-barWidth, trackWidth + barWidth],
   });
 
   // Listen for screen dimensions
@@ -414,7 +415,11 @@ export function AppShell({ children }: { children: ReactNode }) {
     closeSearch();
   };
 
-  const handleSearchAction = () => {
+  const handleRightPress = () => {
+    Keyboard.dismiss();
+    if (leftModeMenuOpen) {
+      setLeftModeMenuOpen(false);
+    }
     if (onProfile) {
       setProfileMenuOpen((prev) => !prev);
       return;
@@ -431,7 +436,23 @@ export function AppShell({ children }: { children: ReactNode }) {
       } else {
         handleCloseSearch();
       }
-    } else {
+    } else if (searchOpen) {
+      setSearchOpen(false);
+    } else if (onFeed) {
+      // Single click: toggle realtime feed updating
+      const nextState = !isScanning;
+      setIsScanning(nextState);
+      if (nextState) {
+        showToast("🟢 Realtime feed sync active");
+      } else {
+        showToast("⏸️ Realtime feed sync paused");
+      }
+    }
+  };
+
+  const handleRightLongPress = () => {
+    if (onFeed && !panelOpen) {
+      // Long press: show options popup (Live Sync toggle + Voice + Type + Visual)
       setSearchOpen((prev) => !prev);
     }
   };
@@ -560,9 +581,90 @@ export function AppShell({ children }: { children: ReactNode }) {
           ]}
           pointerEvents="box-none"
         >
-          {/* Vertical Floating Mode Options (Voice / Type / Visual on Feed) */}
+          {/* Vertical Floating Mode Options (Live Sync toggle + Voice / Type / Visual on Feed) */}
           {searchOpen && !panelOpen && onFeed && (
             <View style={styles.modesPopup}>
+              {/* First Option: Toggle Realtime Feed Syncing */}
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={
+                  isScanning
+                    ? "Pause realtime feed sync"
+                    : "Enable realtime feed sync"
+                }
+                onPress={() => {
+                  const nextState = !isScanning;
+                  setIsScanning(nextState);
+                  setSearchOpen(false);
+                  showToast(
+                    nextState
+                      ? "🟢 Realtime feed sync active"
+                      : "⏸️ Realtime feed sync paused"
+                  );
+                }}
+                style={({ pressed }) => [
+                  styles.modeOptionRow,
+                  { opacity: pressed ? 0.8 : 1 },
+                ]}
+              >
+                <View style={styles.rightModeTextWrap}>
+                  <View style={styles.rightModeLabelRow}>
+                    <Text
+                      style={[
+                        styles.modeLabel,
+                        {
+                          backgroundColor: colors.surface,
+                          borderColor: isScanning ? colors.signal : colors.line,
+                          borderWidth: 1,
+                          color: colors.text,
+                          fontWeight: isScanning ? "800" : "700",
+                        },
+                      ]}
+                    >
+                      {isScanning ? "Live Sync: ON" : "Live Sync: OFF"}
+                    </Text>
+                    {isScanning && (
+                      <View
+                        style={[
+                          styles.activeDot,
+                          { backgroundColor: colors.signal },
+                        ]}
+                      />
+                    )}
+                  </View>
+                  <Text
+                    style={[
+                      styles.modeDesc,
+                      {
+                        backgroundColor: colors.surfaceMuted,
+                        borderColor: colors.line,
+                        borderWidth: 1,
+                        color: colors.muted,
+                        alignSelf: "flex-end",
+                      },
+                    ]}
+                  >
+                    {isScanning ? "Auto-updating feed" : "Tap to stream live"}
+                  </Text>
+                </View>
+                <View
+                  style={[
+                    styles.modeCircle,
+                    {
+                      backgroundColor: isScanning ? colors.signal : colors.text,
+                      shadowColor: isScanning ? colors.signal : colors.text,
+                    },
+                  ]}
+                >
+                  <Ionicons
+                    name={isScanning ? "radio" : "radio-outline"}
+                    size={18}
+                    color={isScanning ? colors.signalForeground : colors.bg}
+                  />
+                </View>
+              </Pressable>
+
+              {/* Search Options (Voice, Type, Visual) */}
               {SEARCH_OPTIONS.map(({ icon, label, mode }) => (
                 <Pressable
                   key={label}
@@ -578,7 +680,17 @@ export function AppShell({ children }: { children: ReactNode }) {
                     { opacity: pressed ? 0.8 : 1 },
                   ]}
                 >
-                  <Text style={[styles.modeLabel, { color: colors.text }]}>
+                  <Text
+                    style={[
+                      styles.modeLabel,
+                      {
+                        backgroundColor: colors.surface,
+                        borderColor: colors.line,
+                        borderWidth: 1,
+                        color: colors.text,
+                      },
+                    ]}
+                  >
                     {label}
                   </Text>
                   <View
@@ -826,7 +938,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
             {/* Center Area: Input, Animating Line (loading/searching), or Resting Search State */}
             <View style={styles.dockCenter}>
-              {activeMode === "type" && (
+              {activeMode === "type" ? (
                 <TextInput
                   autoFocus
                   value={typeQuery}
@@ -847,9 +959,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   autoCorrect={false}
                   style={[styles.dockInput, { color: colors.bg }]}
                 />
-              )}
-
-              {activeMode === "type" && showAnimatingLine && (
+              ) : showAnimatingLine ? (
                 <View
                   style={styles.lineArea}
                   onLayout={(e: LayoutChangeEvent) => {
@@ -859,7 +969,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                     }
                   }}
                 >
-                  {/* Continuous 2px Baseline Track with Scanning Sweep Beam */}
+                  {/* Continuous 3px Baseline Track with Scanning Sweep Beam */}
                   <View style={styles.baselineTrack}>
                     <Animated.View
                       style={[
@@ -913,10 +1023,46 @@ export function AppShell({ children }: { children: ReactNode }) {
                     </Pressable>
                   </Animated.View>
                 </View>
+              ) : (
+                /* Clean resting dock state when NOT loading, NOT syncing, and NOT searching */
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Tap to search Lilongwe"
+                  onPress={() => {
+                    setActiveMode("type");
+                  }}
+                  style={[styles.dockRestingCenter, { display: "none" }]}
+                >
+                  <View style={styles.dockRestingPill}>
+                    <Ionicons
+                      name={
+                        feedMode === "people"
+                          ? "people-outline"
+                          : feedMode === "places"
+                          ? "business-outline"
+                          : "sparkles-outline"
+                      }
+                      size={13}
+                      color={colors.signal}
+                    />
+                    <Text
+                      numberOfLines={1}
+                      style={[styles.dockRestingText, { color: colors.bg }]}
+                    >
+                      {onProfile
+                        ? currentProfile.name
+                        : feedMode === "people"
+                        ? "People · Lilongwe"
+                        : feedMode === "places"
+                        ? "Places & Events"
+                        : "Search Lilongwe..."}
+                    </Text>
+                  </View>
+                </Pressable>
               )}
             </View>
 
-            {/* Right Action Button: Profile options caret (on profile), Search / Send / Voice Toggle (on feed) */}
+            {/* Right Action Button: Profile options (on profile), Realtime feed sync toggle / Search options (on feed) */}
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={
@@ -933,10 +1079,16 @@ export function AppShell({ children }: { children: ReactNode }) {
                     ? "Submit"
                     : "Close"
                   : searchOpen
-                  ? "Close search"
-                  : "Open search"
+                  ? "Close options"
+                  : onFeed
+                  ? isScanning
+                    ? "Realtime feed sync is active. Tap to pause, hold for search options."
+                    : "Realtime feed sync is paused. Tap to enable, hold for search options."
+                  : "Search options"
               }
-              onPress={handleSearchAction}
+              onPress={handleRightPress}
+              onLongPress={handleRightLongPress}
+              delayLongPress={320}
               style={({ pressed }) => [
                 styles.dockSideBtn,
                 {
@@ -945,6 +1097,8 @@ export function AppShell({ children }: { children: ReactNode }) {
                       ? colors.signal
                       : colors.bg
                     : panelOpen || searchOpen
+                    ? colors.signal
+                    : onFeed && isScanning
                     ? colors.signal
                     : colors.bg,
                   opacity: pressed ? 0.75 : 1,
@@ -984,6 +1138,12 @@ export function AppShell({ children }: { children: ReactNode }) {
                   name="close"
                   size={20}
                   color={colors.signalForeground}
+                />
+              ) : onFeed ? (
+                <Ionicons
+                  name={isScanning ? "radio" : "radio-outline"}
+                  size={20}
+                  color={isScanning ? colors.signalForeground : colors.text}
                 />
               ) : (
                 <Ionicons name="search" size={20} color={colors.signal} />
@@ -1288,6 +1448,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 6,
   },
+  rightModeTextWrap: {
+    gap: 2,
+    alignItems: "flex-end",
+  },
+  rightModeLabelRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
   activeDot: {
     width: 6,
     height: 6,
@@ -1392,9 +1561,9 @@ const styles = StyleSheet.create({
   },
   baselineTrack: {
     width: "100%",
-    height: 2,
-    backgroundColor: "rgba(255, 255, 255, 0.18)",
-    borderRadius: 1,
+    height: 3,
+    backgroundColor: "rgba(255, 255, 255, 0.25)",
+    borderRadius: 2,
     overflow: "hidden",
     position: "relative",
   },
@@ -1404,7 +1573,7 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     height: "100%",
-    borderRadius: 1,
+    borderRadius: 2,
   },
   voiceIntakeOverlay: {
     position: "absolute",
