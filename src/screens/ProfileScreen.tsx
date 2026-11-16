@@ -157,6 +157,20 @@ export default function ProfileScreen() {
 
   const savedPosts = POSTS.filter((p) => savedIds.includes(p.id));
 
+  // Follow state for other users/businesses
+  const [followingMap, setFollowingMap] = useState<Record<string, boolean>>({
+    forno: true,
+    "park-live": true,
+  });
+  const isFollowing = !isMe && !!followingMap[profile.id];
+
+  const toggleFollow = () => {
+    setFollowingMap((prev) => ({
+      ...prev,
+      [profile.id]: !prev[profile.id],
+    }));
+  };
+
   const toggleLane = (cat: string) => {
     const next = config.lanes.includes(cat)
       ? config.lanes.filter((c) => c !== cat)
@@ -195,6 +209,53 @@ export default function ProfileScreen() {
                   { borderColor: colors.bg, backgroundColor: colors.surface },
                 ]}
               />
+
+              {/* Follow Button for Other Users (placed where subscribe was) */}
+              {!isMe && (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    isFollowing
+                      ? `Following ${profile.name}`
+                      : `Follow ${profile.name}`
+                  }
+                  onPress={toggleFollow}
+                  style={({ pressed }) => [
+                    styles.followBtn,
+                    isFollowing
+                      ? [
+                          styles.followBtnActive,
+                          {
+                            backgroundColor: colors.surfaceMuted,
+                            borderColor: colors.line,
+                          },
+                        ]
+                      : [
+                          styles.followBtnInactive,
+                          {
+                            backgroundColor: colors.signal,
+                          },
+                        ],
+                    { opacity: pressed ? 0.85 : 1 },
+                  ]}
+                >
+                  <Ionicons
+                    name={isFollowing ? "checkmark-circle" : "person-add"}
+                    size={15}
+                    color={isFollowing ? colors.text : "#FFFFFF"}
+                  />
+                  <Text
+                    style={[
+                      styles.followBtnText,
+                      {
+                        color: isFollowing ? colors.text : "#FFFFFF",
+                      },
+                    ]}
+                  >
+                    {isFollowing ? "Following" : "Follow"}
+                  </Text>
+                </Pressable>
+              )}
             </View>
 
             {/* Profile Identity Group (Name & Handle under profile image) */}
@@ -403,9 +464,9 @@ export default function ProfileScreen() {
                     style={[styles.statsShelf, { borderTopColor: colors.line }]}
                   >
                     <Pressable
-                      accessibilityRole="button"
-                      accessibilityLabel="View saved places"
-                      onPress={() => setProfileModal("saved")}
+                      accessibilityRole={isMe ? "button" : undefined}
+                      accessibilityLabel={isMe ? "View saved places" : undefined}
+                      onPress={isMe ? () => setProfileModal("saved") : undefined}
                       style={styles.statItem}
                     >
                       <Text style={[styles.statValue, { color: colors.text }]}>
@@ -441,7 +502,13 @@ export default function ProfileScreen() {
 
                     <View style={styles.statItem}>
                       <Text style={[styles.statValue, { color: colors.text }]}>
-                        {profile.stats.statC.value}
+                        {!isMe &&
+                        profile.stats.statC.label === "Followers" &&
+                        typeof profile.stats.statC.value === "number"
+                          ? isFollowing
+                            ? profile.stats.statC.value + 1
+                            : profile.stats.statC.value
+                          : profile.stats.statC.value}
                       </Text>
                       <Text style={[styles.statLabel, { color: colors.muted }]}>
                         {profile.stats.statC.label}
@@ -1098,8 +1165,32 @@ const styles = StyleSheet.create({
   avatarRow: {
     flexDirection: "row",
     alignItems: "flex-end",
+    justifyContent: "space-between",
     marginTop: -44,
     marginBottom: 14,
+  },
+  followBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    height: 38,
+    paddingHorizontal: 18,
+    borderRadius: 19,
+    marginBottom: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  followBtnActive: {
+    borderWidth: 1.5,
+  },
+  followBtnInactive: {},
+  followBtnText: {
+    fontSize: 13.5,
+    fontWeight: "700",
   },
   largeAvatar: {
     width: 88,

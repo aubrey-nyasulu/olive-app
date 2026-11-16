@@ -3,9 +3,11 @@ import {
   Animated,
   Dimensions,
   Easing,
+  Image,
   Keyboard,
   type KeyboardEvent,
   LayoutChangeEvent,
+  Modal,
   Platform,
   Pressable,
   Share,
@@ -15,9 +17,10 @@ import {
   View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { router, usePathname } from "expo-router";
+import { router, useLocalSearchParams, usePathname } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useOlive } from "../context/OliveProvider";
+import { getProfile } from "../profiles";
 import { GuidanceModal } from "./GuidanceModal";
 import { TypeSearch, VisualSearch } from "./SearchModes";
 
@@ -31,6 +34,14 @@ const PROFILE_OPTIONS = [
   { icon: "settings" as const, label: "Settings", id: "settings" as const },
   { icon: "bookmark" as const, label: "Saved", id: "saved" as const },
   { icon: "share-social" as const, label: "Share", id: "share" as const },
+];
+
+const OTHER_USER_OPTIONS = [
+  { icon: "chatbubble-ellipses" as const, label: "Message", id: "message" as const },
+  { icon: "notifications" as const, label: "Alerts", id: "alerts" as const },
+  { icon: "share-social" as const, label: "Share", id: "share_user" as const },
+  { icon: "link" as const, label: "Copy Link", id: "copy" as const },
+  { icon: "flag" as const, label: "Report", id: "report" as const },
 ];
 
 // Acoustic LFO frequencies & strand layout for sound intake shapeshifting
@@ -79,11 +90,34 @@ export function AppShell({ children }: { children: ReactNode }) {
   const normalPanelBottom = normalDockBottom + 72;
 
   const pathname = usePathname();
+  const { author, id } = useLocalSearchParams<{
+    author?: string;
+    id?: string;
+  }>();
+  const currentProfile = getProfile(author || id);
   const onFeed = pathname === "/";
   const onProfile = pathname === "/profile";
+  const isOtherUser =
+    onProfile &&
+    currentProfile.id !== "chisomo" &&
+    currentProfile.id !== "amara";
   const showDock = onFeed || onProfile;
   const panelOpen = activeMode !== null;
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+
+  // States for other user interactions (Message, Report, Alerts, Toast)
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [messageModalOpen, setMessageModalOpen] = useState(false);
+  const [reportModalOpen, setReportModalOpen] = useState(false);
+  const [messageDraft, setMessageDraft] = useState("");
+  const [alertsMap, setAlertsMap] = useState<Record<string, boolean>>({});
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 2800);
+  };
 
   const isVoice = activeMode === "voice";
 
@@ -476,48 +510,77 @@ export function AppShell({ children }: { children: ReactNode }) {
             </View>
           )}
 
-          {/* Vertical Floating Profile Options (Settings / Saved / Share on Profile) */}
+          {/* Vertical Floating Profile Options (Context-aware: own profile vs other users) */}
           {profileMenuOpen && onProfile && (
             <View style={styles.modesPopup}>
-              {PROFILE_OPTIONS.map(({ icon, label, id }) => (
-                <Pressable
-                  key={label}
-                  accessibilityRole="button"
-                  accessibilityLabel={label}
-                  onPress={() => {
-                    setProfileMenuOpen(false);
-                    if (id === "settings") {
-                      setProfileModal("settings");
-                    } else if (id === "saved") {
-                      setProfileModal("saved");
-                    } else if (id === "share") {
-                      Share.share({
-                        message:
-                          "Olive — Hyperlocal Social Calendar in Lilongwe",
-                      });
-                    }
-                  }}
-                  style={({ pressed }) => [
-                    styles.modeOptionRow,
-                    { opacity: pressed ? 0.8 : 1 },
-                  ]}
-                >
-                  <Text style={[styles.modeLabel, { color: colors.text }]}>
-                    {label}
-                  </Text>
-                  <View
-                    style={[
-                      styles.modeCircle,
-                      {
-                        backgroundColor: colors.text,
-                        shadowColor: colors.text,
-                      },
+              {(isOtherUser ? OTHER_USER_OPTIONS : PROFILE_OPTIONS).map(
+                ({ icon, label, id }) => (
+                  <Pressable
+                    key={label}
+                    accessibilityRole="button"
+                    accessibilityLabel={label}
+                    onPress={() => {
+                      setProfileMenuOpen(false);
+                      if (id === "settings") {
+                        setProfileModal("settings");
+                      } else if (id === "saved") {
+                        setProfileModal("saved");
+                      } else if (id === "share") {
+                        Share.share({
+                          message:
+                            "Olive — Hyperlocal Social Calendar in Lilongwe",
+                        });
+                      } else if (id === "message") {
+                        setMessageDraft("");
+                        setMessageModalOpen(true);
+                      } else if (id === "alerts") {
+                        const isAlerted = !alertsMap[currentProfile.id];
+                        setAlertsMap((prev) => ({
+                          ...prev,
+                          [currentProfile.id]: isAlerted,
+                        }));
+                        showToast(
+                          isAlerted
+                            ? `🔔 Alerts turned on for ${currentProfile.name}`
+                            : `🔕 Alerts muted for ${currentProfile.name}`
+                        );
+                      } else if (id === "share_user") {
+                        Share.share({
+                          message: `Check out ${currentProfile.name} (${currentProfile.handle}) on Olive — Hyperlocal Social Calendar in Lilongwe!`,
+                        });
+                      } else if (id === "copy") {
+                        showToast(
+                          `🔗 Copied link: olive.app/${currentProfile.handle.replace(
+                            "@",
+                            ""
+                          )}`
+                        );
+                      } else if (id === "report") {
+                        setReportModalOpen(true);
+                      }
+                    }}
+                    style={({ pressed }) => [
+                      styles.modeOptionRow,
+                      { opacity: pressed ? 0.8 : 1 },
                     ]}
                   >
-                    <Ionicons name={icon} size={18} color={colors.bg} />
-                  </View>
-                </Pressable>
-              ))}
+                    <Text style={[styles.modeLabel, { color: colors.text }]}>
+                      {label}
+                    </Text>
+                    <View
+                      style={[
+                        styles.modeCircle,
+                        {
+                          backgroundColor: colors.text,
+                          shadowColor: colors.text,
+                        },
+                      ]}
+                    >
+                      <Ionicons name={icon} size={18} color={colors.bg} />
+                    </View>
+                  </Pressable>
+                )
+              )}
             </View>
           )}
 
@@ -752,6 +815,224 @@ export function AppShell({ children }: { children: ReactNode }) {
         </Animated.View>
       )}
 
+      {/* Floating In-App Toast */}
+      {toastMessage && (
+        <View
+          style={[
+            styles.floatingToast,
+            {
+              backgroundColor: colors.text,
+              bottom: normalDockBottom + 70,
+            },
+          ]}
+        >
+          <Ionicons name="checkmark-circle" size={16} color={colors.signal} />
+          <Text style={[styles.floatingToastText, { color: colors.bg }]}>
+            {toastMessage}
+          </Text>
+        </View>
+      )}
+
+      {/* Message Modal for Other Users/Businesses */}
+      <Modal
+        visible={messageModalOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setMessageModalOpen(false)}
+      >
+        <View style={styles.actionModalOverlay}>
+          <Pressable
+            style={styles.modalBackdrop}
+            onPress={() => setMessageModalOpen(false)}
+          />
+          <View
+            style={[
+              styles.actionModalContainer,
+              {
+                backgroundColor: colors.surface,
+                borderColor: colors.signal,
+              },
+            ]}
+          >
+            <View style={styles.actionModalHeader}>
+              <View style={styles.actionModalTitleRow}>
+                <Image
+                  source={currentProfile.avatar}
+                  style={[
+                    styles.actionModalAvatar,
+                    { borderColor: colors.signal },
+                  ]}
+                />
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={[styles.actionModalTitle, { color: colors.text }]}
+                    numberOfLines={1}
+                  >
+                    Message {currentProfile.name}
+                  </Text>
+                  <Text
+                    style={[styles.actionModalSubtitle, { color: colors.muted }]}
+                    numberOfLines={1}
+                  >
+                    {currentProfile.handle} · {currentProfile.neighborhood}
+                  </Text>
+                </View>
+              </View>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Close message modal"
+                onPress={() => setMessageModalOpen(false)}
+                style={[
+                  styles.actionModalCloseBtn,
+                  { backgroundColor: colors.bg, borderColor: colors.line },
+                ]}
+              >
+                <Ionicons name="close" size={18} color={colors.text} />
+              </Pressable>
+            </View>
+
+            <View style={styles.actionModalBody}>
+              <TextInput
+                value={messageDraft}
+                onChangeText={setMessageDraft}
+                placeholder={`Ask about hours, table bookings, batch drops, or send a note to ${currentProfile.name}...`}
+                placeholderTextColor={colors.muted}
+                multiline
+                numberOfLines={4}
+                style={[
+                  styles.messageTextInput,
+                  {
+                    backgroundColor: colors.bg,
+                    borderColor: colors.line,
+                    color: colors.text,
+                  },
+                ]}
+              />
+
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Send message"
+                onPress={() => {
+                  setMessageModalOpen(false);
+                  showToast(`Message delivered to ${currentProfile.name}!`);
+                }}
+                style={({ pressed }) => [
+                  styles.actionSubmitBtn,
+                  {
+                    backgroundColor: colors.signal,
+                    opacity: pressed ? 0.88 : 1,
+                  },
+                ]}
+              >
+                <Ionicons name="send" size={16} color="#FFFFFF" />
+                <Text style={styles.actionSubmitBtnText}>Send Message</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Report Modal */}
+      <Modal
+        visible={reportModalOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setReportModalOpen(false)}
+      >
+        <View style={styles.actionModalOverlay}>
+          <Pressable
+            style={styles.modalBackdrop}
+            onPress={() => setReportModalOpen(false)}
+          />
+          <View
+            style={[
+              styles.actionModalContainer,
+              {
+                backgroundColor: colors.surface,
+                borderColor: colors.signal,
+              },
+            ]}
+          >
+            <View style={styles.actionModalHeader}>
+              <View style={styles.actionModalTitleRow}>
+                <View
+                  style={[
+                    styles.reportIconCircle,
+                    { backgroundColor: "rgba(239, 68, 68, 0.15)" },
+                  ]}
+                >
+                  <Ionicons name="flag" size={18} color="#EF4444" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={[styles.actionModalTitle, { color: colors.text }]}
+                  >
+                    Report Account
+                  </Text>
+                  <Text
+                    style={[styles.actionModalSubtitle, { color: colors.muted }]}
+                  >
+                    {currentProfile.handle}
+                  </Text>
+                </View>
+              </View>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Close report modal"
+                onPress={() => setReportModalOpen(false)}
+                style={[
+                  styles.actionModalCloseBtn,
+                  { backgroundColor: colors.bg, borderColor: colors.line },
+                ]}
+              >
+                <Ionicons name="close" size={18} color={colors.text} />
+              </Pressable>
+            </View>
+
+            <View style={styles.actionModalBody}>
+              <Text
+                style={[styles.reportPromptText, { color: colors.textSecondary }]}
+              >
+                Select a reason for reporting this account:
+              </Text>
+
+              {[
+                "Incorrect venue location or business hours",
+                "Misleading or fraudulent drops",
+                "Inappropriate or offensive content",
+                "Permanently closed venue",
+              ].map((reason) => (
+                <Pressable
+                  key={reason}
+                  onPress={() => {
+                    setReportModalOpen(false);
+                    showToast("Report submitted. Thank you for keeping Olive safe!");
+                  }}
+                  style={({ pressed }) => [
+                    styles.reportReasonRow,
+                    {
+                      borderColor: colors.line,
+                      backgroundColor: pressed ? colors.bg : "transparent",
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[styles.reportReasonText, { color: colors.text }]}
+                  >
+                    {reason}
+                  </Text>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={16}
+                    color={colors.muted}
+                  />
+                </Pressable>
+              ))}
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       {/* Global In-App Turn-By-Turn Guidance Experience */}
       <GuidanceModal />
     </View>
@@ -914,5 +1195,132 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.65,
     shadowRadius: 3,
     elevation: 2,
+  },
+
+  /* Action Modals & Floating Toast */
+  floatingToast: {
+    position: "absolute",
+    alignSelf: "center",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 24,
+    borderWidth: 1,
+    zIndex: 100,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 10,
+  },
+  floatingToastText: {
+    fontSize: 13,
+    fontWeight: "700",
+  },
+  modalBackdrop: {
+    ...StyleSheet.absoluteFill,
+  },
+  actionModalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.65)",
+    justifyContent: "flex-end",
+    paddingHorizontal: 8,
+    paddingBottom: 12,
+  },
+  actionModalContainer: {
+    width: "100%",
+    borderRadius: 32,
+    borderWidth: 2,
+    padding: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 10,
+  },
+  actionModalHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 16,
+  },
+  actionModalTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    flex: 1,
+  },
+  actionModalAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 1.5,
+  },
+  reportIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  actionModalTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  actionModalSubtitle: {
+    fontSize: 12,
+    marginTop: 1,
+  },
+  actionModalCloseBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  actionModalBody: {
+    gap: 12,
+  },
+  messageTextInput: {
+    minHeight: 100,
+    borderRadius: 18,
+    borderWidth: 1,
+    padding: 14,
+    fontSize: 14,
+    textAlignVertical: "top",
+  },
+  actionSubmitBtn: {
+    height: 46,
+    borderRadius: 23,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  actionSubmitBtnText: {
+    color: "#FFFFFF",
+    fontSize: 14.5,
+    fontWeight: "700",
+  },
+  reportPromptText: {
+    fontSize: 13,
+    marginBottom: 4,
+  },
+  reportReasonRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+  },
+  reportReasonText: {
+    fontSize: 13.5,
+    fontWeight: "500",
+    flex: 1,
   },
 });
