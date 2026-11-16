@@ -144,6 +144,36 @@ export const POSTS: Post[] = [
     image: market,
     ratio: "4/3",
   },
+  {
+    id: "kondwani-coffee",
+    author: "Kondwani Banda",
+    kind: "Person",
+    category: "Bakery",
+    title: "Northern Misuku pour-over & cinnamon bun",
+    body: "Morning cycling pause in Area 43. Incredible single-origin honey-processed coffee from northern Malawi and warm cinnamon buns on the shaded veranda.",
+    place: "Area 43 Gardens",
+    lat: -13.945,
+    lng: 33.792,
+    distanceKm: 1.8,
+    when: "Morning drop · 08:15",
+    image: bakery,
+    ratio: "4/3",
+  },
+  {
+    id: "dalitso-photo",
+    author: "Dalitso Phiri",
+    kind: "Person",
+    category: "Concert",
+    title: "Golden hour photo walk along Lingadzi",
+    body: "Spotted giant kingfishers and purple-crested turacos along the nature sanctuary trail. Bringing lenses for the 17:30 light.",
+    place: "Lilongwe Wildlife Sanctuary",
+    lat: -13.972,
+    lng: 33.776,
+    distanceKm: 1.5,
+    when: "Today · 17:00",
+    image: concert,
+    ratio: "1/1",
+  },
 ];
 
 export const CATEGORIES = Array.from(new Set(POSTS.map((p) => p.category)));
@@ -181,6 +211,12 @@ export const REVIEWS: Record<string, Review[]> = {
   ],
   "chisomo-market-finds": [
     { by: "Dumisani", stars: 5, text: "The Salima mangoes and Ntchisi wild honey were top tier!" },
+  ],
+  "kondwani-coffee": [
+    { by: "Matilda", stars: 5, text: "Great coffee stop! The cinnamon bun was still warm from the oven." },
+  ],
+  "dalitso-photo": [
+    { by: "Blessings", stars: 5, text: "Incredible light by the river trail, thanks for organizing the walk." },
   ],
   // Legacy aliases to preserve backward compatibility
   "amara-campo-bakery": [

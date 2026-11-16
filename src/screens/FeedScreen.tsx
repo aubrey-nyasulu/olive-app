@@ -9,11 +9,12 @@ import { useOlive } from "../context/OliveProvider";
 import { POSTS } from "../places";
 
 export default function FeedScreen() {
-  const { config, colors } = useOlive();
+  const { config, colors, feedMode } = useOlive();
   const insets = useSafeAreaInsets();
   const headerHeight = getHeaderHeight(insets.top);
 
   // Filter and sort posts according to user settings (radius & selected categories)
+  // and active feedMode ("all" | "people" | "places")
   // Only keep posts posted by OTHER people/businesses (exclude profile owner's posts)
   const sortedPosts = useMemo(() => {
     return [...POSTS]
@@ -31,6 +32,21 @@ export default function FeedScreen() {
           post.id.startsWith("amara-");
         if (isOwner) return false;
 
+        // Mode filtering:
+        // "people" -> only posts from people
+        // "places" -> only posts from businesses & events
+        // "all" -> both
+        if (feedMode === "people" && post.kind !== "Person") {
+          return false;
+        }
+        if (
+          feedMode === "places" &&
+          post.kind !== "Business" &&
+          post.kind !== "Event"
+        ) {
+          return false;
+        }
+
         // If user filtered lanes in settings
         const categoryMatch =
           config.lanes.length === 0 || config.lanes.includes(post.category);
@@ -39,7 +55,7 @@ export default function FeedScreen() {
         return categoryMatch && radiusMatch;
       })
       .sort((a, b) => a.distanceKm - b.distanceKm);
-  }, [config.lanes, config.radiusKm]);
+  }, [config.lanes, config.radiusKm, feedMode]);
 
   return (
     <AppShell>
@@ -57,11 +73,18 @@ export default function FeedScreen() {
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Text style={[styles.emptyTitle, { color: colors.text }]}>
-                No places within {config.radiusKm} km
+                {feedMode === "people"
+                  ? `No people drops within ${config.radiusKm} km`
+                  : feedMode === "places"
+                  ? `No places or events within ${config.radiusKm} km`
+                  : `No drops within ${config.radiusKm} km`}
               </Text>
               <Text style={[styles.emptySubtitle, { color: colors.muted }]}>
-                Try expanding your search radius or enabling more categories in
-                your Profile settings.
+                {feedMode === "people"
+                  ? "Try switching to Places & Events or All mode via the bottom left dock button."
+                  : feedMode === "places"
+                  ? "Try expanding your search radius or switching to All mode."
+                  : "Try expanding your search radius or enabling more categories in your Profile settings."}
               </Text>
             </View>
           }

@@ -19,7 +19,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams, usePathname } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useOlive } from "../context/OliveProvider";
+import { useOlive, type FeedMode } from "../context/OliveProvider";
 import { getProfile } from "../profiles";
 import { GuidanceModal } from "./GuidanceModal";
 import { TypeSearch, VisualSearch } from "./SearchModes";
@@ -30,6 +30,27 @@ const SEARCH_OPTIONS = [
   { icon: "camera" as const, label: "Visual", mode: "visual" as const },
 ];
 
+const FEED_MODE_OPTIONS = [
+  {
+    icon: "layers" as const,
+    label: "All Activity",
+    desc: "Both people & places",
+    mode: "all" as const,
+  },
+  {
+    icon: "people" as const,
+    label: "People Only",
+    desc: "Guides & locals nearby",
+    mode: "people" as const,
+  },
+  {
+    icon: "business" as const,
+    label: "Places & Events",
+    desc: "Businesses & venue drops",
+    mode: "places" as const,
+  },
+];
+
 const PROFILE_OPTIONS = [
   { icon: "settings" as const, label: "Settings", id: "settings" as const },
   { icon: "bookmark" as const, label: "Saved", id: "saved" as const },
@@ -37,7 +58,11 @@ const PROFILE_OPTIONS = [
 ];
 
 const OTHER_USER_OPTIONS = [
-  { icon: "chatbubble-ellipses" as const, label: "Message", id: "message" as const },
+  {
+    icon: "chatbubble-ellipses" as const,
+    label: "Message",
+    id: "message" as const,
+  },
   { icon: "notifications" as const, label: "Alerts", id: "alerts" as const },
   { icon: "share-social" as const, label: "Share", id: "share_user" as const },
   { icon: "link" as const, label: "Copy Link", id: "copy" as const },
@@ -59,6 +84,8 @@ const STRANDS_CONFIG = Array.from({ length: NUM_STRANDS }, (_, i) => {
 export function AppShell({ children }: { children: ReactNode }) {
   const {
     colors,
+    feedMode,
+    setFeedMode,
     searchOpen,
     setSearchOpen,
     activeMode,
@@ -68,6 +95,8 @@ export function AppShell({ children }: { children: ReactNode }) {
     typeQuery,
     setTypeQuery,
     closeSearch,
+    isSearching,
+    setIsSearching,
     profileTab,
     setProfileTab,
     profileModal,
@@ -104,6 +133,19 @@ export function AppShell({ children }: { children: ReactNode }) {
   const showDock = onFeed || onProfile;
   const panelOpen = activeMode !== null;
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [leftModeMenuOpen, setLeftModeMenuOpen] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+
+  // 2.6s initial loading timer upon opening app (shows animating line while initial content loads)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsInitialLoading(false);
+    }, 2600);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Animating line is ONLY visible during initial load OR when actively searching
+  const showAnimatingLine = isInitialLoading || isSearching;
 
   // States for other user interactions (Message, Report, Alerts, Toast)
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -136,24 +178,34 @@ export function AppShell({ children }: { children: ReactNode }) {
     LFO_DURATIONS.map(() => new Animated.Value(0))
   ).current;
 
-  // 1. Line Sweep Animation (3.4s linear infinite, representing active scanning)
+  // 1. Line Sweep Animation - only sweeps when showAnimatingLine is true (app opened or searching)
   useEffect(() => {
-    if (!isScanning) {
+    if (!showAnimatingLine) {
       sweepAnim.stopAnimation();
+      Animated.timing(sweepOpacityAnim, {
+        toValue: 0,
+        duration: 250,
+        useNativeDriver: true,
+      }).start();
       return;
     }
     sweepAnim.setValue(0);
+    Animated.timing(sweepOpacityAnim, {
+      toValue: 1,
+      duration: 250,
+      useNativeDriver: true,
+    }).start();
     const sweepLoop = Animated.loop(
       Animated.timing(sweepAnim, {
         toValue: 1,
-        duration: 3400,
+        duration: 2200,
         easing: Easing.linear,
         useNativeDriver: true,
       })
     );
     sweepLoop.start();
     return () => sweepLoop.stop();
-  }, [sweepAnim, isScanning]);
+  }, [sweepAnim, sweepOpacityAnim, showAnimatingLine]);
 
   // 2. Signal Dot Pulse Animation (2s ease-in-out infinite)
   useEffect(() => {
@@ -358,6 +410,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const handleCloseSearch = () => {
     Keyboard.dismiss();
     setProfileMenuOpen(false);
+    setLeftModeMenuOpen(false);
     closeSearch();
   };
 
@@ -371,6 +424,10 @@ export function AppShell({ children }: { children: ReactNode }) {
         setIsListening((l) => !l);
       } else if (activeMode === "type") {
         Keyboard.dismiss();
+        setIsSearching(true);
+        setTimeout(() => {
+          setIsSearching(false);
+        }, 1800);
       } else {
         handleCloseSearch();
       }
@@ -381,6 +438,10 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const handleLeftPill = () => {
     Keyboard.dismiss();
+    if (leftModeMenuOpen) {
+      setLeftModeMenuOpen(false);
+      return;
+    }
     if (profileMenuOpen) {
       setProfileMenuOpen(false);
       return;
@@ -394,9 +455,29 @@ export function AppShell({ children }: { children: ReactNode }) {
         router.navigate("/");
       }
     } else if (onFeed) {
-      setIsScanning((prev) => !prev);
+      // Single click/press: cycles feed modes all -> people -> places -> all
+      const nextMode: FeedMode =
+        feedMode === "all"
+          ? "people"
+          : feedMode === "people"
+          ? "places"
+          : "all";
+      setFeedMode(nextMode);
+      if (nextMode === "people") {
+        showToast("👥 Feed: People only (Lilongwe)");
+      } else if (nextMode === "places") {
+        showToast("🏢 Feed: Places, businesses & events");
+      } else {
+        showToast("🌐 Feed: All community activity");
+      }
     } else if (!onFeed) {
       router.navigate("/");
+    }
+  };
+
+  const handleLeftLongPress = () => {
+    if (onFeed && !panelOpen && !searchOpen) {
+      setLeftModeMenuOpen((prev) => !prev);
     }
   };
 
@@ -418,8 +499,8 @@ export function AppShell({ children }: { children: ReactNode }) {
     >
       <View style={styles.contentWrap}>{children}</View>
 
-      {/* Dimmed backdrop when search is open or profile menu is open */}
-      {(searchOpen || panelOpen || profileMenuOpen) && (
+      {/* Dimmed backdrop when search is open, profile menu is open, or left mode menu is open */}
+      {(searchOpen || panelOpen || profileMenuOpen || leftModeMenuOpen) && (
         <Pressable
           accessibilityLabel="Dismiss options"
           onPress={handleCloseSearch}
@@ -450,7 +531,13 @@ export function AppShell({ children }: { children: ReactNode }) {
             {activeMode === "type" && (
               <TypeSearch
                 query={typeQuery}
-                onSelectCategory={(cat) => setTypeQuery(cat)}
+                onSelectCategory={(cat) => {
+                  setTypeQuery(cat);
+                  setIsSearching(true);
+                  setTimeout(() => {
+                    setIsSearching(false);
+                  }, 1800);
+                }}
                 onClose={handleCloseSearch}
               />
             )}
@@ -507,6 +594,96 @@ export function AppShell({ children }: { children: ReactNode }) {
                   </View>
                 </Pressable>
               ))}
+            </View>
+          )}
+
+          {/* Vertical Floating Feed Mode Options (Long-press Left Dock Button on Feed) */}
+          {leftModeMenuOpen && !panelOpen && onFeed && (
+            <View style={styles.leftModesPopup}>
+              {FEED_MODE_OPTIONS.map(({ icon, label, desc, mode }) => {
+                const isSelected = feedMode === mode;
+                return (
+                  <Pressable
+                    key={mode}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Switch to ${label}`}
+                    onPress={() => {
+                      setFeedMode(mode);
+                      setLeftModeMenuOpen(false);
+                      if (mode === "people") {
+                        showToast("👥 Feed: People only (Lilongwe)");
+                      } else if (mode === "places") {
+                        showToast("🏢 Feed: Places, businesses & events");
+                      } else {
+                        showToast("🌐 Feed: All community activity");
+                      }
+                    }}
+                    style={({ pressed }) => [
+                      styles.leftModeOptionRow,
+                      { opacity: pressed ? 0.8 : 1 },
+                    ]}
+                  >
+                    <View
+                      style={[
+                        styles.modeCircle,
+                        {
+                          backgroundColor: isSelected
+                            ? colors.signal
+                            : colors.text,
+                          shadowColor: isSelected ? colors.signal : colors.text,
+                        },
+                      ]}
+                    >
+                      <Ionicons
+                        name={icon}
+                        size={18}
+                        color={isSelected ? colors.signalForeground : colors.bg}
+                      />
+                    </View>
+                    <View style={styles.leftModeTextWrap}>
+                      <View style={styles.leftModeLabelRow}>
+                        <Text
+                          style={[
+                            styles.modeLabel,
+                            {
+                              backgroundColor: colors.surface,
+                              borderColor: isSelected
+                                ? colors.signal
+                                : colors.line,
+                              borderWidth: 1,
+                              color: colors.text,
+                              fontWeight: isSelected ? "800" : "700",
+                            },
+                          ]}
+                        >
+                          {label}
+                        </Text>
+                        {isSelected && (
+                          <View
+                            style={[
+                              styles.activeDot,
+                              { backgroundColor: colors.signal },
+                            ]}
+                          />
+                        )}
+                      </View>
+                      <Text
+                        style={[
+                          styles.modeDesc,
+                          {
+                            backgroundColor: colors.surfaceMuted,
+                            borderColor: colors.line,
+                            borderWidth: 1,
+                            color: colors.muted,
+                          },
+                        ]}
+                      >
+                        {desc}
+                      </Text>
+                    </View>
+                  </Pressable>
+                );
+              })}
             </View>
           )}
 
@@ -594,7 +771,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               },
             ]}
           >
-            {/* Left Button: Back (on profile), Feed/Searching/Paused (on feed), or Close (when search open) */}
+            {/* Left Button: Back (on profile), Feed Mode Switcher (on feed), or Close (when search open) */}
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={
@@ -603,12 +780,12 @@ export function AppShell({ children }: { children: ReactNode }) {
                   : onProfile
                   ? "Back to feed"
                   : onFeed
-                  ? isScanning
-                    ? "Pause scanning"
-                    : "Start scanning"
+                  ? `Feed mode: ${feedMode}. Tap to cycle, hold for menu.`
                   : "Home feed"
               }
               onPress={handleLeftPill}
+              onLongPress={handleLeftLongPress}
+              delayLongPress={320}
               style={({ pressed }) => [
                 styles.dockSideBtn,
                 {
@@ -617,10 +794,8 @@ export function AppShell({ children }: { children: ReactNode }) {
                       ? colors.signal
                       : onProfile
                       ? colors.bg
-                      : onFeed
-                      ? isScanning
-                        ? colors.signal
-                        : colors.bg
+                      : leftModeMenuOpen
+                      ? colors.signal
                       : colors.bg,
                   opacity: pressed ? 0.75 : 1,
                 },
@@ -634,44 +809,47 @@ export function AppShell({ children }: { children: ReactNode }) {
                 />
               ) : onProfile ? (
                 <Ionicons name="arrow-back" size={20} color={colors.text} />
-              ) : isScanning ? (
-                <Animated.View
-                  style={[
-                    styles.signalDot,
-                    {
-                      backgroundColor: onFeed
-                        ? colors.signalForeground
-                        : colors.signal,
-                      opacity: dotPulseAnim,
-                    },
-                  ]}
-                />
-              ) : (
+              ) : leftModeMenuOpen ? (
                 <Ionicons
-                  name="play"
-                  size={18}
-                  color={colors.signal}
-                  style={{ marginLeft: 2 }}
+                  name="close"
+                  size={20}
+                  color={colors.signalForeground}
                 />
+              ) : feedMode === "people" ? (
+                <Ionicons name="people" size={20} color={colors.signal} />
+              ) : feedMode === "places" ? (
+                <Ionicons name="business" size={20} color={colors.signal} />
+              ) : (
+                <Ionicons name="layers" size={20} color={colors.text} />
               )}
             </Pressable>
 
-            {/* Center Area: Input, or Shapeshifting Line (Scanning <-> Sound Intake) */}
+            {/* Center Area: Input, Animating Line (loading/searching), or Resting Search State */}
             <View style={styles.dockCenter}>
-              {activeMode === "type" ? (
+              {activeMode === "type" && (
                 <TextInput
                   autoFocus
                   value={typeQuery}
                   onChangeText={setTypeQuery}
-                  placeholder="What do you need?"
+                  placeholder="What do you need in Lilongwe?"
                   placeholderTextColor="rgba(255, 255, 255, 0.45)"
                   returnKeyType="search"
-                  onSubmitEditing={() => Keyboard.dismiss()}
+                  onSubmitEditing={() => {
+                    Keyboard.dismiss();
+                    if (typeQuery.trim()) {
+                      setIsSearching(true);
+                      setTimeout(() => {
+                        setIsSearching(false);
+                      }, 1800);
+                    }
+                  }}
                   autoCapitalize="none"
                   autoCorrect={false}
                   style={[styles.dockInput, { color: colors.bg }]}
                 />
-              ) : (
+              )}
+
+              {activeMode === "type" && showAnimatingLine && (
                 <View
                   style={styles.lineArea}
                   onLayout={(e: LayoutChangeEvent) => {
@@ -871,7 +1049,10 @@ export function AppShell({ children }: { children: ReactNode }) {
                     Message {currentProfile.name}
                   </Text>
                   <Text
-                    style={[styles.actionModalSubtitle, { color: colors.muted }]}
+                    style={[
+                      styles.actionModalSubtitle,
+                      { color: colors.muted },
+                    ]}
                     numberOfLines={1}
                   >
                     {currentProfile.handle} · {currentProfile.neighborhood}
@@ -970,7 +1151,10 @@ export function AppShell({ children }: { children: ReactNode }) {
                     Report Account
                   </Text>
                   <Text
-                    style={[styles.actionModalSubtitle, { color: colors.muted }]}
+                    style={[
+                      styles.actionModalSubtitle,
+                      { color: colors.muted },
+                    ]}
                   >
                     {currentProfile.handle}
                   </Text>
@@ -991,7 +1175,10 @@ export function AppShell({ children }: { children: ReactNode }) {
 
             <View style={styles.actionModalBody}>
               <Text
-                style={[styles.reportPromptText, { color: colors.textSecondary }]}
+                style={[
+                  styles.reportPromptText,
+                  { color: colors.textSecondary },
+                ]}
               >
                 Select a reason for reporting this account:
               </Text>
@@ -1006,7 +1193,9 @@ export function AppShell({ children }: { children: ReactNode }) {
                   key={reason}
                   onPress={() => {
                     setReportModalOpen(false);
-                    showToast("Report submitted. Thank you for keeping Olive safe!");
+                    showToast(
+                      "Report submitted. Thank you for keeping Olive safe!"
+                    );
                   }}
                   style={({ pressed }) => [
                     styles.reportReasonRow,
@@ -1078,6 +1267,58 @@ const styles = StyleSheet.create({
     right: 0,
     gap: 14,
     alignItems: "flex-end",
+  },
+  leftModesPopup: {
+    position: "absolute",
+    bottom: 74,
+    left: 0,
+    gap: 12,
+    alignItems: "flex-start",
+  },
+  leftModeOptionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  leftModeTextWrap: {
+    gap: 2,
+  },
+  leftModeLabelRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  activeDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  modeDesc: {
+    fontSize: 11,
+    paddingHorizontal: 10,
+    paddingVertical: 2,
+    borderRadius: 10,
+    overflow: "hidden",
+  },
+  dockRestingCenter: {
+    width: "100%",
+    height: 36,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  dockRestingPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: "rgba(255, 255, 255, 0.12)",
+  },
+  dockRestingText: {
+    fontSize: 12.5,
+    fontWeight: "600",
+    opacity: 0.9,
   },
   modeOptionRow: {
     flexDirection: "row",

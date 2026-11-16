@@ -332,6 +332,64 @@ export const PROFILES: Record<string, UserProfile> = {
     },
     posts: [POSTS[5]],
   },
+
+  "kondwani-coffee": {
+    id: "kondwani-coffee",
+    name: "Kondwani Banda",
+    handle: "@kondwanibanda",
+    kind: "Person",
+    category: "Coffee Explorer & Cyclist",
+    neighborhood: "Area 43, Lilongwe",
+    avatar: bakery,
+    cover: bakery,
+    bio: "Weekend road cyclist and specialty coffee pursuer. Documenting the finest single-origin roasts and morning bakeries across Lilongwe.",
+    stats: {
+      postsCount: 1,
+      statA: { label: "Saved", value: 12 },
+      statB: { label: "Following", value: 94 },
+      statC: { label: "Followers", value: 230 },
+    },
+    info: {
+      headline: "Specialty Coffee Pursuer & Cyclist",
+      about:
+        "Riding the quiet back roads of Area 43 and Area 10. Always on the hunt for Misuku Hills honey-process coffee and warm bakery pastries.",
+      hoursOrSchedule: "Active morning rides (06:30–09:00)",
+      location: "Area 43, Lilongwe",
+      badges: ["Early Riser", "Coffee Aficionado", "Cyclist"],
+      calendarHabits: "Morning coffee drop alerts and weekend group ride routes.",
+      social: "@kondwani_cycles",
+    },
+    posts: [POSTS[9]],
+  },
+
+  "dalitso-photo": {
+    id: "dalitso-photo",
+    name: "Dalitso Phiri",
+    handle: "@dalitsophiri",
+    kind: "Person",
+    category: "Wildlife & Nature Photographer",
+    neighborhood: "Area 3 / Sanctuary, Lilongwe",
+    avatar: concert,
+    cover: concert,
+    bio: "Conservation storyteller & nature photographer based in Lilongwe. Documenting birdlife along the Lingadzi river and organizing community photo walks.",
+    stats: {
+      postsCount: 1,
+      statA: { label: "Walks", value: 18 },
+      statB: { label: "Photos", value: "340" },
+      statC: { label: "Followers", value: 480 },
+    },
+    info: {
+      headline: "Conservation Storyteller & Photographer",
+      about:
+        "Capturing indigenous biodiversity in the heart of Lilongwe. Join our monthly community nature walks along the Lingadzi river trails.",
+      hoursOrSchedule: "Golden hours: 06:00–08:00 & 16:30–18:00",
+      location: "Lilongwe Wildlife Sanctuary, Kenyatta Drive",
+      badges: ["Wildlife Guide", "Canon Creator", "Trail Leader"],
+      calendarHabits: "Sunset photo walk reminders and seasonal bird migration alerts.",
+      social: "@dalitso_wild",
+    },
+    posts: [POSTS[10]],
+  },
 };
 
 // Aliases for backward compatibility

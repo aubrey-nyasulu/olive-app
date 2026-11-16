@@ -19,6 +19,8 @@ import {
 import { Colors, palette } from "../theme";
 import { estimateTravelMinutes, generateGuidanceSteps } from "../places";
 
+export type FeedMode = "all" | "people" | "places";
+
 type OliveContextType = {
   config: SettingsState;
   colors: Colors;
@@ -27,6 +29,10 @@ type OliveContextType = {
   toggleSave: (id: string) => Promise<void>;
   updateSettings: (patch: Partial<SettingsState>) => Promise<void>;
   resetSettings: () => Promise<void>;
+
+  // Feed mode state (all vs people vs places)
+  feedMode: FeedMode;
+  setFeedMode: (mode: FeedMode | ((prev: FeedMode) => FeedMode)) => void;
 
   // Search state for the bottom floating dock
   searchOpen: boolean;
@@ -38,6 +44,8 @@ type OliveContextType = {
   typeQuery: string;
   setTypeQuery: (q: string) => void;
   closeSearch: () => void;
+  isSearching: boolean;
+  setIsSearching: (searching: boolean | ((prev: boolean) => boolean)) => void;
 
   // Profile screen tab state (synced with bottom floating dock & header)
   profileTab: "posts" | "about";
@@ -80,11 +88,15 @@ export function OliveProvider({ children }: { children: ReactNode }) {
   const [savedIds, setSavedIds] = useState<string[]>(DEFAULT_SAVED_IDS);
   const [ready, setReady] = useState(false);
 
+  // Feed mode (all vs people vs places)
+  const [feedMode, setFeedMode] = useState<FeedMode>("all");
+
   // Search state
   const [searchOpen, setSearchOpen] = useState(false);
   const [activeMode, setActiveMode] = useState<SearchMode | null>(null);
   const [isListening, setIsListening] = useState(false);
   const [typeQuery, setTypeQuery] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
 
   // Profile screen tab state (defaults to "about" as first tab)
   const [profileTab, setProfileTabState] = useState<"about" | "posts">("about");
@@ -205,6 +217,8 @@ export function OliveProvider({ children }: { children: ReactNode }) {
         toggleSave,
         updateSettings,
         resetSettings,
+        feedMode,
+        setFeedMode,
         searchOpen,
         setSearchOpen,
         activeMode,
@@ -214,6 +228,8 @@ export function OliveProvider({ children }: { children: ReactNode }) {
         typeQuery,
         setTypeQuery,
         closeSearch,
+        isSearching,
+        setIsSearching,
         profileTab,
         setProfileTab,
         profileModal,
