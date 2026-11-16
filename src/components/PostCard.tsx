@@ -568,7 +568,7 @@ const styles = StyleSheet.create({
   },
   postImage: {
     width: "100%",
-    borderRadius: 18,
+    borderRadius: 32,
     resizeMode: "cover",
   },
   whenBadge: {
