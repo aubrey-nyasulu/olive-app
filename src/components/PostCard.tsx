@@ -1,9 +1,6 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
-  Dimensions,
   Image,
-  ImageSourcePropType,
-  LayoutChangeEvent,
   Modal,
   Pressable,
   ScrollView,
@@ -20,40 +17,8 @@ import { useOlive } from "../context/OliveProvider";
 type TabKind = "Details" | "Reviews" | "Related";
 const TABS: TabKind[] = ["Details", "Reviews", "Related"];
 
-function useImageAspectRatio(source: ImageSourcePropType): number {
-  const [aspectRatio, setAspectRatio] = useState<number>(() => {
-    const resolved = Image.resolveAssetSource(source);
-    if (resolved?.width && resolved?.height && resolved.height > 0) {
-      return resolved.width / resolved.height;
-    }
-    return 4 / 3;
-  });
-
-  useEffect(() => {
-    const resolved = Image.resolveAssetSource(source);
-    if (resolved?.width && resolved?.height && resolved.height > 0) {
-      setAspectRatio(resolved.width / resolved.height);
-    } else if (
-      typeof source === "object" &&
-      source !== null &&
-      "uri" in source &&
-      typeof source.uri === "string"
-    ) {
-      Image.getSize(
-        source.uri,
-        (w, h) => {
-          if (w > 0 && h > 0) setAspectRatio(w / h);
-        },
-        () => {}
-      );
-    }
-  }, [source]);
-
-  return aspectRatio;
-}
-
-const MIN_IMAGE_HEIGHT = 200;
-const MAX_IMAGE_HEIGHT = 350;
+// Fixed Instagram post image aspect ratio (1:1 square standard)
+export const INSTAGRAM_POST_ASPECT_RATIO = 1;
 
 export function PostCard({
   post,
@@ -65,24 +30,6 @@ export function PostCard({
   const { colors, isSaved, toggleSave, startGuidance, closeSearch } =
     useOlive();
   const [activeModalTab, setActiveModalTab] = useState<TabKind | null>(null);
-
-  const dynamicAspectRatio = useImageAspectRatio(post.image);
-  const [containerWidth, setContainerWidth] = useState<number>(() => {
-    const winWidth = Dimensions.get("window").width;
-    return Math.min(winWidth, 600) - 32;
-  });
-
-  const onLayoutWrap = (e: LayoutChangeEvent) => {
-    const w = e.nativeEvent.layout.width;
-    if (w > 0 && Math.abs(w - containerWidth) > 1) {
-      setContainerWidth(w);
-    }
-  };
-
-  const computedHeight = Math.min(
-    Math.max(containerWidth / (dynamicAspectRatio || 4 / 3), MIN_IMAGE_HEIGHT),
-    MAX_IMAGE_HEIGHT
-  );
 
   const reviews = REVIEWS[post.id] ?? [];
   const related = relatedPosts(post);
@@ -138,17 +85,13 @@ export function PostCard({
         </View>
       )}
 
-      {/* Image with Time Badge */}
+      {/* Image with Time Badge - Fixed Instagram Aspect Ratio */}
       <Pressable
         accessibilityRole="button"
         onPress={openPlace}
-        onLayout={onLayoutWrap}
-        style={[styles.imageWrap, { height: computedHeight }]}
+        style={styles.imageWrap}
       >
-        <Image
-          source={post.image}
-          style={[styles.postImage, { height: computedHeight }]}
-        />
+        <Image source={post.image} style={styles.postImage} />
         <View
           style={[
             styles.whenBadge,
@@ -562,12 +505,14 @@ const styles = StyleSheet.create({
 
   imageWrap: {
     width: "100%",
+    aspectRatio: INSTAGRAM_POST_ASPECT_RATIO,
     borderRadius: 18,
     overflow: "hidden",
     position: "relative",
   },
   postImage: {
     width: "100%",
+    height: "100%",
     borderRadius: 32,
     resizeMode: "cover",
   },
