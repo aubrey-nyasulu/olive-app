@@ -1,9 +1,7 @@
 import { useState } from "react";
 import {
   Image,
-  Modal,
   Pressable,
-  ScrollView,
   Share,
   StyleSheet,
   Text,
@@ -15,9 +13,6 @@ import type { Post } from "../models";
 import { relatedPosts, REVIEWS } from "../places";
 import { useOlive } from "../context/OliveProvider";
 
-type TabKind = "Details" | "Reviews" | "Related";
-const TABS: TabKind[] = ["Details", "Reviews", "Related"];
-
 // Fixed Instagram post image aspect ratio (1:1 square standard)
 export const INSTAGRAM_POST_ASPECT_RATIO = 1;
 
@@ -28,16 +23,22 @@ export function PostCard({
   post: Post;
   hideAuthor?: boolean;
 }) {
-  const { colors, isSaved, toggleSave, startGuidance, closeSearch } =
-    useOlive();
-  const [activeModalTab, setActiveModalTab] = useState<TabKind | null>(null);
+  const {
+    colors,
+    isSaved,
+    toggleSave,
+    startGuidance,
+    closeSearch,
+    openExpandedWindow,
+    reviewsMap,
+  } = useOlive();
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(
     () => Math.floor(Math.abs(post.lat * 100) % 35) + 8
   );
   const [captionExpanded, setCaptionExpanded] = useState(false);
 
-  const reviews = REVIEWS[post.id] ?? [];
+  const reviews = reviewsMap[post.id] ?? REVIEWS[post.id] ?? [];
   const latestReview = reviews.length > 0 ? reviews[0] : null;
   const related = relatedPosts(post);
   const saved = isSaved(post.id);
@@ -155,7 +156,7 @@ export function PostCard({
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={`View ${reviews.length} reviews`}
-            onPress={() => setActiveModalTab("Reviews")}
+            onPress={() => openExpandedWindow({ type: "comments", post })}
             style={({ pressed }) => [
               styles.actionItem,
               { opacity: pressed ? 0.65 : 1 },
@@ -260,7 +261,7 @@ export function PostCard({
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Open details sheet"
-            onPress={() => setActiveModalTab("Details")}
+            onPress={() => openExpandedWindow({ type: "details", post })}
             style={[
               styles.detailsChip,
               {
@@ -283,7 +284,7 @@ export function PostCard({
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={`Community review from ${latestReview.by}`}
-            onPress={() => setActiveModalTab("Reviews")}
+            onPress={() => openExpandedWindow({ type: "comments", post })}
             style={[styles.reviewHighlight, { borderLeftColor: colors.signal }]}
           >
             <Text
@@ -298,286 +299,6 @@ export function PostCard({
           </Pressable>
         )}
       </View>
-
-      {/* Info Modal for Details / Reviews / Related */}
-      <Modal
-        visible={activeModalTab !== null}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setActiveModalTab(null)}
-      >
-        <View style={styles.modalOverlay}>
-          <Pressable
-            accessibilityLabel="Dismiss modal"
-            style={[styles.modalBackdrop, { backgroundColor: colors.overlay }]}
-            onPress={() => setActiveModalTab(null)}
-          />
-          <View
-            style={[
-              styles.modalContainer,
-              {
-                backgroundColor: colors.bg,
-                borderColor: colors.signal,
-              },
-            ]}
-          >
-            {/* Top Handle */}
-            <View style={styles.modalHeader}>
-              <View
-                style={[styles.modalHandle, { backgroundColor: colors.line }]}
-              />
-              <Pressable
-                accessibilityLabel="Close"
-                onPress={() => setActiveModalTab(null)}
-                style={[
-                  styles.modalClose,
-                  {
-                    backgroundColor: colors.surfaceMuted,
-                    borderColor: colors.line,
-                  },
-                ]}
-              >
-                <Ionicons name="close" size={18} color={colors.text} />
-              </Pressable>
-            </View>
-
-            {/* Modal Tab Switcher */}
-            <View style={styles.modalTabsRow}>
-              {TABS.map((tab) => (
-                <Pressable
-                  key={tab}
-                  onPress={() => setActiveModalTab(tab)}
-                  style={[
-                    styles.modalTabBtn,
-                    {
-                      backgroundColor:
-                        activeModalTab === tab
-                          ? colors.text
-                          : colors.surfaceMuted,
-                      borderColor:
-                        activeModalTab === tab ? colors.text : colors.line,
-                    },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.modalTabBtnText,
-                      {
-                        color:
-                          activeModalTab === tab ? colors.bg : colors.muted,
-                        fontWeight: activeModalTab === tab ? "700" : "500",
-                      },
-                    ]}
-                  >
-                    {tab}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-
-            {/* Modal Tab Body */}
-            <ScrollView
-              style={styles.modalScroll}
-              contentContainerStyle={styles.modalScrollContent}
-            >
-              {activeModalTab === "Details" && (
-                <View style={styles.detailsContent}>
-                  <Text style={[styles.detailTitle, { color: colors.text }]}>
-                    {post.title}
-                  </Text>
-                  <Text
-                    style={[styles.detailBody, { color: colors.textSecondary }]}
-                  >
-                    {post.body}
-                  </Text>
-
-                  <View
-                    style={[
-                      styles.infoGrid,
-                      {
-                        backgroundColor: colors.surface,
-                        borderColor: colors.line,
-                      },
-                    ]}
-                  >
-                    <View style={styles.infoRow}>
-                      <Text style={[styles.infoLabel, { color: colors.muted }]}>
-                        Location
-                      </Text>
-                      <Text style={[styles.infoValue, { color: colors.text }]}>
-                        {post.place}
-                      </Text>
-                    </View>
-                    <View style={styles.infoRow}>
-                      <Text style={[styles.infoLabel, { color: colors.muted }]}>
-                        Hours
-                      </Text>
-                      <Text style={[styles.infoValue, { color: colors.text }]}>
-                        {post.when}
-                      </Text>
-                    </View>
-                    <View style={styles.infoRow}>
-                      <Text style={[styles.infoLabel, { color: colors.muted }]}>
-                        Distance
-                      </Text>
-                      <Text style={[styles.infoValue, { color: colors.text }]}>
-                        {post.distanceKm} km away
-                      </Text>
-                    </View>
-                  </View>
-
-                  {/* In-app guide me button */}
-                  <Pressable
-                    accessibilityRole="button"
-                    onPress={() => {
-                      setActiveModalTab(null);
-                      startGuidance(post);
-                    }}
-                    style={({ pressed }) => [
-                      styles.guideActionBtn,
-                      {
-                        backgroundColor: colors.signal,
-                        opacity: pressed ? 0.85 : 1,
-                      },
-                    ]}
-                  >
-                    <Ionicons
-                      name="navigate"
-                      size={16}
-                      color={colors.signalForeground}
-                    />
-                    <Text
-                      style={[
-                        styles.guideActionText,
-                        { color: colors.signalForeground },
-                      ]}
-                    >
-                      Guide me there
-                    </Text>
-                  </Pressable>
-                </View>
-              )}
-
-              {activeModalTab === "Reviews" && (
-                <View style={styles.reviewsContent}>
-                  {reviews.length === 0 ? (
-                    <Text style={[styles.emptyText, { color: colors.muted }]}>
-                      No reviews yet. Be the first to visit and share thoughts!
-                    </Text>
-                  ) : (
-                    reviews.map((rev) => (
-                      <View
-                        key={rev.by}
-                        style={[
-                          styles.reviewCard,
-                          {
-                            backgroundColor: colors.surface,
-                            borderColor: colors.line,
-                          },
-                        ]}
-                      >
-                        <View style={styles.reviewHeader}>
-                          <View
-                            style={[
-                              styles.reviewAvatar,
-                              { backgroundColor: colors.surfaceMuted },
-                            ]}
-                          >
-                            <Text
-                              style={[
-                                styles.reviewAvatarLetter,
-                                { color: colors.text },
-                              ]}
-                            >
-                              {rev.by[0]}
-                            </Text>
-                          </View>
-                          <Text
-                            style={[
-                              styles.reviewAuthor,
-                              { color: colors.text },
-                            ]}
-                          >
-                            {rev.by}
-                          </Text>
-                          <View style={styles.starsRow}>
-                            {Array.from({ length: rev.stars }).map((_, i) => (
-                              <Ionicons
-                                key={i}
-                                name="star"
-                                size={13}
-                                color={colors.signal}
-                              />
-                            ))}
-                          </View>
-                        </View>
-                        <Text
-                          style={[
-                            styles.reviewText,
-                            { color: colors.textSecondary },
-                          ]}
-                        >
-                          {rev.text}
-                        </Text>
-                      </View>
-                    ))
-                  )}
-                </View>
-              )}
-
-              {activeModalTab === "Related" && (
-                <View style={styles.relatedContent}>
-                  {related.length === 0 ? (
-                    <Text style={[styles.emptyText, { color: colors.muted }]}>
-                      Nothing similar nearby right now.
-                    </Text>
-                  ) : (
-                    related.map((rel) => (
-                      <Pressable
-                        key={rel.id}
-                        onPress={() => {
-                          setActiveModalTab(null);
-                          closeSearch();
-                          router.push(`/p/${rel.id}`);
-                        }}
-                        style={({ pressed }) => [
-                          styles.relatedRow,
-                          {
-                            backgroundColor: colors.surface,
-                            borderColor: colors.line,
-                            opacity: pressed ? 0.7 : 1,
-                          },
-                        ]}
-                      >
-                        <View style={styles.relatedMeta}>
-                          <Text
-                            style={[
-                              styles.relatedTitle,
-                              { color: colors.text },
-                            ]}
-                          >
-                            {rel.author}
-                          </Text>
-                          <Text
-                            style={[styles.relatedSub, { color: colors.muted }]}
-                          >
-                            {rel.title}
-                          </Text>
-                        </View>
-                        <Text
-                          style={[styles.relatedDist, { color: colors.signal }]}
-                        >
-                          {rel.distanceKm} km
-                        </Text>
-                      </Pressable>
-                    ))
-                  )}
-                </View>
-              )}
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 }

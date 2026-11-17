@@ -7,7 +7,7 @@ import {
   type ReactNode,
 } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
-import type { GuidanceSession, Post, SearchMode, SettingsState } from "../models";
+import type { GuidanceSession, Post, Review, SearchMode, SettingsState } from "../models";
 import {
   DEFAULT_SAVED_IDS,
   DEFAULT_SETTINGS,
@@ -17,9 +17,22 @@ import {
   saveSettings,
 } from "../storage";
 import { Colors, palette } from "../theme";
-import { estimateTravelMinutes, generateGuidanceSteps } from "../places";
+import { estimateTravelMinutes, generateGuidanceSteps, REVIEWS } from "../places";
+import type { UserProfile } from "../profiles";
 
 export type FeedMode = "all" | "people" | "places";
+
+export type ExpandedWindow =
+  | { type: "comments"; post: Post }
+  | { type: "details"; post: Post }
+  | { type: "related"; post: Post }
+  | { type: "profile_saved" }
+  | { type: "profile_settings" }
+  | { type: "message"; recipient: UserProfile }
+  | { type: "report"; targetUser: UserProfile }
+  | { type: "feed_modes" }
+  | { type: "search_options" }
+  | null;
 
 type OliveContextType = {
   config: SettingsState;
@@ -68,6 +81,15 @@ type OliveContextType = {
       | ((prev: "saved" | "settings" | null) => "saved" | "settings" | null)
   ) => void;
 
+  // Expanded floating nav window state
+  expandedWindow: ExpandedWindow;
+  openExpandedWindow: (win: ExpandedWindow) => void;
+  closeExpandedWindow: () => void;
+
+  // Realtime comments / reviews state
+  reviewsMap: Record<string, Review[]>;
+  addReview: (postId: string, review: Review) => void;
+
   // Scanning state for home feed live scanning vs paused
   isScanning: boolean;
   setIsScanning: (
@@ -100,9 +122,60 @@ export function OliveProvider({ children }: { children: ReactNode }) {
 
   // Profile screen tab state (defaults to "about" as first tab)
   const [profileTab, setProfileTabState] = useState<"about" | "posts">("about");
-  const [profileModal, setProfileModal] = useState<"saved" | "settings" | null>(
-    null
-  );
+
+  // Expanded floating nav window state
+  const [expandedWindow, setExpandedWindow] = useState<ExpandedWindow>(null);
+
+  // Dynamic reviews / comments state
+  const [reviewsMap, setReviewsMap] = useState<Record<string, Review[]>>(REVIEWS);
+
+  const openExpandedWindow = (win: ExpandedWindow) => {
+    setExpandedWindow(win);
+  };
+
+  const closeExpandedWindow = () => {
+    setExpandedWindow(null);
+  };
+
+  const addReview = (postId: string, review: Review) => {
+    setReviewsMap((prev) => {
+      const existing = prev[postId] ?? REVIEWS[postId] ?? [];
+      return {
+        ...prev,
+        [postId]: [review, ...existing],
+      };
+    });
+  };
+
+  // Derive profileModal for backward compatibility
+  const profileModal =
+    expandedWindow?.type === "profile_saved"
+      ? "saved"
+      : expandedWindow?.type === "profile_settings"
+      ? "settings"
+      : null;
+
+  const setProfileModal = (
+    modal:
+      | "saved"
+      | "settings"
+      | null
+      | ((prev: "saved" | "settings" | null) => "saved" | "settings" | null)
+  ) => {
+    const nextModal = typeof modal === "function" ? modal(profileModal) : modal;
+    if (nextModal === "saved") {
+      setExpandedWindow({ type: "profile_saved" });
+    } else if (nextModal === "settings") {
+      setExpandedWindow({ type: "profile_settings" });
+    } else {
+      if (
+        expandedWindow?.type === "profile_saved" ||
+        expandedWindow?.type === "profile_settings"
+      ) {
+        setExpandedWindow(null);
+      }
+    }
+  };
 
   const setProfileTab = (
     tab:
@@ -113,9 +186,9 @@ export function OliveProvider({ children }: { children: ReactNode }) {
       | ((prev: "posts" | "about") => "posts" | "about")
   ) => {
     if (tab === "saved") {
-      setProfileModal("saved");
+      setExpandedWindow({ type: "profile_saved" });
     } else if (tab === "settings") {
-      setProfileModal("settings");
+      setExpandedWindow({ type: "profile_settings" });
     } else if (typeof tab === "function") {
       setProfileTabState(tab);
     } else {
@@ -175,6 +248,8 @@ export function OliveProvider({ children }: { children: ReactNode }) {
     setActiveMode(null);
     setIsListening(false);
     setTypeQuery("");
+    setIsSearching(false);
+    setExpandedWindow(null);
   }
 
   function startGuidance(post: Post) {
@@ -234,6 +309,11 @@ export function OliveProvider({ children }: { children: ReactNode }) {
         setProfileTab,
         profileModal,
         setProfileModal,
+        expandedWindow,
+        openExpandedWindow,
+        closeExpandedWindow,
+        reviewsMap,
+        addReview,
         isScanning,
         setIsScanning,
         activeGuidance,
