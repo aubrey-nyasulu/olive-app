@@ -199,11 +199,8 @@ export const REVIEWS: Record<string, Review[]> = {
     { by: "Tionge", stars: 4, text: "Very helpful pharmacists even late at night, well stocked." },
   ],
   "chambo-grill": [
-    { by: "Limbani", stars: 5, text: "Best whole grilled Chambo in Lilongwe, the kachumbari has just the right chili kick." },
+    { by: "Limbani", stars: 5, text: "Best whole grilled Chambo in town, the kachumbari has just the right chili kick." },
     { by: "Tadala", stars: 5, text: "Great atmosphere on the outdoor terrace, generous portions." },
-  ],
-  "ev-charge": [
-    { by: "Limbani", stars: 5, text: "Best whole grilled Chambo in Lilongwe, the kachumbari has just the right chili kick." },
   ],
   "chisomo-bakery": [
     { by: "Blessings", stars: 5, text: "Found this spot through Chisomo's recommendation. Sourdough loaf is incredible!" },
@@ -212,23 +209,13 @@ export const REVIEWS: Record<string, Review[]> = {
     { by: "Matilda", stars: 5, text: "Magical atmosphere under the acacia trees, thank you for sharing." },
   ],
   "chisomo-market-finds": [
-    { by: "Dumisani", stars: 5, text: "The Salima mangoes and Ntchisi wild honey were top tier!" },
+    { by: "Dumisani", stars: 5, text: "The Salima mangoes and wild honey were top tier!" },
   ],
   "kondwani-coffee": [
     { by: "Matilda", stars: 5, text: "Great coffee stop! The cinnamon bun was still warm from the oven." },
   ],
   "dalitso-photo": [
     { by: "Blessings", stars: 5, text: "Incredible light by the river trail, thanks for organizing the walk." },
-  ],
-  // Legacy aliases to preserve backward compatibility
-  "amara-campo-bakery": [
-    { by: "Blessings", stars: 5, text: "Found this spot through Chisomo's recommendation. Sourdough loaf is incredible!" },
-  ],
-  "amara-estrela-sunset": [
-    { by: "Matilda", stars: 5, text: "Magical atmosphere under the acacia trees, thank you for sharing." },
-  ],
-  "amara-market-finds": [
-    { by: "Dumisani", stars: 5, text: "The Salima mangoes and Ntchisi wild honey were top tier!" },
   ],
 };
 

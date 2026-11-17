@@ -19,17 +19,12 @@ export default function FeedScreen() {
   const sortedPosts = useMemo(() => {
     return [...POSTS]
       .filter((post) => {
-        // Exclude posts authored by the profile owner (Chisomo Banda / Amara)
+        // Exclude posts authored by the profile owner
         const authorNorm = post.author.toLowerCase().trim();
         const isOwner =
           authorNorm === "chisomo banda" ||
           authorNorm === "chisomo" ||
-          authorNorm === "amara boateng" ||
-          authorNorm === "amara" ||
-          authorNorm.includes("chisomo") ||
-          authorNorm.includes("amara") ||
-          post.id.startsWith("chisomo-") ||
-          post.id.startsWith("amara-");
+          post.id.startsWith("chisomo-");
         if (isOwner) return false;
 
         // Mode filtering:

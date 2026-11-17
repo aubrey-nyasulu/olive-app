@@ -13,8 +13,8 @@ import type { Post } from "../models";
 import { relatedPosts, REVIEWS } from "../places";
 import { useOlive } from "../context/OliveProvider";
 
-// Fixed Instagram post image aspect ratio (1:1 square standard)
-export const INSTAGRAM_POST_ASPECT_RATIO = 1;
+// Fixed 1:1 square media aspect ratio
+export const POST_MEDIA_ASPECT_RATIO = 1;
 
 export function PostCard({
   post,
@@ -65,7 +65,7 @@ export function PostCard({
 
   const handleShare = () => {
     Share.share({
-      message: `${post.title} — ${post.author} (${post.place}) on Olive Lilongwe!`,
+      message: `${post.title} — ${post.author} (${post.place}) on Olive!`,
     });
   };
 
@@ -110,7 +110,7 @@ export function PostCard({
         </View>
       )}
 
-      {/* Image with Time Badge - Fixed Instagram Aspect Ratio */}
+      {/* Image with Time Badge */}
       <Pressable
         accessibilityRole="button"
         onPress={openPlace}
@@ -350,7 +350,7 @@ const styles = StyleSheet.create({
 
   imageWrap: {
     width: "100%",
-    aspectRatio: INSTAGRAM_POST_ASPECT_RATIO,
+    aspectRatio: POST_MEDIA_ASPECT_RATIO,
     borderRadius: 18,
     overflow: "hidden",
     position: "relative",

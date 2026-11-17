@@ -1,0 +1,100 @@
+import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import type { UserProfile } from "../../../profiles";
+import { useOlive } from "../../../context/OliveProvider";
+
+interface MessageViewProps {
+  recipient: UserProfile;
+}
+
+export function MessageView({ recipient }: MessageViewProps) {
+  const { colors } = useOlive();
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <View style={styles.recipientRow}>
+          <Image source={recipient.avatar} style={styles.avatar} />
+          <View>
+            <Text style={[styles.title, { color: colors.text }]}>
+              Message {recipient.name}
+            </Text>
+            <Text style={[styles.subtitle, { color: colors.muted }]}>
+              {recipient.handle} · {recipient.neighborhood}
+            </Text>
+          </View>
+        </View>
+      </View>
+
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View
+          style={[
+            styles.hintCard,
+            {
+              backgroundColor: colors.surfaceMuted,
+              borderColor: colors.line,
+            },
+          ]}
+        >
+          <Ionicons name="sparkles" size={16} color={colors.signal} />
+          <Text style={[styles.hintText, { color: colors.textSecondary }]}>
+            Ask about opening hours, table bookings, batch availability, or send a note to {recipient.name}.
+          </Text>
+        </View>
+      </ScrollView>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  header: {
+    paddingHorizontal: 18,
+    paddingBottom: 8,
+  },
+  recipientRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  avatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+  },
+  title: {
+    fontSize: 16,
+    fontWeight: "800",
+    letterSpacing: -0.2,
+  },
+  subtitle: {
+    fontSize: 12,
+    marginTop: 1,
+  },
+  scroll: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+  },
+  hintCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    padding: 12,
+    borderRadius: 14,
+    borderWidth: 1,
+  },
+  hintText: {
+    fontSize: 12.5,
+    lineHeight: 18,
+    flex: 1,
+  },
+});

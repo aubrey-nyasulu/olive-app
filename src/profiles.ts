@@ -2,8 +2,8 @@ import type { ImageSourcePropType } from "react-native";
 import { POSTS } from "./places";
 import type { Post } from "./models";
 
-const avatarAmara = require("../assets/images/profile-avatar.jpg");
-const coverAmara = require("../assets/images/profile-cover.jpg");
+const avatarChisomo = require("../assets/images/profile-avatar.jpg");
+const coverChisomo = require("../assets/images/profile-cover.jpg");
 const fuel = require("../assets/images/place-fuel.jpg");
 const concert = require("../assets/images/place-concert.jpg");
 const bakery = require("../assets/images/place-bakery.jpg");
@@ -57,8 +57,8 @@ export const PROFILES: Record<string, UserProfile> = {
     kind: "Person",
     category: "Local Guide & Cultural Curator",
     neighborhood: "Area 10 & Old Town, Lilongwe",
-    avatar: avatarAmara,
-    cover: coverAmara,
+    avatar: avatarChisomo,
+    cover: coverChisomo,
     bio: "Exploring Lilongwe's quiet shaded lanes, artisanal coffee roasters, and live acoustic sessions by the sanctuary. Cyclist & neighborhood archivist.",
     stats: {
       postsCount: 3,
@@ -393,10 +393,6 @@ export const PROFILES: Record<string, UserProfile> = {
     posts: [POSTS[10]],
   },
 };
-
-// Aliases for backward compatibility
-PROFILES["ev-charge"] = PROFILES["chambo-grill"];
-PROFILES.amara = PROFILES.chisomo;
 
 export function getProfile(query?: string | null): UserProfile {
   if (!query) return PROFILES.chisomo;

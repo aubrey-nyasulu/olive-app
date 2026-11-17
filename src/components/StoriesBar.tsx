@@ -122,7 +122,7 @@ export function StoriesBar() {
                     </View>
                   </View>
                 ) : hasUnread ? (
-                  // Instagram-style gradient ring for unread updates
+                  // Gradient ring indicator for unread updates
                   <LinearGradient
                     colors={[colors.signal, "#F59E0B", "#EF4444"]}
                     start={{ x: 0, y: 0 }}
@@ -199,7 +199,7 @@ export function StoriesBar() {
         })}
       </ScrollView>
 
-      {/* Instagram-style Story Viewer Modal */}
+      {/* Fullscreen Story Viewer Modal */}
       {activeStory && (
         <Modal
           visible={activeStoryIndex !== null}
@@ -219,7 +219,7 @@ export function StoriesBar() {
                 },
               ]}
             >
-              {/* Top Progress Segments (Instagram-style timer indicators) */}
+              {/* Top Progress Segments (Timer indicators) */}
               <View style={styles.progressRow}>
                 {STORIES.map((s, idx) => (
                   <View
