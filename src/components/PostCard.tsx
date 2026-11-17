@@ -161,36 +161,12 @@ export function PostCard({
               { opacity: pressed ? 0.65 : 1 },
             ]}
           >
-            <Ionicons
-              name="chatbubble-outline"
-              size={20}
-              color={colors.text}
-            />
+            <Ionicons name="chatbubble-outline" size={20} color={colors.text} />
             {reviews.length > 0 && (
               <Text style={[styles.actionCount, { color: colors.text }]}>
                 {reviews.length}
               </Text>
             )}
-          </Pressable>
-
-          {/* In-App Direct Guidance Pill */}
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={`Guide me to ${post.place}`}
-            onPress={handleGuide}
-            style={({ pressed }) => [
-              styles.actionGuidePill,
-              {
-                backgroundColor: colors.signalLight,
-                borderColor: colors.signal,
-                opacity: pressed ? 0.75 : 1,
-              },
-            ]}
-          >
-            <Ionicons name="navigate" size={12} color={colors.signal} />
-            <Text style={[styles.actionGuideText, { color: colors.signal }]}>
-              {post.distanceKm} km
-            </Text>
           </Pressable>
 
           {/* Share */}
@@ -203,11 +179,7 @@ export function PostCard({
               { opacity: pressed ? 0.65 : 1 },
             ]}
           >
-            <Ionicons
-              name="paper-plane-outline"
-              size={20}
-              color={colors.text}
-            />
+            <Ionicons name="flower-outline" size={20} color={colors.text} />
           </Pressable>
         </View>
 
@@ -223,7 +195,7 @@ export function PostCard({
         >
           <Ionicons
             name={saved ? "bookmark" : "bookmark-outline"}
-            size={22}
+            size={20}
             color={saved ? colors.signal : colors.text}
           />
         </Pressable>
@@ -312,18 +284,13 @@ export function PostCard({
             accessibilityRole="button"
             accessibilityLabel={`Community review from ${latestReview.by}`}
             onPress={() => setActiveModalTab("Reviews")}
-            style={[
-              styles.reviewHighlight,
-              { borderLeftColor: colors.signal },
-            ]}
+            style={[styles.reviewHighlight, { borderLeftColor: colors.signal }]}
           >
             <Text
               numberOfLines={1}
               style={[styles.reviewQuote, { color: colors.muted }]}
             >
-              <Text
-                style={[styles.reviewAuthorPrefix, { color: colors.text }]}
-              >
+              <Text style={[styles.reviewAuthorPrefix, { color: colors.text }]}>
                 {latestReview.by}:{" "}
               </Text>
               “{latestReview.text}”
@@ -703,26 +670,27 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 9999,
+    borderWidth: 1,
+    backgroundColor: "#E6CDBA50",
+    borderColor: "#E6CDBA",
   },
   actionCount: {
     fontSize: 13,
     fontWeight: "600",
   },
-  actionGuidePill: {
+  actionBookmarkBtn: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 3.5,
-    borderRadius: 12,
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 9999,
     borderWidth: 1,
-  },
-  actionGuideText: {
-    fontSize: 11.5,
-    fontWeight: "700",
-  },
-  actionBookmarkBtn: {
-    padding: 2,
+    backgroundColor: "#E6CDBA50",
+    borderColor: "#E6CDBA",
   },
 
   /* Post Content & Story Narrative */
