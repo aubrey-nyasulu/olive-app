@@ -4,6 +4,7 @@ import {
   Modal,
   Pressable,
   ScrollView,
+  Share,
   StyleSheet,
   Text,
   View,
@@ -30,8 +31,14 @@ export function PostCard({
   const { colors, isSaved, toggleSave, startGuidance, closeSearch } =
     useOlive();
   const [activeModalTab, setActiveModalTab] = useState<TabKind | null>(null);
+  const [isLiked, setIsLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(
+    () => Math.floor(Math.abs(post.lat * 100) % 35) + 8
+  );
+  const [captionExpanded, setCaptionExpanded] = useState(false);
 
   const reviews = REVIEWS[post.id] ?? [];
+  const latestReview = reviews.length > 0 ? reviews[0] : null;
   const related = relatedPosts(post);
   const saved = isSaved(post.id);
 
@@ -46,6 +53,23 @@ export function PostCard({
       pathname: "/profile",
       params: { author: post.author, id: post.id },
     });
+  };
+
+  const handleLike = () => {
+    setIsLiked((prev) => {
+      setLikeCount((c) => (prev ? c - 1 : c + 1));
+      return !prev;
+    });
+  };
+
+  const handleShare = () => {
+    Share.share({
+      message: `${post.title} — ${post.author} (${post.place}) on Olive Lilongwe!`,
+    });
+  };
+
+  const handleGuide = () => {
+    startGuidance(post);
   };
 
   return (
@@ -104,76 +128,209 @@ export function PostCard({
         </View>
       </Pressable>
 
-      <View style={styles.tabContainer}>
-        {/* Details / Reviews / Related Tabs */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.tabsScroll}
-        >
-          {TABS.map((tab) => {
-            const badgeCount =
-              tab === "Reviews" && reviews.length > 0
-                ? ` · ${reviews.length}`
-                : "";
-            return (
-              <Pressable
-                key={tab}
-                accessibilityRole="button"
-                onPress={() => setActiveModalTab(tab)}
-                style={({ pressed }) => [
-                  styles.tabChip,
-                  {
-                    backgroundColor: colors.surfaceMuted,
-                    borderColor: colors.line,
-                    opacity: pressed ? 0.7 : 1,
-                  },
-                ]}
-              >
-                <Text style={[styles.tabChipText, { color: colors.text }]}>
-                  {tab}
-                  {badgeCount}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
+      {/* 1. Tactical & Social Action Bar */}
+      <View style={styles.actionBar}>
+        <View style={styles.actionLeftGroup}>
+          {/* Like */}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={isLiked ? "Unlike post" : "Like post"}
+            onPress={handleLike}
+            style={({ pressed }) => [
+              styles.actionItem,
+              { opacity: pressed ? 0.65 : 1 },
+            ]}
+          >
+            <Ionicons
+              name={isLiked ? "heart" : "heart-outline"}
+              size={22}
+              color={isLiked ? "#FF3B30" : colors.text}
+            />
+            <Text style={[styles.actionCount, { color: colors.text }]}>
+              {likeCount}
+            </Text>
+          </Pressable>
 
-        {/* Bookmark Icon */}
+          {/* Comments / Reviews */}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`View ${reviews.length} reviews`}
+            onPress={() => setActiveModalTab("Reviews")}
+            style={({ pressed }) => [
+              styles.actionItem,
+              { opacity: pressed ? 0.65 : 1 },
+            ]}
+          >
+            <Ionicons
+              name="chatbubble-outline"
+              size={20}
+              color={colors.text}
+            />
+            {reviews.length > 0 && (
+              <Text style={[styles.actionCount, { color: colors.text }]}>
+                {reviews.length}
+              </Text>
+            )}
+          </Pressable>
+
+          {/* In-App Direct Guidance Pill */}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Guide me to ${post.place}`}
+            onPress={handleGuide}
+            style={({ pressed }) => [
+              styles.actionGuidePill,
+              {
+                backgroundColor: colors.signalLight,
+                borderColor: colors.signal,
+                opacity: pressed ? 0.75 : 1,
+              },
+            ]}
+          >
+            <Ionicons name="navigate" size={12} color={colors.signal} />
+            <Text style={[styles.actionGuideText, { color: colors.signal }]}>
+              {post.distanceKm} km
+            </Text>
+          </Pressable>
+
+          {/* Share */}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Share place"
+            onPress={handleShare}
+            style={({ pressed }) => [
+              styles.actionItem,
+              { opacity: pressed ? 0.65 : 1 },
+            ]}
+          >
+            <Ionicons
+              name="paper-plane-outline"
+              size={20}
+              color={colors.text}
+            />
+          </Pressable>
+        </View>
+
+        {/* Bookmark */}
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={saved ? "Remove bookmark" : "Save place"}
           onPress={() => toggleSave(post.id)}
           style={({ pressed }) => [
-            styles.saveBtn,
-            {
-              backgroundColor: saved ? colors.signalLight : colors.surfaceMuted,
-              borderColor: saved ? colors.signal : colors.line,
-              opacity: pressed ? 0.6 : 1,
-            },
+            styles.actionBookmarkBtn,
+            { opacity: pressed ? 0.65 : 1 },
           ]}
         >
           <Ionicons
             name={saved ? "bookmark" : "bookmark-outline"}
-            size={18}
-            color={saved ? colors.signal : colors.muted}
+            size={22}
+            color={saved ? colors.signal : colors.text}
           />
         </Pressable>
       </View>
 
-      {/* Post snippet */}
-      <Pressable onPress={openPlace}>
-        <View
-          style={[
-            styles.bodySnippet,
-            { backgroundColor: colors.surfaceMuted, borderColor: colors.line },
-          ]}
+      {/* 2. Editorial Post Content & Story Narrative */}
+      <View style={styles.postBodySection}>
+        {/* Drop Headline */}
+        <Pressable onPress={openPlace} style={styles.titleWrap}>
+          <Text
+            style={[styles.postTitle, { color: colors.text }]}
+            numberOfLines={2}
+          >
+            {post.title}
+          </Text>
+        </Pressable>
+
+        {/* Narrative Caption */}
+        <Pressable
+          onPress={() => setCaptionExpanded((prev) => !prev)}
+          style={styles.captionWrap}
         >
-          <Text style={[styles.bodyText, { color: colors.textSecondary }]}>
+          <Text
+            style={[styles.captionText, { color: colors.textSecondary }]}
+            numberOfLines={captionExpanded ? undefined : 2}
+          >
+            <Text style={[styles.captionAuthor, { color: colors.text }]}>
+              {post.author}{" "}
+            </Text>
             {post.body}
           </Text>
+          {post.body.length > 85 && !captionExpanded && (
+            <Text style={[styles.captionMore, { color: colors.muted }]}>
+              more
+            </Text>
+          )}
+        </Pressable>
+
+        {/* Hyperlocal Venue Capsule & Details Sheet Trigger */}
+        <View style={styles.venueRow}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Location: ${post.place}`}
+            onPress={openPlace}
+            style={[
+              styles.venueCapsule,
+              {
+                backgroundColor: colors.surfaceMuted,
+                borderColor: colors.line,
+              },
+            ]}
+          >
+            <Ionicons name="location-sharp" size={12} color={colors.signal} />
+            <Text
+              numberOfLines={1}
+              style={[styles.venueCapsuleText, { color: colors.text }]}
+            >
+              {post.place}
+            </Text>
+          </Pressable>
+
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Open details sheet"
+            onPress={() => setActiveModalTab("Details")}
+            style={[
+              styles.detailsChip,
+              {
+                backgroundColor: colors.surfaceMuted,
+                borderColor: colors.line,
+              },
+            ]}
+          >
+            <Text
+              style={[styles.detailsChipText, { color: colors.textSecondary }]}
+            >
+              Details
+            </Text>
+            <Ionicons name="chevron-forward" size={11} color={colors.muted} />
+          </Pressable>
         </View>
-      </Pressable>
+
+        {/* Community Review Highlight (Social Proof) */}
+        {latestReview && (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Community review from ${latestReview.by}`}
+            onPress={() => setActiveModalTab("Reviews")}
+            style={[
+              styles.reviewHighlight,
+              { borderLeftColor: colors.signal },
+            ]}
+          >
+            <Text
+              numberOfLines={1}
+              style={[styles.reviewQuote, { color: colors.muted }]}
+            >
+              <Text
+                style={[styles.reviewAuthorPrefix, { color: colors.text }]}
+              >
+                {latestReview.by}:{" "}
+              </Text>
+              “{latestReview.text}”
+            </Text>
+          </Pressable>
+        )}
+      </View>
 
       {/* Info Modal for Details / Reviews / Related */}
       <Modal
@@ -529,44 +686,123 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "600",
   },
-  tabsScroll: {
+  /* Action Bar */
+  actionBar: {
     flexDirection: "row",
-    gap: 8,
-    paddingTop: 10,
-    paddingBottom: 4,
-  },
-  tabContainer: {
-    flexDirection: "row",
+    alignItems: "center",
     justifyContent: "space-between",
+    paddingTop: 12,
+    paddingBottom: 6,
+  },
+  actionLeftGroup: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 16,
+  },
+  actionItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+  },
+  actionCount: {
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  actionGuidePill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3.5,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  actionGuideText: {
+    fontSize: 11.5,
+    fontWeight: "700",
+  },
+  actionBookmarkBtn: {
+    padding: 2,
+  },
+
+  /* Post Content & Story Narrative */
+  postBodySection: {
+    gap: 7,
+    marginTop: 2,
+  },
+  titleWrap: {
+    marginTop: 2,
+  },
+  postTitle: {
+    fontSize: 15.5,
+    fontWeight: "700",
+    lineHeight: 20,
+    letterSpacing: -0.2,
+  },
+  captionWrap: {
+    flexDirection: "row",
+    flexWrap: "wrap",
     alignItems: "center",
   },
-  saveBtn: {
-    padding: 6,
-    borderRadius: 18,
-    borderWidth: 1,
+  captionText: {
+    fontSize: 13.5,
+    lineHeight: 19,
+  },
+  captionAuthor: {
+    fontWeight: "700",
+  },
+  captionMore: {
+    fontSize: 12.5,
+    fontWeight: "600",
+    marginLeft: 4,
+  },
+  venueRow: {
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    gap: 8,
+    marginTop: 3,
   },
-  tabChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 9999,
+  venueCapsule: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 14,
     borderWidth: 1,
+    flexShrink: 1,
   },
-  tabChipText: {
+  venueCapsuleText: {
     fontSize: 12,
     fontWeight: "600",
   },
-  bodySnippet: {
-    marginTop: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
+  detailsChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 3,
+    paddingHorizontal: 9,
+    paddingVertical: 5,
     borderRadius: 14,
     borderWidth: 1,
   },
-  bodyText: {
-    fontSize: 13.5,
-    lineHeight: 18,
+  detailsChipText: {
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  reviewHighlight: {
+    borderLeftWidth: 2,
+    paddingLeft: 8,
+    paddingVertical: 2,
+    marginTop: 3,
+  },
+  reviewQuote: {
+    fontSize: 12,
+    fontStyle: "italic",
+    lineHeight: 16,
+  },
+  reviewAuthorPrefix: {
+    fontWeight: "700",
+    fontStyle: "normal",
   },
   modalOverlay: {
     flex: 1,
