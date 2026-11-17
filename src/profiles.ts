@@ -10,7 +10,9 @@ const bakery = require("../assets/images/place-bakery.jpg");
 const market = require("../assets/images/place-market.jpg");
 const pharmacy = require("../assets/images/place-pharmacy.jpg");
 const chambo = require("../assets/images/place-chambo.jpg");
-const evCharge = require("../assets/images/place-chambo.jpg");
+const evCharge = require("../assets/images/place-ev-charge.jpg");
+const coffee = require("../assets/images/place-coffee.jpg");
+const nature = require("../assets/images/place-nature.jpg");
 
 export type ProfileKind = "Person" | "Business" | "Event";
 
@@ -340,8 +342,8 @@ export const PROFILES: Record<string, UserProfile> = {
     kind: "Person",
     category: "Coffee Explorer & Cyclist",
     neighborhood: "Area 43, Lilongwe",
-    avatar: bakery,
-    cover: bakery,
+    avatar: coffee,
+    cover: coffee,
     bio: "Weekend road cyclist and specialty coffee pursuer. Documenting the finest single-origin roasts and morning bakeries across Lilongwe.",
     stats: {
       postsCount: 1,
@@ -369,8 +371,8 @@ export const PROFILES: Record<string, UserProfile> = {
     kind: "Person",
     category: "Wildlife & Nature Photographer",
     neighborhood: "Area 3 / Sanctuary, Lilongwe",
-    avatar: concert,
-    cover: concert,
+    avatar: nature,
+    cover: nature,
     bio: "Conservation storyteller & nature photographer based in Lilongwe. Documenting birdlife along the Lingadzi river and organizing community photo walks.",
     stats: {
       postsCount: 1,

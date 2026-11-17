@@ -6,7 +6,9 @@ const bakery = require("../assets/images/place-bakery.jpg");
 const market = require("../assets/images/place-market.jpg");
 const pharmacy = require("../assets/images/place-pharmacy.jpg");
 const chambo = require("../assets/images/place-chambo.jpg");
-const evCharge = require("../assets/images/place-chambo.jpg");
+const evCharge = require("../assets/images/place-ev-charge.jpg");
+const coffee = require("../assets/images/place-coffee.jpg");
+const nature = require("../assets/images/place-nature.jpg");
 
 export const POSTS: Post[] = [
   {
@@ -156,7 +158,7 @@ export const POSTS: Post[] = [
     lng: 33.792,
     distanceKm: 1.8,
     when: "Morning drop · 08:15",
-    image: bakery,
+    image: coffee,
     ratio: "4/3",
   },
   {
@@ -171,7 +173,7 @@ export const POSTS: Post[] = [
     lng: 33.776,
     distanceKm: 1.5,
     when: "Today · 17:00",
-    image: concert,
+    image: nature,
     ratio: "1/1",
   },
 ];

@@ -7,6 +7,8 @@ const market = require("../assets/images/place-market.jpg");
 const fuel = require("../assets/images/place-fuel.jpg");
 const pharmacy = require("../assets/images/place-pharmacy.jpg");
 const chambo = require("../assets/images/place-chambo.jpg");
+const coffee = require("../assets/images/place-coffee.jpg");
+const nature = require("../assets/images/place-nature.jpg");
 
 export type StoryItem = {
   id: string;
@@ -34,7 +36,7 @@ export const STORIES: StoryItem[] = [
     displayName: "Your Story",
     authorHandle: "@chisomo",
     avatar: avatarChisomo,
-    storyImage: concert,
+    storyImage: nature,
     title: "Morning cycle & quiet thoughts 🚲",
     caption:
       "Morning ride down Presidential Way toward the Lingadzi nature trail. Air is crisp, Jacaranda petals scattering on the avenue.",
@@ -142,5 +144,37 @@ export const STORIES: StoryItem[] = [
     timeAgo: "6h ago",
     hasUnread: false,
     targetPostId: "pharmacy",
+  },
+  {
+    id: "story-kondwani",
+    authorId: "kondwani-coffee",
+    authorName: "Kondwani Banda",
+    displayName: "Kondwani",
+    authorHandle: "@kondwanibanda",
+    avatar: coffee,
+    storyImage: coffee,
+    title: "Misuku Hills brew of the day ☕",
+    caption:
+      "Single-origin pour-over paired with warm cinnamon buns after an Area 43 morning cycling lap.",
+    location: "Area 43 Gardens",
+    timeAgo: "7h ago",
+    hasUnread: true,
+    targetPostId: "kondwani-coffee",
+  },
+  {
+    id: "story-dalitso",
+    authorId: "dalitso-photo",
+    authorName: "Dalitso Phiri",
+    displayName: "Dalitso",
+    authorHandle: "@dalitsophiri",
+    avatar: nature,
+    storyImage: nature,
+    title: "Golden hour turaco sighting 🌿",
+    caption:
+      "Purple-crested turacos perched along the sanctuary nature trail right before sunset.",
+    location: "Lilongwe Wildlife Sanctuary",
+    timeAgo: "8h ago",
+    hasUnread: true,
+    targetPostId: "dalitso-photo",
   },
 ];
