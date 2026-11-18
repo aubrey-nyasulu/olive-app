@@ -291,9 +291,7 @@ export function FloatingDock({
         styles.dockWrap,
         {
           bottom: normalDockBottom,
-          transform: [
-            { translateY: Animated.multiply(keyboardShiftAnim, -1) },
-          ],
+          transform: [{ translateY: Animated.multiply(keyboardShiftAnim, -1) }],
         },
       ]}
       pointerEvents="box-none"
@@ -340,7 +338,10 @@ export function FloatingDock({
                     });
                   } else if (optId === "copy") {
                     showToast(
-                      `Profile link copied: olive.app/${currentProfile.handle.replace("@", "")}`
+                      `Profile link copied: olive.app/${currentProfile.handle.replace(
+                        "@",
+                        ""
+                      )}`
                     );
                   } else if (optId === "report") {
                     openExpandedWindow({
@@ -391,10 +392,7 @@ export function FloatingDock({
             {/* Top Drag Handle & Close */}
             <View style={styles.handleRow}>
               <View
-                style={[
-                  styles.handleBar,
-                  { backgroundColor: colors.line },
-                ]}
+                style={[styles.handleBar, { backgroundColor: colors.line }]}
               />
               <Pressable
                 accessibilityLabel="Close"
@@ -412,9 +410,7 @@ export function FloatingDock({
             {expandedWindow?.type === "comments" && (
               <CommentsView
                 post={expandedWindow.post}
-                reviews={
-                  reviewsMap[expandedWindow.post.id] ?? []
-                }
+                reviews={reviewsMap[expandedWindow.post.id] ?? []}
               />
             )}
 

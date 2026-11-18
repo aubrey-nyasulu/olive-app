@@ -170,7 +170,8 @@ export function DockActionBar({
                 numberOfLines={1}
                 style={[styles.capsuleText, { color: colors.text }]}
               >
-                {expandedWindow.post.place} · {expandedWindow.post.distanceKm} km
+                {expandedWindow.post.place} · {expandedWindow.post.distanceKm}{" "}
+                km
               </Text>
             </View>
           ) : isSaved ? (
@@ -377,19 +378,13 @@ export function DockActionBar({
           styles.sideBtn,
           {
             backgroundColor:
-              panelOpen || searchOpen
-                ? colors.signal
-                : colors.bg,
+              panelOpen || searchOpen ? colors.signal : colors.bg,
             opacity: pressed ? 0.75 : 1,
           },
         ]}
       >
         {panelOpen || searchOpen ? (
-          <Ionicons
-            name="close"
-            size={20}
-            color={colors.signalForeground}
-          />
+          <Ionicons name="close" size={20} color={colors.signalForeground} />
         ) : onProfile ? (
           <Ionicons name="arrow-back" size={20} color={colors.text} />
         ) : feedMode === "people" ? (
@@ -429,29 +424,7 @@ export function DockActionBar({
             onToggleListening={onToggleListening}
           />
         ) : (
-          <View style={styles.restingPill}>
-            <Ionicons
-              name={
-                feedMode === "people"
-                  ? "people-outline"
-                  : feedMode === "places"
-                  ? "business-outline"
-                  : "sparkles-outline"
-              }
-              size={13}
-              color={colors.signal}
-            />
-            <Text
-              numberOfLines={1}
-              style={[styles.restingText, { color: colors.bg }]}
-            >
-              {feedMode === "people"
-                ? "People"
-                : feedMode === "places"
-                ? "Places & Events"
-                : "All Activity"}
-            </Text>
-          </View>
+          <View style={styles.restingPill}></View>
         )}
       </View>
 
@@ -508,11 +481,7 @@ export function DockActionBar({
               color={colors.signalForeground}
             />
           ) : (
-            <Ionicons
-              name="close"
-              size={20}
-              color={colors.signalForeground}
-            />
+            <Ionicons name="close" size={20} color={colors.signalForeground} />
           )
         ) : onFeed ? (
           <Ionicons
@@ -594,12 +563,12 @@ const styles = StyleSheet.create({
     borderBottomColor: "#FF6326",
   },
   restingPill: {
+    width: "100%",
+    height: 20,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
     borderRadius: 16,
     backgroundColor: "rgba(255, 255, 255, 0.12)",
     alignSelf: "center",
