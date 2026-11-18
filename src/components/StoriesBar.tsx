@@ -442,7 +442,7 @@ const styles = StyleSheet.create({
   ownerRing: {
     width: "auto",
     height: "auto",
-    borderRadius: 998,
+    borderRadius: 32,
     borderWidth: 2.5,
     alignItems: "center",
     justifyContent: "center",
@@ -450,15 +450,15 @@ const styles = StyleSheet.create({
   gradientRing: {
     width: "auto",
     height: "auto",
-    borderRadius: 998,
+    borderRadius: 32,
     padding: 2.5,
     alignItems: "center",
     justifyContent: "center",
   },
   innerRingSpacer: {
-    width: 80,
-    height: 80,
-    borderRadius: 998,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     padding: 2,
     alignItems: "center",
     justifyContent: "center",
@@ -466,7 +466,7 @@ const styles = StyleSheet.create({
   seenRing: {
     width: "auto",
     height: "auto",
-    borderRadius: 998,
+    borderRadius: 32,
     borderWidth: 2.5,
     alignItems: "center",
     justifyContent: "center",
