@@ -96,7 +96,7 @@ export const POSTS: Post[] = [
     place: "Gateway Mall Terrace, Area 47",
     lat: -13.968,
     lng: 33.755,
-    distanceKm: 1.1,
+    distanceKm: 0.4,
     when: "Open until 22:00",
     image: chambo,
     ratio: "4/3",
@@ -182,40 +182,96 @@ export const CATEGORIES = Array.from(new Set(POSTS.map((p) => p.category)));
 
 export const REVIEWS: Record<string, Review[]> = {
   "harbour-fuel": [
-    { by: "Kondwani", stars: 5, text: "Quick in and out, pump attendants are swift and courteous." },
-    { by: "Tadala", stars: 4, text: "Clean forecourt and reliable card machines. Good spot." },
+    {
+      by: "Kondwani",
+      stars: 5,
+      text: "Quick in and out, pump attendants are swift and courteous.",
+    },
+    {
+      by: "Tadala",
+      stars: 4,
+      text: "Clean forecourt and reliable card machines. Good spot.",
+    },
   ],
   "park-live": [
-    { by: "Thoko", stars: 5, text: "Incredible evening vibes by the sanctuary forest canopy. Bring a mat early!" },
+    {
+      by: "Thoko",
+      stars: 5,
+      text: "Incredible evening vibes by the sanctuary forest canopy. Bring a mat early!",
+    },
   ],
   forno: [
-    { by: "Dalitso", stars: 5, text: "The cardamom morning bun and warm almond croissant are unmatched." },
-    { by: "Chimwemwe", stars: 4, text: "Sells out fast on weekend mornings — get there before 09:30." },
+    {
+      by: "Dalitso",
+      stars: 5,
+      text: "The cardamom morning bun and warm almond croissant are unmatched.",
+    },
+    {
+      by: "Chimwemwe",
+      stars: 4,
+      text: "Sells out fast on weekend mornings — get there before 09:30.",
+    },
   ],
   "saturday-market": [
-    { by: "Yamikani", stars: 4, text: "Fresh passion fruits, organic greens, and lovely handmade crafts." },
+    {
+      by: "Yamikani",
+      stars: 4,
+      text: "Fresh passion fruits, organic greens, and lovely handmade crafts.",
+    },
   ],
   pharmacy: [
-    { by: "Tionge", stars: 4, text: "Very helpful pharmacists even late at night, well stocked." },
+    {
+      by: "Tionge",
+      stars: 4,
+      text: "Very helpful pharmacists even late at night, well stocked.",
+    },
   ],
   "chambo-grill": [
-    { by: "Limbani", stars: 5, text: "Best whole grilled Chambo in town, the kachumbari has just the right chili kick." },
-    { by: "Tadala", stars: 5, text: "Great atmosphere on the outdoor terrace, generous portions." },
+    {
+      by: "Limbani",
+      stars: 5,
+      text: "Best whole grilled Chambo in town, the kachumbari has just the right chili kick.",
+    },
+    {
+      by: "Tadala",
+      stars: 5,
+      text: "Great atmosphere on the outdoor terrace, generous portions.",
+    },
   ],
   "chisomo-bakery": [
-    { by: "Blessings", stars: 5, text: "Found this spot through Chisomo's recommendation. Sourdough loaf is incredible!" },
+    {
+      by: "Blessings",
+      stars: 5,
+      text: "Found this spot through Chisomo's recommendation. Sourdough loaf is incredible!",
+    },
   ],
   "chisomo-acoustic-set": [
-    { by: "Matilda", stars: 5, text: "Magical atmosphere under the acacia trees, thank you for sharing." },
+    {
+      by: "Matilda",
+      stars: 5,
+      text: "Magical atmosphere under the acacia trees, thank you for sharing.",
+    },
   ],
   "chisomo-market-finds": [
-    { by: "Dumisani", stars: 5, text: "The Salima mangoes and wild honey were top tier!" },
+    {
+      by: "Dumisani",
+      stars: 5,
+      text: "The Salima mangoes and wild honey were top tier!",
+    },
   ],
   "kondwani-coffee": [
-    { by: "Matilda", stars: 5, text: "Great coffee stop! The cinnamon bun was still warm from the oven." },
+    {
+      by: "Matilda",
+      stars: 5,
+      text: "Great coffee stop! The cinnamon bun was still warm from the oven.",
+    },
   ],
   "dalitso-photo": [
-    { by: "Blessings", stars: 5, text: "Incredible light by the river trail, thanks for organizing the walk." },
+    {
+      by: "Blessings",
+      stars: 5,
+      text: "Incredible light by the river trail, thanks for organizing the walk.",
+    },
   ],
 };
 
@@ -227,7 +283,7 @@ export function relatedPosts(post: Post): Post[] {
   return POSTS.filter(
     (other) =>
       other.id !== post.id &&
-      (other.category === post.category || other.kind === post.kind),
+      (other.category === post.category || other.kind === post.kind)
   ).slice(0, 3);
 }
 
@@ -236,7 +292,7 @@ export function relatedPosts(post: Post): Post[] {
  */
 export function estimateTravelMinutes(
   distanceKm: number,
-  mode: TravelMode,
+  mode: TravelMode
 ): number {
   switch (mode) {
     case "walking":
