@@ -148,6 +148,7 @@ export function VisualSearch() {
 const styles = StyleSheet.create({
   typeContainer: {
     width: "100%",
+    padding: 8,
   },
   resultsScroll: {
     maxHeight: 240,
@@ -201,6 +202,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     letterSpacing: 1,
     marginBottom: 10,
+    paddingLeft: 16,
   },
   tagsRow: {
     flexDirection: "row",
