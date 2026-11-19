@@ -66,15 +66,13 @@ export function SearchOptionsView({
             style={[
               styles.iconCircle,
               {
-                backgroundColor: isScanning
-                  ? colors.signal
-                  : colors.surface,
+                backgroundColor: isScanning ? colors.signal : colors.surface,
               },
             ]}
           >
             <Ionicons
               name={isScanning ? "radio" : "radio-outline"}
-              size={20}
+              size={24}
               color={isScanning ? colors.signalForeground : colors.text}
             />
           </View>
@@ -120,15 +118,13 @@ export function SearchOptionsView({
             <View
               style={[styles.iconCircle, { backgroundColor: colors.surface }]}
             >
-              <Ionicons name={icon} size={20} color={colors.text} />
+              <Ionicons name={icon} size={24} color={colors.text} />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={[styles.label, { color: colors.text }]}>
                 {label} Search
               </Text>
-              <Text style={[styles.desc, { color: colors.muted }]}>
-                {desc}
-              </Text>
+              <Text style={[styles.desc, { color: colors.muted }]}>{desc}</Text>
             </View>
             <Ionicons name="chevron-forward" size={17} color={colors.muted} />
           </Pressable>
@@ -163,15 +159,16 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 12,
-    borderRadius: 16,
+    padding: 8,
+    paddingRight: 12,
+    borderRadius: 32,
     borderWidth: 1.5,
     gap: 12,
   },
   iconCircle: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    width: 48,
+    height: 48,
+    borderRadius: 32,
     alignItems: "center",
     justifyContent: "center",
   },

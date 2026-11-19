@@ -1,15 +1,13 @@
 import {
   Image,
   Pressable,
-  Share,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
-import type { ExpandedWindow, FeedMode } from "../../context/OliveProvider";
+import type { ExpandedWindow } from "../../context/OliveProvider";
 import { useOlive } from "../../context/OliveProvider";
 import { DockWaveform } from "./DockWaveform";
 
@@ -42,21 +40,50 @@ interface DockActionBarProps {
   onDoneExpanded: () => void;
 }
 
+const getMenuTitleInfo = (
+  type?: string
+): {
+  title: string;
+  icon: React.ComponentProps<typeof Ionicons>["name"];
+} => {
+  switch (type) {
+    case "search_options":
+      return { title: "Search and Stream controls", icon: "radio" };
+    case "user_menu":
+      return { title: "Account and Options", icon: "person-circle" };
+    case "feed_modes":
+      return { title: "Feed Filter", icon: "filter" };
+    case "profile_saved":
+      return { title: "Saved Places", icon: "bookmark" };
+    case "profile_settings":
+      return { title: "Preferences", icon: "options" };
+    case "details":
+      return { title: "Place Details", icon: "location" };
+    case "related":
+      return { title: "Similar Nearby", icon: "compass" };
+    case "report":
+      return { title: "Report Account", icon: "flag" };
+    case "notifications":
+      return { title: "Notifications", icon: "notifications" };
+    default:
+      return { title: "Menu", icon: "sparkles" };
+  }
+};
+
 export function DockActionBar({
   isExpanded,
   expandedWindow,
   showAnimatingLine,
-  onFeed,
   onProfile,
+  isOtherUser,
+  profileMenuOpen,
   panelOpen,
   searchOpen,
-  profileMenuOpen,
   isListening,
   commentDraft,
   setCommentDraft,
   messageDraft,
   setMessageDraft,
-  savedCount,
   onSendComment,
   onSendMessage,
   onCloseExpanded,
@@ -65,173 +92,154 @@ export function DockActionBar({
   onLeftPill,
   onLeftLongPress,
   onToggleListening,
-  onDoneExpanded,
 }: DockActionBarProps) {
-  const {
-    colors,
-    feedMode,
-    isScanning,
-    activeMode,
-    typeQuery,
-    setTypeQuery,
-    setIsSearching,
-    startGuidance,
-  } = useOlive();
+  const { colors, activeMode, typeQuery, setTypeQuery, setIsSearching } =
+    useOlive();
 
-  if (isExpanded) {
-    const isComments = expandedWindow?.type === "comments";
-    const isMessage = expandedWindow?.type === "message";
-    const isDetails = expandedWindow?.type === "details";
-    const isSaved = expandedWindow?.type === "profile_saved";
-    const isSettings = expandedWindow?.type === "profile_settings";
+  const isComments = expandedWindow?.type === "comments";
+  const isMessage = expandedWindow?.type === "message";
+  const isInputMode = isComments || isMessage;
 
-    return (
-      <View
-        style={[
-          styles.bar,
-          styles.expandedBar,
-          {
-            backgroundColor: colors.surface,
-            borderTopColor: colors.line,
-            borderTopWidth: 1,
-          },
-        ]}
-      >
-        {/* Left Button */}
-        {isComments || isMessage ? (
-          <View style={[styles.avatarCircle, { borderColor: colors.signal }]}>
-            <Image source={userAvatar} style={styles.avatarImg} />
+  const menuInfo = getMenuTitleInfo(expandedWindow?.type);
+
+  return (
+    <View style={[styles.bar, { height: isExpanded ? 64 : "100%" }]}>
+      {/* LEFT BUTTON SLOT */}
+      <View style={styles.slotLeft}>
+        {isInputMode ? (
+          <View
+            style={[
+              styles.avatarButtonCircle,
+              { borderColor: colors.signal, backgroundColor: colors.surface },
+            ]}
+          >
+            <Image source={userAvatar} style={styles.dockAvatarImg} />
           </View>
-        ) : (
+        ) : isExpanded ? (
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Close"
+            accessibilityLabel="Close menu"
             onPress={onCloseExpanded}
             style={({ pressed }) => [
               styles.sideBtn,
               {
                 backgroundColor: colors.surfaceMuted,
+                borderColor: colors.line,
+                borderWidth: 1,
                 opacity: pressed ? 0.75 : 1,
               },
             ]}
           >
             <Ionicons name="close" size={20} color={colors.text} />
           </Pressable>
+        ) : (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={
+              panelOpen || searchOpen
+                ? "Cancel search"
+                : onProfile
+                ? "Back to feed"
+                : "Search and stream controls"
+            }
+            onPress={onLeftPill}
+            onLongPress={onLeftLongPress}
+            delayLongPress={320}
+            style={({ pressed }) => [
+              styles.sideBtn,
+              {
+                backgroundColor:
+                  panelOpen || searchOpen ? colors.signal : colors.bg,
+                opacity: pressed ? 0.75 : 1,
+              },
+            ]}
+          >
+            {panelOpen || searchOpen ? (
+              <Ionicons
+                name="close"
+                size={20}
+                color={colors.signalForeground}
+              />
+            ) : onProfile ? (
+              <Ionicons name="arrow-back" size={20} color={colors.text} />
+            ) : (
+              <Ionicons name="search" size={20} color={colors.text} />
+            )}
+          </Pressable>
         )}
+      </View>
 
-        {/* Center Area */}
-        <View style={styles.centerArea}>
-          {isComments ? (
-            <TextInput
-              value={commentDraft}
-              onChangeText={setCommentDraft}
-              placeholder="Add a review or note..."
-              placeholderTextColor={colors.muted}
-              returnKeyType="send"
-              onSubmitEditing={onSendComment}
-              style={[
-                styles.expandedInput,
-                {
-                  color: colors.text,
-                  backgroundColor: colors.surfaceMuted,
-                  borderColor: colors.line,
-                },
-              ]}
-            />
-          ) : isMessage && expandedWindow?.type === "message" ? (
-            <TextInput
-              value={messageDraft}
-              onChangeText={setMessageDraft}
-              placeholder={`Message ${expandedWindow.recipient.name}...`}
-              placeholderTextColor={colors.muted}
-              returnKeyType="send"
-              onSubmitEditing={onSendMessage}
-              style={[
-                styles.expandedInput,
-                {
-                  color: colors.text,
-                  backgroundColor: colors.surfaceMuted,
-                  borderColor: colors.line,
-                },
-              ]}
-            />
-          ) : isDetails && expandedWindow?.type === "details" ? (
-            <View
-              style={[
-                styles.capsule,
-                {
-                  backgroundColor: colors.surfaceMuted,
-                  borderColor: colors.line,
-                },
-              ]}
-            >
-              <Ionicons name="location" size={13} color={colors.signal} />
-              <Text
-                numberOfLines={1}
-                style={[styles.capsuleText, { color: colors.text }]}
-              >
-                {expandedWindow.post.place} · {expandedWindow.post.distanceKm}{" "}
-                km
-              </Text>
-            </View>
-          ) : isSaved ? (
-            <View
-              style={[
-                styles.capsule,
-                {
-                  backgroundColor: colors.surfaceMuted,
-                  borderColor: colors.line,
-                },
-              ]}
-            >
-              <Ionicons name="bookmark" size={13} color={colors.signal} />
-              <Text
-                numberOfLines={1}
-                style={[styles.capsuleText, { color: colors.text }]}
-              >
-                {savedCount} {savedCount === 1 ? "Place" : "Places"} Saved
-              </Text>
-            </View>
-          ) : isSettings ? (
-            <View
-              style={[
-                styles.capsule,
-                {
-                  backgroundColor: colors.surfaceMuted,
-                  borderColor: colors.line,
-                },
-              ]}
-            >
-              <Ionicons name="options" size={13} color={colors.signal} />
-              <Text
-                numberOfLines={1}
-                style={[styles.capsuleText, { color: colors.text }]}
-              >
-                Preferences
-              </Text>
-            </View>
-          ) : (
-            <View
-              style={[
-                styles.capsule,
-                {
-                  backgroundColor: colors.surfaceMuted,
-                  borderColor: colors.line,
-                },
-              ]}
-            >
-              <Ionicons name="sparkles" size={13} color={colors.signal} />
-              <Text
-                numberOfLines={1}
-                style={[styles.capsuleText, { color: colors.text }]}
-              >
-                Olive
-              </Text>
-            </View>
-          )}
-        </View>
+      {/* CENTER SLOT */}
+      <View style={styles.slotCenter}>
+        {isComments ? (
+          <TextInput
+            value={commentDraft}
+            onChangeText={setCommentDraft}
+            placeholder="Add a review or note..."
+            placeholderTextColor={colors.muted}
+            returnKeyType="send"
+            onSubmitEditing={onSendComment}
+            style={[
+              styles.expandedInput,
+              {
+                color: colors.text,
+                backgroundColor: colors.surfaceMuted,
+                borderColor: colors.line,
+              },
+            ]}
+          />
+        ) : isMessage && expandedWindow?.type === "message" ? (
+          <TextInput
+            value={messageDraft}
+            onChangeText={setMessageDraft}
+            placeholder={`Message ${expandedWindow.recipient.name}...`}
+            placeholderTextColor={colors.muted}
+            returnKeyType="send"
+            onSubmitEditing={onSendMessage}
+            style={[
+              styles.expandedInput,
+              {
+                color: colors.text,
+                backgroundColor: colors.surfaceMuted,
+                borderColor: colors.line,
+              },
+            ]}
+          />
+        ) : isExpanded ? (
+          // Middle text element removed for menus; empty flexible spacer
+          <View style={styles.centerSpacer} />
+        ) : activeMode === "type" ? (
+          <TextInput
+            autoFocus
+            value={typeQuery}
+            onChangeText={setTypeQuery}
+            placeholder="Search places, people & drops..."
+            placeholderTextColor="rgba(255, 255, 255, 0.45)"
+            returnKeyType="search"
+            onSubmitEditing={() => {
+              if (typeQuery.trim()) {
+                setIsSearching(true);
+                setTimeout(() => setIsSearching(false), 1800);
+              }
+            }}
+            autoCapitalize="none"
+            autoCorrect={false}
+            style={[styles.input, { color: colors.bg }]}
+          />
+        ) : showAnimatingLine ? (
+          <DockWaveform
+            showAnimatingLine={showAnimatingLine}
+            isVoice={activeMode === "voice"}
+            isListening={isListening}
+            onToggleListening={onToggleListening}
+          />
+        ) : (
+          <View style={styles.restingPill}></View>
+        )}
+      </View>
 
-        {/* Right Button */}
+      {/* RIGHT BUTTON SLOT */}
+      <View style={styles.slotRight}>
         {isComments ? (
           <Pressable
             accessibilityRole="button"
@@ -278,221 +286,113 @@ export function DockActionBar({
               }
             />
           </Pressable>
-        ) : isDetails && expandedWindow?.type === "details" ? (
+        ) : isExpanded ? (
+          // Menu title pill replacing checkmark button
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Guide me there"
-            onPress={() => {
-              const p = expandedWindow.post;
-              onCloseExpanded();
-              startGuidance(p);
-            }}
+            accessibilityLabel={menuInfo.title}
+            onPress={onCloseExpanded}
             style={({ pressed }) => [
-              styles.sideBtn,
+              styles.menuTitlePill,
               {
-                backgroundColor: colors.signal,
-                opacity: pressed ? 0.75 : 1,
+                backgroundColor: colors.surfaceMuted,
+                borderColor: colors.line,
+                opacity: pressed ? 0.8 : 1,
               },
             ]}
           >
-            <Ionicons
-              name="navigate"
-              size={20}
-              color={colors.signalForeground}
-            />
+            <Ionicons name={menuInfo.icon} size={15} color={colors.signal} />
+            <Text
+              numberOfLines={1}
+              style={[styles.menuTitleText, { color: colors.text }]}
+            >
+              {menuInfo.title}
+            </Text>
           </Pressable>
-        ) : isSaved ? (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Share saved places"
-            onPress={() => {
-              Share.share({
-                message: `Check out my saved spots on Olive (${savedCount} places)`,
-              });
-            }}
-            style={({ pressed }) => [
-              styles.sideBtn,
-              {
-                backgroundColor: colors.signal,
-                opacity: pressed ? 0.75 : 1,
-              },
-            ]}
-          >
-            <Ionicons
-              name="share-social"
-              size={20}
-              color={colors.signalForeground}
-            />
-          </Pressable>
-        ) : (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Done"
-            onPress={onDoneExpanded}
-            style={({ pressed }) => [
-              styles.sideBtn,
-              {
-                backgroundColor: colors.signal,
-                opacity: pressed ? 0.75 : 1,
-              },
-            ]}
-          >
-            <Ionicons
-              name="checkmark"
-              size={20}
-              color={colors.signalForeground}
-            />
-          </Pressable>
-        )}
-      </View>
-    );
-  }
-
-  // Resting Mode (Collapsed 64px)
-  return (
-    <View
-      style={[
-        styles.bar,
-        {
-          backgroundColor: colors.text,
-          shadowColor: colors.text,
-        },
-      ]}
-    >
-      {/* Left Button */}
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={
-          panelOpen || searchOpen
-            ? "Cancel search"
-            : onProfile
-            ? "Back"
-            : onFeed
-            ? `Feed mode: ${feedMode}`
-            : "Home"
-        }
-        onPress={onLeftPill}
-        onLongPress={onLeftLongPress}
-        delayLongPress={320}
-        style={({ pressed }) => [
-          styles.sideBtn,
-          {
-            backgroundColor:
-              panelOpen || searchOpen ? colors.signal : colors.bg,
-            opacity: pressed ? 0.75 : 1,
-          },
-        ]}
-      >
-        {panelOpen || searchOpen ? (
-          <Ionicons name="close" size={20} color={colors.signalForeground} />
-        ) : onProfile ? (
-          <Ionicons name="arrow-back" size={20} color={colors.text} />
-        ) : feedMode === "people" ? (
-          <Ionicons name="people" size={20} color={colors.signal} />
-        ) : feedMode === "places" ? (
-          <Ionicons name="business" size={20} color={colors.signal} />
-        ) : (
-          <Ionicons name="layers" size={20} color={colors.text} />
-        )}
-      </Pressable>
-
-      {/* Center Area */}
-      <View style={styles.centerArea}>
-        {activeMode === "type" ? (
-          <TextInput
-            autoFocus
-            value={typeQuery}
-            onChangeText={setTypeQuery}
-            placeholder="Search places, people & drops..."
-            placeholderTextColor="rgba(255, 255, 255, 0.45)"
-            returnKeyType="search"
-            onSubmitEditing={() => {
-              if (typeQuery.trim()) {
-                setIsSearching(true);
-                setTimeout(() => setIsSearching(false), 1800);
-              }
-            }}
-            autoCapitalize="none"
-            autoCorrect={false}
-            style={[styles.input, { color: colors.bg }]}
-          />
-        ) : showAnimatingLine ? (
-          <DockWaveform
-            showAnimatingLine={showAnimatingLine}
-            isVoice={activeMode === "voice"}
-            isListening={isListening}
-            onToggleListening={onToggleListening}
-          />
-        ) : (
-          <View style={styles.restingPill}></View>
-        )}
-      </View>
-
-      {/* Right Button */}
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={
-          onProfile
-            ? profileMenuOpen
-              ? "Close menu"
-              : "Options"
-            : onFeed
-            ? isScanning
-              ? "Pause live sync"
-              : "Enable live sync"
-            : "Search"
-        }
-        onPress={onToggleSearch}
-        onLongPress={onRightLongPress}
-        delayLongPress={320}
-        style={({ pressed }) => [
-          styles.sideBtn,
-          {
-            backgroundColor: onProfile
-              ? profileMenuOpen
-                ? colors.signal
-                : colors.bg
-              : panelOpen || searchOpen
-              ? colors.signal
-              : onFeed && isScanning
-              ? colors.signal
-              : colors.bg,
-            opacity: pressed ? 0.75 : 1,
-          },
-        ]}
-      >
-        {onProfile ? (
-          <Ionicons
-            name={profileMenuOpen ? "close" : "chevron-up"}
-            size={profileMenuOpen ? 20 : 22}
-            color={profileMenuOpen ? colors.signalForeground : colors.text}
-          />
         ) : panelOpen ? (
-          activeMode === "voice" ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Search actions"
+            onPress={onToggleSearch}
+            style={({ pressed }) => [
+              styles.sideBtn,
+              {
+                backgroundColor: colors.signal,
+                opacity: pressed ? 0.75 : 1,
+              },
+            ]}
+          >
+            {activeMode === "voice" ? (
+              <Ionicons
+                name={isListening ? "mic" : "mic-outline"}
+                size={20}
+                color={colors.signalForeground}
+              />
+            ) : activeMode === "type" ? (
+              <Ionicons
+                name="arrow-forward"
+                size={20}
+                color={colors.signalForeground}
+              />
+            ) : (
+              <Ionicons
+                name="close"
+                size={20}
+                color={colors.signalForeground}
+              />
+            )}
+          </Pressable>
+        ) : onProfile && isOtherUser ? (
+          // Visiting another user's profile: show caret for other user profile options
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={
+              profileMenuOpen ? "Close options" : "Profile options"
+            }
+            onPress={onToggleSearch}
+            style={({ pressed }) => [
+              styles.sideBtn,
+              {
+                backgroundColor: profileMenuOpen ? colors.signal : colors.bg,
+                opacity: pressed ? 0.75 : 1,
+              },
+            ]}
+          >
             <Ionicons
-              name={isListening ? "mic" : "mic-outline"}
-              size={20}
-              color={colors.signalForeground}
+              name={profileMenuOpen ? "close" : "chevron-up"}
+              size={profileMenuOpen ? 20 : 22}
+              color={profileMenuOpen ? colors.signalForeground : colors.text}
             />
-          ) : activeMode === "type" ? (
-            <Ionicons
-              name="arrow-forward"
-              size={20}
-              color={colors.signalForeground}
-            />
-          ) : (
-            <Ionicons name="close" size={20} color={colors.signalForeground} />
-          )
-        ) : onFeed ? (
-          <Ionicons
-            name={isScanning ? "radio" : "radio-outline"}
-            size={20}
-            color={isScanning ? colors.signalForeground : colors.text}
-          />
+          </Pressable>
         ) : (
-          <Ionicons name="search" size={20} color={colors.signal} />
+          // Collapsed resting profile avatar (feed or own profile)
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Account and options"
+            onPress={onToggleSearch}
+            onLongPress={onRightLongPress}
+            delayLongPress={320}
+            style={({ pressed }) => [
+              styles.sideBtn,
+              {
+                backgroundColor: "transparent",
+                opacity: pressed ? 0.8 : 1,
+              },
+            ]}
+          >
+            <View
+              style={[
+                styles.avatarButtonCircle,
+                {
+                  backgroundColor: colors.surface,
+                },
+              ]}
+            >
+              <Image source={userAvatar} style={styles.dockAvatarImg} />
+            </View>
+          </Pressable>
         )}
-      </Pressable>
+      </View>
     </View>
   );
 }
@@ -500,14 +400,26 @@ export function DockActionBar({
 const styles = StyleSheet.create({
   bar: {
     width: "100%",
-    height: 64,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 8,
   },
-  expandedBar: {
-    height: 64,
+  slotLeft: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  slotCenter: {
+    flex: 1,
+    paddingHorizontal: 8,
+    justifyContent: "center",
+  },
+  slotRight: {
+    alignItems: "flex-end",
+    justifyContent: "center",
+  },
+  centerSpacer: {
+    flex: 1,
   },
   sideBtn: {
     width: 48,
@@ -516,23 +428,34 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  avatarCircle: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    borderWidth: 2,
+  avatarButtonCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 0,
     overflow: "hidden",
     alignItems: "center",
     justifyContent: "center",
   },
-  avatarImg: {
+  dockAvatarImg: {
     width: "100%",
     height: "100%",
+    resizeMode: "cover",
   },
-  centerArea: {
-    flex: 1,
-    paddingHorizontal: 8,
-    justifyContent: "center",
+  menuTitlePill: {
+    height: 42,
+    borderRadius: 21,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 7,
+    paddingHorizontal: 15,
+    borderWidth: 1,
+    maxWidth: 240,
+  },
+  menuTitleText: {
+    fontSize: 13,
+    fontWeight: "700",
+    letterSpacing: 0.1,
   },
   expandedInput: {
     height: 44,
@@ -540,20 +463,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     fontSize: 14,
     borderWidth: 1,
-  },
-  capsule: {
-    height: 38,
-    borderRadius: 19,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
-    paddingHorizontal: 14,
-    borderWidth: 1,
-  },
-  capsuleText: {
-    fontSize: 12.5,
-    fontWeight: "600",
   },
   input: {
     fontSize: 14,
@@ -563,6 +472,7 @@ const styles = StyleSheet.create({
     borderBottomColor: "#FF6326",
   },
   restingPill: {
+    opacity: 0,
     width: "100%",
     height: 20,
     flexDirection: "row",
@@ -572,10 +482,5 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     backgroundColor: "rgba(255, 255, 255, 0.12)",
     alignSelf: "center",
-  },
-  restingText: {
-    fontSize: 12.5,
-    fontWeight: "600",
-    opacity: 0.9,
   },
 });

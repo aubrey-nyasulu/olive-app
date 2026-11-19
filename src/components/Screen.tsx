@@ -16,8 +16,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useOlive } from "../context/OliveProvider";
 
-const avatarImage = require("../../assets/images/profile-avatar.jpg");
-
 export const getHeaderHeight = (insetsTop: number) =>
   insetsTop + (Platform.OS === "android" ? 54 : 50);
 
@@ -70,7 +68,17 @@ export function Screen({
   staticContent?: boolean;
 }) {
   const insets = useSafeAreaInsets();
-  const { colors, config, closeSearch, searchOpen, activeMode } = useOlive();
+  const {
+    colors,
+    config,
+    closeSearch,
+    searchOpen,
+    activeMode,
+    feedMode,
+    expandedWindow,
+    openExpandedWindow,
+    closeExpandedWindow,
+  } = useOlive();
 
   const panelOpen = activeMode !== null;
   const dimmed = searchOpen || panelOpen;
@@ -193,17 +201,47 @@ export function Screen({
                 {home && (
                   <Pressable
                     accessibilityRole="button"
-                    accessibilityLabel="Your profile"
+                    accessibilityLabel="Filter feed content"
                     onPress={() => {
                       closeSearch();
-                      router.push("/profile");
+                      if (expandedWindow?.type === "feed_modes") {
+                        closeExpandedWindow();
+                      } else {
+                        openExpandedWindow({ type: "feed_modes" });
+                      }
                     }}
                     style={({ pressed }) => [
-                      styles.profileButton,
-                      { borderColor: colors.line, opacity: pressed ? 0.7 : 1 },
+                      styles.filterButton,
+                      {
+                        backgroundColor:
+                          feedMode !== "all"
+                            ? colors.signalLight
+                            : colors.surfaceMuted,
+                        borderColor:
+                          feedMode !== "all" ? colors.signal : colors.line,
+                        opacity: pressed ? 0.75 : 1,
+                      },
                     ]}
                   >
-                    <Image source={avatarImage} style={styles.profileAvatar} />
+                    <Ionicons
+                      name={
+                        feedMode === "people"
+                          ? "people"
+                          : feedMode === "places"
+                          ? "business"
+                          : "options-outline"
+                      }
+                      size={18}
+                      color={feedMode !== "all" ? colors.signal : colors.text}
+                    />
+                    {feedMode !== "all" && (
+                      <View
+                        style={[
+                          styles.filterDot,
+                          { backgroundColor: colors.signal },
+                        ]}
+                      />
+                    )}
                   </Pressable>
                 )}
               </View>
@@ -301,17 +339,22 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  profileButton: {
+  filterButton: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    borderWidth: 1,
-    overflow: "hidden",
+    borderWidth: 1.5,
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
   },
-  profileAvatar: {
-    width: "100%",
-    height: "100%",
-    resizeMode: "cover",
+  filterDot: {
+    position: "absolute",
+    top: 5,
+    right: 5,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
   },
   content: {
     flex: 1,

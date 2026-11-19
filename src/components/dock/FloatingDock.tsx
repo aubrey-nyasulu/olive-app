@@ -4,6 +4,7 @@ import {
   Dimensions,
   Keyboard,
   type KeyboardEvent,
+  PanResponder,
   Platform,
   Pressable,
   Share,
@@ -14,7 +15,11 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { router, usePathname } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useOlive, type FeedMode } from "../../context/OliveProvider";
+import {
+  useOlive,
+  type ExpandedWindow,
+  type FeedMode,
+} from "../../context/OliveProvider";
 import { POSTS } from "../../places";
 import type { UserProfile } from "../../profiles";
 import { DockActionBar } from "./DockActionBar";
@@ -27,6 +32,8 @@ import { MessageView } from "./views/MessageView";
 import { ReportView } from "./views/ReportView";
 import { FeedModesView } from "./views/FeedModesView";
 import { SearchOptionsView } from "./views/SearchOptionsView";
+import { UserMenuView } from "./views/UserMenuView";
+import { NotificationsView } from "./views/NotificationsView";
 
 const PROFILE_OPTIONS = [
   { icon: "settings" as const, label: "Settings", id: "settings" as const },
@@ -164,9 +171,67 @@ export function FloatingDock({
     return () => subs.forEach((s) => s.remove());
   }, [keyboardShiftAnim, normalDockBottom]);
 
-  // Spring animation when expanded
+  // Height bounds
+  const expandedMaxHeight = Math.min(
+    keyboardHeight > 0
+      ? screenHeight - keyboardHeight - insets.top - 40
+      : screenHeight * 0.72,
+    520
+  );
+  const maxDockHeight = Math.max(280, expandedMaxHeight);
+  const maxCollapseDelta = maxDockHeight - 64;
+
+  // Drag-to-collapse height delta
+  const dragHeightDelta = useRef(new Animated.Value(0)).current;
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        return gestureState.dy > 2;
+      },
+      onPanResponderMove: (_, gestureState) => {
+        if (gestureState.dy > 0) {
+          dragHeightDelta.setValue(Math.min(maxCollapseDelta, gestureState.dy));
+        }
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        if (gestureState.dy > 65 || gestureState.vy > 0.45) {
+          // Collapse height down to 64 smoothly, then close
+          Animated.timing(dragHeightDelta, {
+            toValue: maxCollapseDelta,
+            duration: 160,
+            useNativeDriver: false,
+          }).start(() => {
+            dragHeightDelta.setValue(0);
+            closeExpandedWindow();
+          });
+        } else {
+          // Spring height back up to full expanded height
+          Animated.spring(dragHeightDelta, {
+            toValue: 0,
+            friction: 8,
+            tension: 80,
+            useNativeDriver: false,
+          }).start();
+        }
+      },
+    })
+  ).current;
+
+  const [renderedWindow, setRenderedWindow] =
+    useState<ExpandedWindow>(expandedWindow);
+
+  useEffect(() => {
+    if (!isExpanded) {
+      dragHeightDelta.setValue(0);
+    }
+  }, [isExpanded, dragHeightDelta]);
+
+  // Spring animation when expanded & keep content mounted until collapse finishes
   useEffect(() => {
     if (isExpanded) {
+      setRenderedWindow(expandedWindow);
       Animated.spring(dockExpandedAnim, {
         toValue: 1,
         friction: 9,
@@ -179,27 +244,50 @@ export function FloatingDock({
         friction: 10,
         tension: 75,
         useNativeDriver: false,
-      }).start();
+      }).start(({ finished }) => {
+        if (finished) {
+          setRenderedWindow(null);
+        }
+      });
     }
-  }, [isExpanded, dockExpandedAnim]);
-
-  // Height interpolations
-  const expandedMaxHeight = Math.min(
-    keyboardHeight > 0
-      ? screenHeight - keyboardHeight - insets.top - 40
-      : screenHeight * 0.72,
-    520
-  );
+  }, [isExpanded, expandedWindow, dockExpandedAnim]);
 
   const dockHeight = dockExpandedAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [64, Math.max(280, expandedMaxHeight)],
+    outputRange: [64, maxDockHeight],
+  });
+
+  const clampedDrag = dragHeightDelta.interpolate({
+    inputRange: [0, maxCollapseDelta],
+    outputRange: [0, maxCollapseDelta],
+    extrapolate: "clamp",
+  });
+
+  // Height directly collapses relative to the dragged line; menu bottom stays pinned
+  const effectiveDockHeight = Animated.subtract(dockHeight, clampedDrag);
+
+  const dockBg = dockExpandedAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [colors.text, colors.surface],
+  });
+
+  const dockBorderColor = dockExpandedAnim.interpolate({
+    inputRange: [0, 0.2, 1],
+    outputRange: ["rgba(0,0,0,0)", colors.line, colors.line],
   });
 
   const contentOpacity = dockExpandedAnim.interpolate({
     inputRange: [0, 0.4, 1],
     outputRange: [0, 0, 1],
   });
+
+  const dragFade = dragHeightDelta.interpolate({
+    inputRange: [0, 160],
+    outputRange: [1, 0.1],
+    extrapolate: "clamp",
+  });
+
+  const effectiveOpacity = Animated.multiply(contentOpacity, dragFade);
 
   const savedPosts = useMemo(
     () => POSTS.filter((p) => savedIds.includes(p.id)),
@@ -244,44 +332,39 @@ export function FloatingDock({
     }
     if (panelOpen || searchOpen) {
       closeSearch();
-    } else if (onProfile) {
+      return;
+    }
+    if (onProfile) {
       if (router.canGoBack()) {
         router.back();
       } else {
         router.navigate("/");
       }
-    } else if (onFeed) {
-      const nextMode: FeedMode =
-        feedMode === "all"
-          ? "people"
-          : feedMode === "people"
-          ? "places"
-          : "all";
-      setFeedMode(nextMode);
-      if (nextMode === "people") {
-        showToast("Feed: People only");
-      } else if (nextMode === "places") {
-        showToast("Feed: Places & Events");
-      } else {
-        showToast("Feed: All activity");
-      }
-    } else if (!onFeed) {
-      router.navigate("/");
+      return;
+    }
+    // On feed: left button shows search icon; clicking it shows search options
+    if (expandedWindow?.type === "search_options") {
+      closeExpandedWindow();
+    } else {
+      openExpandedWindow({ type: "search_options" });
     }
   };
 
   const handleRightPress = () => {
     Keyboard.dismiss();
-    if (onProfile) {
+    if (onProfile && isOtherUser) {
       setProfileMenuOpen((prev) => !prev);
       return;
     }
     if (panelOpen) {
       closeSearch();
-    } else if (searchOpen) {
-      setSearchOpen(false);
-    } else if (onFeed) {
-      handleToggleSync();
+      return;
+    }
+    // Right button shows profile image; clicking it expands dock to show user options
+    if (expandedWindow?.type === "user_menu") {
+      closeExpandedWindow();
+    } else {
+      openExpandedWindow({ type: "user_menu" });
     }
   };
 
@@ -291,7 +374,11 @@ export function FloatingDock({
         styles.dockWrap,
         {
           bottom: normalDockBottom,
-          transform: [{ translateY: Animated.multiply(keyboardShiftAnim, -1) }],
+          transform: [
+            {
+              translateY: Animated.multiply(keyboardShiftAnim, -1),
+            },
+          ],
         },
       ]}
       pointerEvents="box-none"
@@ -376,58 +463,53 @@ export function FloatingDock({
         style={[
           styles.dockCard,
           {
-            height: dockHeight,
-            backgroundColor: isExpanded ? colors.surface : colors.text,
-            borderColor: isExpanded ? colors.line : "transparent",
-            borderWidth: isExpanded ? 1.5 : 0,
-            shadowColor: isExpanded ? colors.overlay : colors.text,
+            height: effectiveDockHeight,
+            backgroundColor: dockBg,
+            borderColor: dockBorderColor,
+            borderWidth: 1.5,
+            shadowColor: colors.overlay,
           },
         ]}
       >
         {/* Expanded Window View */}
-        {isExpanded && (
+        {renderedWindow !== null && (
           <Animated.View
-            style={[styles.expandedWrap, { opacity: contentOpacity }]}
+            style={[styles.expandedWrap, { opacity: effectiveOpacity }]}
           >
-            {/* Top Drag Handle & Close */}
-            <View style={styles.handleRow}>
+            {/* Top Drag Handle (Functional Drag down to close) */}
+            <View
+              {...panResponder.panHandlers}
+              style={styles.handleRow}
+              accessibilityRole="adjustable"
+              accessibilityLabel="Drag down to close menu"
+            >
               <View
                 style={[styles.handleBar, { backgroundColor: colors.line }]}
               />
-              <Pressable
-                accessibilityLabel="Close"
-                onPress={closeExpandedWindow}
-                style={[
-                  styles.closeBtn,
-                  { backgroundColor: colors.surfaceMuted },
-                ]}
-              >
-                <Ionicons name="close" size={16} color={colors.text} />
-              </Pressable>
             </View>
 
             {/* Content view based on active window */}
-            {expandedWindow?.type === "comments" && (
+            {renderedWindow.type === "comments" && (
               <CommentsView
-                post={expandedWindow.post}
-                reviews={reviewsMap[expandedWindow.post.id] ?? []}
+                post={renderedWindow.post}
+                reviews={reviewsMap[renderedWindow.post.id] ?? []}
               />
             )}
 
-            {expandedWindow?.type === "details" && (
+            {renderedWindow.type === "details" && (
               <DetailsView
-                post={expandedWindow.post}
+                post={renderedWindow.post}
                 onNavigate={() => {
-                  const p = expandedWindow.post;
+                  const p = renderedWindow.post;
                   closeExpandedWindow();
                   startGuidance(p);
                 }}
               />
             )}
 
-            {expandedWindow?.type === "related" && (
+            {renderedWindow.type === "related" && (
               <RelatedView
-                post={expandedWindow.post}
+                post={renderedWindow.post}
                 onSelectPlace={(id) => {
                   closeExpandedWindow();
                   router.push(`/p/${id}`);
@@ -435,7 +517,7 @@ export function FloatingDock({
               />
             )}
 
-            {expandedWindow?.type === "profile_saved" && (
+            {renderedWindow.type === "profile_saved" && (
               <SavedView
                 savedPosts={savedPosts}
                 onSelectPlace={(id) => {
@@ -446,15 +528,15 @@ export function FloatingDock({
               />
             )}
 
-            {expandedWindow?.type === "profile_settings" && <SettingsView />}
+            {renderedWindow.type === "profile_settings" && <SettingsView />}
 
-            {expandedWindow?.type === "message" && (
-              <MessageView recipient={expandedWindow.recipient} />
+            {renderedWindow.type === "message" && (
+              <MessageView recipient={renderedWindow.recipient} />
             )}
 
-            {expandedWindow?.type === "report" && (
+            {renderedWindow.type === "report" && (
               <ReportView
-                targetUser={expandedWindow.targetUser}
+                targetUser={renderedWindow.targetUser}
                 onSubmitReport={() => {
                   closeExpandedWindow();
                   showToast("Report submitted. Thank you!");
@@ -462,7 +544,7 @@ export function FloatingDock({
               />
             )}
 
-            {expandedWindow?.type === "feed_modes" && (
+            {renderedWindow.type === "feed_modes" && (
               <FeedModesView
                 onSelectMode={(mode) => {
                   setFeedMode(mode);
@@ -478,7 +560,7 @@ export function FloatingDock({
               />
             )}
 
-            {expandedWindow?.type === "search_options" && (
+            {renderedWindow.type === "search_options" && (
               <SearchOptionsView
                 onToggleSync={() => {
                   handleToggleSync();
@@ -489,6 +571,20 @@ export function FloatingDock({
                   setActiveMode(mode);
                   setIsListening(mode === "voice");
                 }}
+              />
+            )}
+
+            {renderedWindow.type === "user_menu" && (
+              <UserMenuView
+                onClose={closeExpandedWindow}
+                showToast={showToast}
+              />
+            )}
+
+            {renderedWindow.type === "notifications" && (
+              <NotificationsView
+                onClose={closeExpandedWindow}
+                showToast={showToast}
               />
             )}
           </Animated.View>
@@ -554,34 +650,24 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.32,
     shadowRadius: 24,
     elevation: 12,
-    justifyContent: "space-between",
+    justifyContent: "flex-end",
   },
   expandedWrap: {
     flex: 1,
     overflow: "hidden",
   },
   handleRow: {
-    height: 28,
-    flexDirection: "row",
+    height: 32,
+    width: "100%",
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: 16,
-    position: "relative",
+    paddingTop: 8,
+    paddingBottom: 6,
   },
   handleBar: {
-    width: 36,
-    height: 4,
-    borderRadius: 2,
-  },
-  closeBtn: {
-    position: "absolute",
-    right: 14,
-    top: 6,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
+    width: 44,
+    height: 5,
+    borderRadius: 2.5,
   },
   modesPopup: {
     marginBottom: 16,

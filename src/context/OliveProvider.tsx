@@ -32,6 +32,8 @@ export type ExpandedWindow =
   | { type: "report"; targetUser: UserProfile }
   | { type: "feed_modes" }
   | { type: "search_options" }
+  | { type: "user_menu" }
+  | { type: "notifications" }
   | null;
 
 type OliveContextType = {

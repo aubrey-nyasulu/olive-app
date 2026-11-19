@@ -1,12 +1,5 @@
 import { useState } from "react";
-import {
-  Image,
-  Pressable,
-  Share,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Image, Pressable, Share, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import type { Post } from "../models";

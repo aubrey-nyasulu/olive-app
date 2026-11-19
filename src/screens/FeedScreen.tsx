@@ -76,9 +76,9 @@ export default function FeedScreen() {
               </Text>
               <Text style={[styles.emptySubtitle, { color: colors.muted }]}>
                 {feedMode === "people"
-                  ? "Try switching to Places & Events or All mode via the bottom left dock button."
+                  ? "Try switching to Businesses & Places or Show Everything via the top filter button."
                   : feedMode === "places"
-                  ? "Try expanding your search radius or switching to All mode."
+                  ? "Try expanding your search radius or switching to Show Everything."
                   : "Try expanding your search radius or enabling more categories in your Profile settings."}
               </Text>
             </View>

@@ -5,20 +5,20 @@ import { useOlive, type FeedMode } from "../../../context/OliveProvider";
 const FEED_MODE_OPTIONS = [
   {
     icon: "layers" as const,
-    label: "All Activity",
-    desc: "Both people & places",
+    label: "Show Everything",
+    desc: "All activity from both users & businesses",
     mode: "all" as const,
   },
   {
     icon: "people" as const,
-    label: "People Only",
+    label: "Users Only",
     desc: "Guides, locals & community members",
     mode: "people" as const,
   },
   {
     icon: "business" as const,
-    label: "Places & Events",
-    desc: "Businesses, venues & session drops",
+    label: "Businesses & Places",
+    desc: "Bakeries, cafes, venues & session drops",
     mode: "places" as const,
   },
 ];
@@ -34,10 +34,10 @@ export function FeedModesView({ onSelectMode }: FeedModesViewProps) {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={[styles.title, { color: colors.text }]}>
-          Select Feed Mode
+          Filter Feed Content
         </Text>
         <Text style={[styles.subtitle, { color: colors.muted }]}>
-          Filter the content shown on your home feed
+          Choose whether to show drops from users, businesses, or everything
         </Text>
       </View>
 
@@ -133,8 +133,8 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 12,
-    borderRadius: 16,
+    padding: 8,
+    borderRadius: 32,
     borderWidth: 1.5,
     gap: 12,
   },
