@@ -8,10 +8,11 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useOlive } from "../context/OliveProvider";
-import { colors } from "../constants/colors";
+import { useThemeStyles, type ColorPalette } from "../theme";
 import { PlaceMap } from "./PlaceMap";
 
 export function GuidanceModal() {
+  const { styles, colors } = useThemeStyles(createStyles);
   const { activeGuidance, nextGuidanceStep, stopGuidance } = useOlive();
 
   if (!activeGuidance) return null;
@@ -222,8 +223,9 @@ export function GuidanceModal() {
   );
 }
 
-const styles = StyleSheet.create({
-  modalOverlay: {
+const createStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
+    modalOverlay: {
     flex: 1,
     justifyContent: "flex-end",
     alignItems: "center",

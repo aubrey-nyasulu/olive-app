@@ -8,7 +8,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { CATEGORIES, POSTS } from "../places";
-import { colors } from "../constants/colors";
+import { useThemeStyles, type ColorPalette } from "../theme";
 
 export function TypeSearch({
   query,
@@ -19,6 +19,7 @@ export function TypeSearch({
   onSelectCategory: (cat: string) => void;
   onClose: () => void;
 }) {
+  const { styles, colors } = useThemeStyles(createStyles);
   const q = query.trim().toLowerCase();
 
   const results = q
@@ -98,6 +99,7 @@ export function TypeSearch({
 }
 
 export function VisualSearch() {
+  const { styles, colors } = useThemeStyles(createStyles);
   return (
     <View style={styles.visualContainer}>
       <View style={styles.cameraCircle}>
@@ -112,8 +114,9 @@ export function VisualSearch() {
   );
 }
 
-const styles = StyleSheet.create({
-  typeContainer: {
+const createStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
+    typeContainer: {
     width: "100%",
     padding: 8,
   },

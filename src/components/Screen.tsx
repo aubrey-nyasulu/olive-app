@@ -14,7 +14,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useOlive } from "../context/OliveProvider";
-import { colors } from "../constants/colors";
+import { useThemeStyles, useColors, type ColorPalette } from "../theme";
 
 export const getHeaderHeight = (insetsTop: number) =>
   insetsTop + (Platform.OS === "android" ? 56 : 52);
@@ -32,6 +32,7 @@ export function IconButton({
   color?: string;
   size?: number;
 }) {
+  const { styles, colors } = useThemeStyles(createStyles);
   return (
     <Pressable
       accessibilityRole="button"
@@ -63,6 +64,7 @@ export function Screen({
   staticContent?: boolean;
 }) {
   const insets = useSafeAreaInsets();
+  const { styles, colors } = useThemeStyles(createStyles);
   const {
     config,
     closeSearch,
@@ -239,126 +241,127 @@ export function Screen({
   );
 }
 
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
-  container: {
-    flex: 1,
-    width: "100%",
-    maxWidth: 600,
-    alignSelf: "center",
-    position: "relative",
-  },
-  fixedHeader: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 30,
-    overflow: "hidden",
-  },
-  glassTintOverlay: {
-    ...(Platform.OS === "web"
-      ? ({
-          backdropFilter: "blur(12px)",
-          WebkitBackdropFilter: "blur(12px)",
-        } as any)
-      : {}),
-  },
-  glassTintLight: {
-    backgroundColor: "rgba(250, 248, 245, 0.85)",
-  },
-  glassTintDark: {
-    backgroundColor: "rgba(20, 19, 18, 0.85)",
-  },
-  glassHairline: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: 1,
-  },
-  headerRow: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingBottom: 4,
-  },
-  headerLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    flex: 1,
-  },
-  headerRight: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  logoText: {
-    fontSize: 22,
-    fontWeight: "800",
-    letterSpacing: -0.6,
-    lineHeight: 24,
-    color: colors.text,
-  },
-  logoDot: {
-    color: colors.signal,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: "700",
-    letterSpacing: -0.4,
-    color: colors.text,
-  },
-  titleWithBack: {
-    fontSize: 18,
-    fontWeight: "600",
-  },
-  iconButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    borderWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.surfaceMuted,
-    borderColor: colors.line,
-  },
-  pressedIcon: {
-    opacity: 0.65,
-  },
-  filterButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    borderWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    position: "relative",
-  },
-  filterButtonDefault: {
-    backgroundColor: colors.surfaceMuted,
-    borderColor: colors.line,
-  },
-  filterButtonActive: {
-    backgroundColor: colors.signalLight,
-    borderColor: colors.signal,
-  },
-  filterDot: {
-    position: "absolute",
-    top: 4,
-    right: 4,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.signal,
-  },
-  content: {
-    flex: 1,
-  },
-});
+const createStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
+    root: {
+      flex: 1,
+      backgroundColor: colors.bg,
+    },
+    container: {
+      flex: 1,
+      width: "100%",
+      maxWidth: 600,
+      alignSelf: "center",
+      position: "relative",
+    },
+    fixedHeader: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      zIndex: 30,
+      overflow: "hidden",
+    },
+    glassTintOverlay: {
+      ...(Platform.OS === "web"
+        ? ({
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
+          } as any)
+        : {}),
+    },
+    glassTintLight: {
+      backgroundColor: "rgba(250, 248, 245, 0.85)",
+    },
+    glassTintDark: {
+      backgroundColor: "rgba(20, 19, 18, 0.85)",
+    },
+    glassHairline: {
+      position: "absolute",
+      left: 0,
+      right: 0,
+      bottom: 0,
+      height: 1,
+    },
+    headerRow: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: 16,
+      paddingBottom: 4,
+    },
+    headerLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      flex: 1,
+    },
+    headerRight: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+    },
+    logoText: {
+      fontSize: 22,
+      fontWeight: "800",
+      letterSpacing: -0.6,
+      lineHeight: 24,
+      color: colors.text,
+    },
+    logoDot: {
+      color: colors.signal,
+    },
+    title: {
+      fontSize: 20,
+      fontWeight: "700",
+      letterSpacing: -0.4,
+      color: colors.text,
+    },
+    titleWithBack: {
+      fontSize: 18,
+      fontWeight: "600",
+    },
+    iconButton: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      borderWidth: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.surfaceMuted,
+      borderColor: colors.line,
+    },
+    pressedIcon: {
+      opacity: 0.65,
+    },
+    filterButton: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      borderWidth: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      position: "relative",
+    },
+    filterButtonDefault: {
+      backgroundColor: colors.surfaceMuted,
+      borderColor: colors.line,
+    },
+    filterButtonActive: {
+      backgroundColor: colors.signalLight,
+      borderColor: colors.signal,
+    },
+    filterDot: {
+      position: "absolute",
+      top: 4,
+      right: 4,
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: colors.signal,
+    },
+    content: {
+      flex: 1,
+    },
+  });

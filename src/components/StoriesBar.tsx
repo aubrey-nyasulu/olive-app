@@ -11,10 +11,11 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { colors } from "../constants/colors";
+import { useThemeStyles, type ColorPalette } from "../theme";
 import { STORIES, type StoryItem } from "../stories";
 
 export function StoriesBar() {
+  const { styles, colors } = useThemeStyles(createStyles);
   const [activeStoryIndex, setActiveStoryIndex] = useState<number | null>(null);
   const [reactedStoryId, setReactedStoryId] = useState<string | null>(null);
 
@@ -320,8 +321,9 @@ export function StoriesBar() {
   );
 }
 
-const styles = StyleSheet.create({
-  sectionContainer: {
+const createStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
+    sectionContainer: {
     marginHorizontal: -16,
     marginBottom: 16,
     marginTop: 4,

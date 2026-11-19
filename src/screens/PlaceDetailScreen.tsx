@@ -11,10 +11,11 @@ import { router, useLocalSearchParams } from "expo-router";
 import { getHeaderHeight, IconButton, Screen } from "../components/Screen";
 import { PlaceMap } from "../components/PlaceMap";
 import { useOlive } from "../context/OliveProvider";
-import { colors } from "../constants/colors";
+import { useThemeStyles, type ColorPalette } from "../theme";
 import { getPostById, relatedPosts } from "../places";
 
 export default function PlaceDetailScreen() {
+  const { styles, colors } = useThemeStyles(createStyles);
   const { id } = useLocalSearchParams<{ id: string }>();
   const { isSaved, toggleSave, startGuidance, closeSearch } = useOlive();
   const insets = useSafeAreaInsets();
@@ -170,8 +171,9 @@ export default function PlaceDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  scroll: {
+const createStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
+    scroll: {
     flex: 1,
   },
   contentContainer: {

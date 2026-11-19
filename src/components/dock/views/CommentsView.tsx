@@ -1,7 +1,7 @@
 import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import type { Post, Review } from "../../../models";
-import { colors } from "../../../constants/colors";
+import { useThemeStyles, type ColorPalette } from "../../../theme";
 
 const userAvatar = require("../../../../assets/images/profile-avatar.jpg");
 
@@ -11,6 +11,7 @@ interface CommentsViewProps {
 }
 
 export function CommentsView({ post, reviews }: CommentsViewProps) {
+  const { styles, colors } = useThemeStyles(createStyles);
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -89,8 +90,9 @@ export function CommentsView({ post, reviews }: CommentsViewProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
+const createStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
+    container: {
     flex: 1,
   },
   header: {

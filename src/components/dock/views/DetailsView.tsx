@@ -1,7 +1,7 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import type { Post } from "../../../models";
-import { colors } from "../../../constants/colors";
+import { useThemeStyles, type ColorPalette } from "../../../theme";
 
 interface DetailsViewProps {
   post: Post;
@@ -9,6 +9,7 @@ interface DetailsViewProps {
 }
 
 export function DetailsView({ post, onNavigate }: DetailsViewProps) {
+  const { styles, colors } = useThemeStyles(createStyles);
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -83,8 +84,9 @@ export function DetailsView({ post, onNavigate }: DetailsViewProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
+const createStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
+    container: {
     flex: 1,
   },
   header: {

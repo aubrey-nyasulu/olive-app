@@ -15,13 +15,14 @@ import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, usePathname } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useOlive } from "../context/OliveProvider";
-import { colors } from "../constants/colors";
+import { useThemeStyles, type ColorPalette } from "../theme";
 import { getProfile } from "../profiles";
 import { GuidanceModal } from "./GuidanceModal";
 import { TypeSearch, VisualSearch } from "./SearchModes";
 import { FloatingDock } from "./dock/FloatingDock";
 
 export function AppShell({ children }: { children: ReactNode }) {
+  const { styles, colors } = useThemeStyles(createStyles);
   const {
     searchOpen,
     activeMode,
@@ -207,61 +208,62 @@ export function AppShell({ children }: { children: ReactNode }) {
   );
 }
 
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
-  contentWrap: {
-    flex: 1,
-  },
-  backdrop: {
-    ...StyleSheet.absoluteFill,
-    zIndex: 40,
-    backgroundColor: colors.overlay,
-  },
-  panelContainer: {
-    position: "absolute",
-    left: 16,
-    right: 16,
-    zIndex: 45,
-    alignItems: "center",
-  },
-  panelCard: {
-    width: "100%",
-    maxWidth: 420,
-    borderRadius: 24,
-    borderWidth: 1,
-    overflow: "hidden",
-    backgroundColor: colors.bg,
-    borderColor: colors.line,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.22,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  floatingToast: {
-    position: "absolute",
-    alignSelf: "center",
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    zIndex: 60,
-    backgroundColor: colors.text,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.16,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  floatingToastText: {
-    fontSize: 14,
-    fontWeight: "600",
-    letterSpacing: 0.1,
-    color: colors.bg,
-  },
-});
+const createStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
+    root: {
+      flex: 1,
+      backgroundColor: colors.bg,
+    },
+    contentWrap: {
+      flex: 1,
+    },
+    backdrop: {
+      ...StyleSheet.absoluteFill,
+      zIndex: 40,
+      backgroundColor: colors.overlay,
+    },
+    panelContainer: {
+      position: "absolute",
+      left: 16,
+      right: 16,
+      zIndex: 45,
+      alignItems: "center",
+    },
+    panelCard: {
+      width: "100%",
+      maxWidth: 420,
+      borderRadius: 24,
+      borderWidth: 1,
+      overflow: "hidden",
+      backgroundColor: colors.bg,
+      borderColor: colors.line,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.22,
+      shadowRadius: 16,
+      elevation: 8,
+    },
+    floatingToast: {
+      position: "absolute",
+      alignSelf: "center",
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      borderRadius: 20,
+      zIndex: 60,
+      backgroundColor: colors.text,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.16,
+      shadowRadius: 8,
+      elevation: 6,
+    },
+    floatingToastText: {
+      fontSize: 14,
+      fontWeight: "600",
+      letterSpacing: 0.1,
+      color: colors.bg,
+    },
+  });

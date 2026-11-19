@@ -20,7 +20,7 @@ import {
   type ExpandedWindow,
   type FeedMode,
 } from "../../context/OliveProvider";
-import { colors } from "../../constants/colors";
+import { useThemeStyles, type ColorPalette } from "../../theme";
 import { POSTS } from "../../places";
 import type { UserProfile } from "../../profiles";
 import { DockActionBar } from "./DockActionBar";
@@ -69,6 +69,7 @@ export function FloatingDock({
   setProfileMenuOpen,
   showToast,
 }: FloatingDockProps) {
+  const { styles, colors } = useThemeStyles(createStyles);
   const {
     savedIds,
     toggleSave,
@@ -617,8 +618,9 @@ export function FloatingDock({
   );
 }
 
-const styles = StyleSheet.create({
-  dockWrap: {
+const createStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
+    dockWrap: {
     position: "absolute",
     left: 16,
     right: 16,

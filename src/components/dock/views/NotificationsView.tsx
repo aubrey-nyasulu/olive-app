@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { colors } from "../../../constants/colors";
+import { useThemeStyles, type ColorPalette } from "../../../theme";
 import { POSTS } from "../../../places";
 
 interface NotificationItem {
@@ -77,6 +77,7 @@ export function NotificationsView({
   onClose,
   showToast,
 }: NotificationsViewProps) {
+  const { styles, colors } = useThemeStyles(createStyles);
   const [items, setItems] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS);
 
   const unreadCount = items.filter((n) => n.unread).length;
@@ -189,8 +190,9 @@ export function NotificationsView({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
+const createStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
+    container: {
     flex: 1,
     paddingHorizontal: 16,
   },

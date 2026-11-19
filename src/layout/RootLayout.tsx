@@ -2,12 +2,10 @@ import { Stack, ThemeProvider, DarkTheme, DefaultTheme } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { OliveProvider, useOlive } from "../context/OliveProvider";
-import { colors, darkColors } from "../constants/colors";
 
 function Navigation() {
-  const { config } = useOlive();
-  const baseTheme = config.dark ? DarkTheme : DefaultTheme;
-  const currentColors = config.dark ? darkColors : colors;
+  const { config, colors: currentColors, isDark } = useOlive();
+  const baseTheme = isDark ? DarkTheme : DefaultTheme;
 
   return (
     <ThemeProvider

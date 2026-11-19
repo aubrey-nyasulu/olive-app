@@ -9,7 +9,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useOlive } from "../../../context/OliveProvider";
-import { colors } from "../../../constants/colors";
+import { useThemeStyles, type ColorPalette } from "../../../theme";
 import { getProfile } from "../../../profiles";
 
 const userAvatar = require("../../../../assets/images/profile-avatar.jpg");
@@ -20,6 +20,7 @@ interface UserMenuViewProps {
 }
 
 export function UserMenuView({ onClose }: UserMenuViewProps) {
+  const { styles, colors } = useThemeStyles(createStyles);
   const { openExpandedWindow } = useOlive();
 
   const handleGoProfile = () => {
@@ -193,8 +194,9 @@ export function UserMenuView({ onClose }: UserMenuViewProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
+const createStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
+    container: {
     flex: 1,
   },
   content: {

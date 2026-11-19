@@ -16,7 +16,7 @@ import {
   saveSavedIds,
   saveSettings,
 } from "../storage";
-import { colors } from "../constants/colors";
+import { getPalette, type ColorPalette } from "../constants/colors";
 import { estimateTravelMinutes, generateGuidanceSteps, REVIEWS } from "../places";
 import type { UserProfile } from "../profiles";
 
@@ -38,6 +38,8 @@ export type ExpandedWindow =
 
 type OliveContextType = {
   config: SettingsState;
+  colors: ColorPalette;
+  isDark: boolean;
   savedIds: string[];
   isSaved: (id: string) => boolean;
   toggleSave: (id: string) => Promise<void>;
@@ -281,10 +283,15 @@ export function OliveProvider({ children }: { children: ReactNode }) {
     setActiveGuidance(null);
   }
 
+  const isDark = !!config.dark;
+  const colors = getPalette(isDark);
+
   return (
     <Context.Provider
       value={{
         config,
+        colors,
+        isDark,
         savedIds,
         isSaved,
         toggleSave,
@@ -323,14 +330,21 @@ export function OliveProvider({ children }: { children: ReactNode }) {
       {ready ? (
         children
       ) : (
-        <View style={styles.splash}>
-          <Text style={styles.brandText}>
-            olive<Text style={styles.brandDot}>.</Text>
-          </Text>
-          <ActivityIndicator color={colors.signal} size="small" />
-        </View>
+        <Splash colors={colors} />
       )}
     </Context.Provider>
+  );
+}
+
+function Splash({ colors }: { colors: ColorPalette }) {
+  const styles = createSplashStyles(colors);
+  return (
+    <View style={styles.splash}>
+      <Text style={styles.brandText}>
+        olive<Text style={styles.brandDot}>.</Text>
+      </Text>
+      <ActivityIndicator color={colors.signal} size="small" />
+    </View>
   );
 }
 
@@ -342,21 +356,22 @@ export function useOlive() {
   return value;
 }
 
-const styles = StyleSheet.create({
-  splash: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    gap: 16,
-    backgroundColor: colors.bg,
-  },
-  brandText: {
-    fontSize: 32,
-    fontWeight: "900",
-    letterSpacing: -1,
-    color: colors.text,
-  },
-  brandDot: {
-    color: colors.signal,
-  },
-});
+const createSplashStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
+    splash: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      gap: 16,
+      backgroundColor: colors.bg,
+    },
+    brandText: {
+      fontSize: 32,
+      fontWeight: "900",
+      letterSpacing: -1,
+      color: colors.text,
+    },
+    brandDot: {
+      color: colors.signal,
+    },
+  });

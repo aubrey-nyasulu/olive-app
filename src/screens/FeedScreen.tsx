@@ -6,10 +6,11 @@ import { PostCard } from "../components/PostCard";
 import { getHeaderHeight, Screen } from "../components/Screen";
 import { StoriesBar } from "../components/StoriesBar";
 import { useOlive } from "../context/OliveProvider";
-import { colors } from "../constants/colors";
+import { useThemeStyles, type ColorPalette } from "../theme";
 import { POSTS } from "../places";
 
 export default function FeedScreen() {
+  const { styles } = useThemeStyles(createStyles);
   const { config, feedMode } = useOlive();
   const insets = useSafeAreaInsets();
   const headerHeight = getHeaderHeight(insets.top);
@@ -90,27 +91,28 @@ export default function FeedScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  listContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 120, // clearance for floating dock
-  },
-  emptyContainer: {
-    paddingVertical: 60,
-    alignItems: "center",
-    paddingHorizontal: 24,
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    textAlign: "center",
-    color: colors.text,
-  },
-  emptySubtitle: {
-    fontSize: 14,
-    lineHeight: 20,
-    textAlign: "center",
-    marginTop: 8,
-    color: colors.muted,
-  },
-});
+const createStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
+    listContent: {
+      paddingHorizontal: 16,
+      paddingBottom: 120, // clearance for floating dock
+    },
+    emptyContainer: {
+      paddingVertical: 60,
+      alignItems: "center",
+      paddingHorizontal: 24,
+    },
+    emptyTitle: {
+      fontSize: 18,
+      fontWeight: "700",
+      textAlign: "center",
+      color: colors.text,
+    },
+    emptySubtitle: {
+      fontSize: 14,
+      lineHeight: 20,
+      textAlign: "center",
+      marginTop: 8,
+      color: colors.muted,
+    },
+  });

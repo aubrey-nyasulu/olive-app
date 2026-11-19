@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import type { SearchMode } from "../../../models";
 import { useOlive } from "../../../context/OliveProvider";
-import { colors } from "../../../constants/colors";
+import { useThemeStyles, type ColorPalette } from "../../../theme";
 
 const SEARCH_OPTIONS = [
   {
@@ -34,6 +34,7 @@ export function SearchOptionsView({
   onToggleSync,
   onSelectSearchMode,
 }: SearchOptionsViewProps) {
+  const { styles, colors } = useThemeStyles(createStyles);
   const { isScanning } = useOlive();
 
   return (
@@ -120,8 +121,9 @@ export function SearchOptionsView({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
+const createStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
+    container: {
     flex: 1,
   },
   header: {

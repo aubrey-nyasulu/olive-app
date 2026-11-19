@@ -7,7 +7,7 @@ import {
   StyleSheet,
   View,
 } from "react-native";
-import { colors } from "../../constants/colors";
+import { useThemeStyles, type ColorPalette } from "../../theme";
 
 const LFO_DURATIONS = [420, 560, 360, 720, 480, 640, 390, 800];
 const NUM_STRANDS = 25;
@@ -32,6 +32,7 @@ export function DockWaveform({
   isListening,
   onToggleListening,
 }: DockWaveformProps) {
+  const { styles, colors } = useThemeStyles(createStyles);
   const [trackWidth, setTrackWidth] = useState(140);
 
   const sweepAnim = useRef(new Animated.Value(0)).current;
@@ -227,8 +228,9 @@ export function DockWaveform({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
+const createStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
+    container: {
     width: "100%",
     height: 36,
     justifyContent: "center",

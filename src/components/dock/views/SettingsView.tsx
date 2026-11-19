@@ -2,7 +2,7 @@ import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-nat
 import { CATEGORIES } from "../../../places";
 import type { TravelMode } from "../../../models";
 import { useOlive } from "../../../context/OliveProvider";
-import { colors } from "../../../constants/colors";
+import { useThemeStyles, type ColorPalette } from "../../../theme";
 
 const RADII = [1, 2, 5, 10, 20];
 const MODES: { key: TravelMode; label: string }[] = [
@@ -12,6 +12,7 @@ const MODES: { key: TravelMode; label: string }[] = [
 ];
 
 export function SettingsView() {
+  const { styles, colors } = useThemeStyles(createStyles);
   const { config, updateSettings, resetSettings } = useOlive();
 
   const handleToggleLane = (cat: string) => {
@@ -182,8 +183,9 @@ export function SettingsView() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
+const createStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
+    container: {
     flex: 1,
   },
   header: {

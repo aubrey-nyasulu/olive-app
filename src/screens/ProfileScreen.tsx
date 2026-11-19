@@ -8,10 +8,11 @@ import { ProfileHeader } from "../components/profile/ProfileHeader";
 import { ProfileAboutTab } from "../components/profile/ProfileAboutTab";
 import { ProfilePostsTab } from "../components/profile/ProfilePostsTab";
 import { useOlive } from "../context/OliveProvider";
-import { colors } from "../constants/colors";
+import { useThemeStyles, type ColorPalette } from "../theme";
 import { getProfile, type UserProfile } from "../profiles";
 
 export default function ProfileScreen() {
+  const { styles, colors } = useThemeStyles(createStyles);
   const { profileTab, setProfileTab } = useOlive();
   const { author, id } = useLocalSearchParams<{
     author?: string;
@@ -137,8 +138,9 @@ export default function ProfileScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  scroll: {
+const createStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
+    scroll: {
     flex: 1,
   },
   contentContainer: {

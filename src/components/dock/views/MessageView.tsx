@@ -1,13 +1,14 @@
 import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import type { UserProfile } from "../../../profiles";
-import { colors } from "../../../constants/colors";
+import { useThemeStyles, type ColorPalette } from "../../../theme";
 
 interface MessageViewProps {
   recipient: UserProfile;
 }
 
 export function MessageView({ recipient }: MessageViewProps) {
+  const { styles, colors } = useThemeStyles(createStyles);
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -40,8 +41,9 @@ export function MessageView({ recipient }: MessageViewProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
+const createStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
+    container: {
     flex: 1,
   },
   header: {

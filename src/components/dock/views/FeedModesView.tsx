@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useOlive, type FeedMode } from "../../../context/OliveProvider";
-import { colors } from "../../../constants/colors";
+import { useThemeStyles, type ColorPalette } from "../../../theme";
 
 const FEED_MODE_OPTIONS = [
   {
@@ -29,6 +29,7 @@ interface FeedModesViewProps {
 }
 
 export function FeedModesView({ onSelectMode }: FeedModesViewProps) {
+  const { styles, colors } = useThemeStyles(createStyles);
   const { feedMode } = useOlive();
 
   return (
@@ -97,8 +98,9 @@ export function FeedModesView({ onSelectMode }: FeedModesViewProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
+const createStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
+    container: {
     flex: 1,
   },
   header: {

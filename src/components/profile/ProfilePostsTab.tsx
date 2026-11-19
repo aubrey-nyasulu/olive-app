@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { colors } from "../../constants/colors";
+import { useThemeStyles, type ColorPalette } from "../../theme";
 import { PostCard } from "../PostCard";
 import type { Post } from "../../models";
 
@@ -10,6 +10,7 @@ interface ProfilePostsTabProps {
 }
 
 export function ProfilePostsTab({ posts, userName }: ProfilePostsTabProps) {
+  const { styles, colors } = useThemeStyles(createStyles);
   if (posts.length === 0) {
     return (
       <View style={styles.emptyWrap}>
@@ -31,25 +32,26 @@ export function ProfilePostsTab({ posts, userName }: ProfilePostsTabProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  list: {
-    gap: 0,
-  },
-  emptyWrap: {
-    alignItems: "center",
-    paddingVertical: 56,
-    paddingHorizontal: 24,
-    gap: 8,
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: colors.text,
-  },
-  emptyText: {
-    fontSize: 14,
-    textAlign: "center",
-    lineHeight: 20,
-    color: colors.muted,
-  },
-});
+const createStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
+    list: {
+      gap: 0,
+    },
+    emptyWrap: {
+      alignItems: "center",
+      paddingVertical: 56,
+      paddingHorizontal: 24,
+      gap: 8,
+    },
+    emptyTitle: {
+      fontSize: 18,
+      fontWeight: "700",
+      color: colors.text,
+    },
+    emptyText: {
+      fontSize: 14,
+      textAlign: "center",
+      lineHeight: 20,
+      color: colors.muted,
+    },
+  });

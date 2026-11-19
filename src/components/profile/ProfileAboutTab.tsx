@@ -1,7 +1,7 @@
 import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useOlive } from "../../context/OliveProvider";
-import { colors } from "../../constants/colors";
+import { useThemeStyles, type ColorPalette } from "../../theme";
 import type { UserProfile } from "../../profiles";
 
 interface ProfileAboutTabProps {
@@ -15,6 +15,7 @@ export function ProfileAboutTab({
   isMe,
   isFollowing,
 }: ProfileAboutTabProps) {
+  const { styles, colors } = useThemeStyles(createStyles);
   const { openExpandedWindow, startGuidance } = useOlive();
 
   const followersCount =
@@ -37,7 +38,7 @@ export function ProfileAboutTab({
           <View style={styles.categoryTag}>
             <Ionicons
               name="sparkles"
-              size={11}
+              size={12}
               color={colors.signal}
               style={styles.categorySparkle}
             />
@@ -208,8 +209,9 @@ export function ProfileAboutTab({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
+const createStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
+    container: {
     gap: 14,
   },
   infoCard: {

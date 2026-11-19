@@ -1,7 +1,7 @@
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import type { Post } from "../../../models";
 import { relatedPosts } from "../../../places";
-import { colors } from "../../../constants/colors";
+import { useThemeStyles, type ColorPalette } from "../../../theme";
 
 interface RelatedViewProps {
   post: Post;
@@ -9,6 +9,7 @@ interface RelatedViewProps {
 }
 
 export function RelatedView({ post, onSelectPlace }: RelatedViewProps) {
+  const { styles, colors } = useThemeStyles(createStyles);
   const related = relatedPosts(post);
 
   return (
@@ -63,8 +64,9 @@ export function RelatedView({ post, onSelectPlace }: RelatedViewProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
+const createStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
+    container: {
     flex: 1,
   },
   header: {

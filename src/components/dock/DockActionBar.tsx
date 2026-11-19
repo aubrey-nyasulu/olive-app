@@ -8,7 +8,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import type { ExpandedWindow } from "../../context/OliveProvider";
 import { useOlive } from "../../context/OliveProvider";
-import { colors } from "../../constants/colors";
+import { useThemeStyles, type ColorPalette } from "../../theme";
 import { DockWaveform } from "./DockWaveform";
 
 const userAvatar = require("../../../assets/images/profile-avatar.jpg");
@@ -63,6 +63,7 @@ export function DockActionBar({
   onLeftLongPress,
   onToggleListening,
 }: DockActionBarProps) {
+  const { styles, colors } = useThemeStyles(createStyles);
   const { activeMode, typeQuery, setTypeQuery, setIsSearching } = useOlive();
 
   const isComments = expandedWindow?.type === "comments";
@@ -349,8 +350,9 @@ export function DockActionBar({
   );
 }
 
-const styles = StyleSheet.create({
-  bar: {
+const createStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
+    bar: {
     width: "100%",
     height: "100%",
     flexDirection: "row",

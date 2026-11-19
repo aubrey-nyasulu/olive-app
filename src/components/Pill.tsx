@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text } from "react-native";
-import { colors } from "../constants/colors";
+import { useThemeStyles, type ColorPalette } from "../theme";
 
 type PillProps = {
   active: boolean;
@@ -8,6 +8,7 @@ type PillProps = {
 };
 
 export function Pill({ active, onPress, label }: PillProps) {
+  const { styles } = useThemeStyles(createStyles);
   return (
     <Pressable
       accessibilityRole="button"
@@ -26,35 +27,36 @@ export function Pill({ active, onPress, label }: PillProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  pill: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 9999,
-    borderWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  pillInactive: {
-    backgroundColor: colors.surface,
-    borderColor: colors.line,
-  },
-  pillActive: {
-    backgroundColor: colors.text,
-    borderColor: colors.text,
-  },
-  pressed: {
-    opacity: 0.75,
-  },
-  text: {
-    fontSize: 14,
-  },
-  textInactive: {
-    color: colors.muted,
-    fontWeight: "500",
-  },
-  textActive: {
-    color: colors.bg,
-    fontWeight: "700",
-  },
-});
+const createStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
+    pill: {
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      borderRadius: 9999,
+      borderWidth: 1,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    pillInactive: {
+      backgroundColor: colors.surface,
+      borderColor: colors.line,
+    },
+    pillActive: {
+      backgroundColor: colors.text,
+      borderColor: colors.text,
+    },
+    pressed: {
+      opacity: 0.75,
+    },
+    text: {
+      fontSize: 14,
+    },
+    textInactive: {
+      color: colors.muted,
+      fontWeight: "500",
+    },
+    textActive: {
+      color: colors.bg,
+      fontWeight: "700",
+    },
+  });

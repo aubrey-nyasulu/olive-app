@@ -2,7 +2,7 @@ import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { colors } from "../../constants/colors";
+import { useThemeStyles, type ColorPalette } from "../../theme";
 import type { UserProfile } from "../../profiles";
 
 interface ProfileHeaderProps {
@@ -18,6 +18,7 @@ export function ProfileHeader({
   isFollowing,
   onToggleFollow,
 }: ProfileHeaderProps) {
+  const { styles, colors } = useThemeStyles(createStyles);
   const insets = useSafeAreaInsets();
 
   return (
@@ -53,7 +54,7 @@ export function ProfileHeader({
           >
             <Ionicons
               name={isFollowing ? "checkmark-circle" : "person-add"}
-              size={15}
+              size={16}
               color={isFollowing ? colors.text : "#FFFFFF"}
             />
             <Text
@@ -91,8 +92,9 @@ export function ProfileHeader({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
+const createStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
+    container: {
     width: "100%",
   },
   coverContainer: {

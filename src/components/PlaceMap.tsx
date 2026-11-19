@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import type { Post } from "../models";
-import { colors } from "../constants/colors";
+import { useThemeStyles, type ColorPalette } from "../theme";
 
 type PlaceMapProps = {
   post: Post;
@@ -22,6 +22,7 @@ export function PlaceMap({
   height = 240,
   interactive = true,
 }: PlaceMapProps) {
+  const { styles, colors } = useThemeStyles(createStyles);
   const [zoomLevel, setZoomLevel] = useState(1);
   const pulseAnim = useRef(new Animated.Value(0)).current;
 
@@ -156,8 +157,9 @@ export function PlaceMap({
   );
 }
 
-const styles = StyleSheet.create({
-  mapCard: {
+const createStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
+    mapCard: {
     width: "100%",
     borderRadius: 18,
     borderWidth: 1,

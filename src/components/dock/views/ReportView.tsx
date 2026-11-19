@@ -1,7 +1,7 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import type { UserProfile } from "../../../profiles";
-import { colors } from "../../../constants/colors";
+import { useThemeStyles, type ColorPalette } from "../../../theme";
 
 const REPORT_REASONS = [
   "Incorrect venue location or business hours",
@@ -16,6 +16,7 @@ interface ReportViewProps {
 }
 
 export function ReportView({ targetUser, onSubmitReport }: ReportViewProps) {
+  const { styles, colors } = useThemeStyles(createStyles);
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -43,7 +44,7 @@ export function ReportView({ targetUser, onSubmitReport }: ReportViewProps) {
             <Text style={styles.reasonText}>
               {reason}
             </Text>
-            <Ionicons name="chevron-forward" size={15} color={colors.muted} />
+            <Ionicons name="chevron-forward" size={16} color={colors.muted} />
           </Pressable>
         ))}
       </ScrollView>
@@ -51,7 +52,8 @@ export function ReportView({ targetUser, onSubmitReport }: ReportViewProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
   container: {
     flex: 1,
   },

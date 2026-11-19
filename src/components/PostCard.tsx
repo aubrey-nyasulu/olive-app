@@ -5,7 +5,7 @@ import { router } from "expo-router";
 import type { Post } from "../models";
 import { relatedPosts, REVIEWS } from "../places";
 import { useOlive } from "../context/OliveProvider";
-import { colors } from "../constants/colors";
+import { useThemeStyles, type ColorPalette } from "../theme";
 
 export const POST_MEDIA_ASPECT_RATIO = 1;
 
@@ -16,6 +16,7 @@ export function PostCard({
   post: Post;
   hideAuthor?: boolean;
 }) {
+  const { styles, colors } = useThemeStyles(createStyles);
   const { isSaved, toggleSave, closeSearch, openExpandedWindow, reviewsMap } =
     useOlive();
   const [isLiked, setIsLiked] = useState(false);
@@ -230,10 +231,11 @@ export function PostCard({
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    marginBottom: 36,
-  },
+const createStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
+    card: {
+      marginBottom: 36,
+    },
   headerRow: {
     flexDirection: "row",
     alignItems: "center",

@@ -1,7 +1,7 @@
 import { Image, Pressable, ScrollView, Share, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import type { Post } from "../../../models";
-import { colors } from "../../../constants/colors";
+import { useThemeStyles, type ColorPalette } from "../../../theme";
 
 interface SavedViewProps {
   savedPosts: Post[];
@@ -10,6 +10,7 @@ interface SavedViewProps {
 }
 
 export function SavedView({ savedPosts, onSelectPlace, onRemove }: SavedViewProps) {
+  const { styles, colors } = useThemeStyles(createStyles);
   const handleShare = () => {
     Share.share({
       message: `My saved places on Olive: ${savedPosts.map((p) => p.author).join(", ")}`,
@@ -87,8 +88,9 @@ export function SavedView({ savedPosts, onSelectPlace, onRemove }: SavedViewProp
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
+const createStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
+    container: {
     flex: 1,
   },
   header: {
