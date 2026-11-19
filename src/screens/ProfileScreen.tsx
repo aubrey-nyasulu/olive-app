@@ -1,10 +1,19 @@
-import { useMemo, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useMemo, useRef, useState } from "react";
+import {
+  Animated,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
 import { AppShell } from "../components/AppShell";
 import { Screen } from "../components/Screen";
-import { ProfileHeader } from "../components/profile/ProfileHeader";
+import {
+  ProfileHeader,
+  ProfileHeroMeta,
+} from "../components/profile/ProfileHeader";
 import { ProfileAboutTab } from "../components/profile/ProfileAboutTab";
 import { ProfilePostsTab } from "../components/profile/ProfilePostsTab";
 import { useOlive } from "../context/OliveProvider";
@@ -18,6 +27,8 @@ export default function ProfileScreen() {
     author?: string;
     id?: string;
   }>();
+
+  const scrollY = useRef(new Animated.Value(0)).current;
 
   const profile: UserProfile = getProfile(author || id);
   const isMe = profile.id === "chisomo" || profile.id === "amara";
@@ -57,17 +68,33 @@ export default function ProfileScreen() {
   return (
     <AppShell>
       <Screen>
-        <ScrollView
+        {/* Fixed Collapsible Top Header & Floating Scaling Avatar */}
+        <ProfileHeader
+          profile={profile}
+          isMe={isMe}
+          isFollowing={isFollowing}
+          onToggleFollow={toggleFollow}
+          scrollY={scrollY}
+        />
+
+        {/* Scrollable Profile Body */}
+        <Animated.ScrollView
           style={styles.scroll}
           contentContainerStyle={styles.contentContainer}
           showsVerticalScrollIndicator={false}
+          scrollEventThrottle={16}
+          onScroll={Animated.event(
+            [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+            { useNativeDriver: false }
+          )}
         >
-          {/* Cover & Avatar Header */}
-          <ProfileHeader
+          {/* In-Flow Hero Meta (Cover spacer, avatar clearance row, Follow button, Name & Handle) */}
+          <ProfileHeroMeta
             profile={profile}
             isMe={isMe}
             isFollowing={isFollowing}
             onToggleFollow={toggleFollow}
+            scrollY={scrollY}
           />
 
           {/* Profile Section Content */}
@@ -83,14 +110,20 @@ export default function ProfileScreen() {
                 ]}
               >
                 <Ionicons
-                  name={isAbout ? "information-circle" : "information-circle-outline"}
+                  name={
+                    isAbout
+                      ? "information-circle"
+                      : "information-circle-outline"
+                  }
                   size={16}
                   color={isAbout ? colors.signal : colors.muted}
                 />
                 <Text
                   style={[
                     styles.segmentText,
-                    isAbout ? styles.segmentTextActive : styles.segmentTextInactive,
+                    isAbout
+                      ? styles.segmentTextActive
+                      : styles.segmentTextInactive,
                   ]}
                 >
                   About
@@ -113,7 +146,9 @@ export default function ProfileScreen() {
                 <Text
                   style={[
                     styles.segmentText,
-                    isPosts ? styles.segmentTextActive : styles.segmentTextInactive,
+                    isPosts
+                      ? styles.segmentTextActive
+                      : styles.segmentTextInactive,
                   ]}
                 >
                   Posts ({ownerPosts.length})
@@ -132,7 +167,7 @@ export default function ProfileScreen() {
               />
             )}
           </View>
-        </ScrollView>
+        </Animated.ScrollView>
       </Screen>
     </AppShell>
   );
@@ -141,51 +176,51 @@ export default function ProfileScreen() {
 const createStyles = (colors: ColorPalette) =>
   StyleSheet.create({
     scroll: {
-    flex: 1,
-  },
-  contentContainer: {
-    paddingHorizontal: 0,
-    paddingTop: 0,
-    paddingBottom: 128, // Clearance for floating dock
-  },
-  profileSection: {
-    paddingHorizontal: 16,
-  },
-  segmentedBar: {
-    flexDirection: "row",
-    borderRadius: 9999,
-    borderWidth: 1,
-    padding: 4,
-    marginBottom: 16,
-    backgroundColor: colors.surfaceMuted,
-    borderColor: colors.line,
-  },
-  segmentBtn: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    paddingVertical: 8,
-    borderRadius: 9999,
-  },
-  segmentBtnActive: {
-    backgroundColor: colors.surface,
-    shadowColor: colors.text,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  segmentText: {
-    fontSize: 14,
-  },
-  segmentTextActive: {
-    color: colors.text,
-    fontWeight: "700",
-  },
-  segmentTextInactive: {
-    color: colors.muted,
-    fontWeight: "500",
-  },
-});
+      flex: 1,
+    },
+    contentContainer: {
+      paddingHorizontal: 0,
+      paddingTop: 0,
+      paddingBottom: 128, // Clearance for floating dock
+    },
+    profileSection: {
+      paddingHorizontal: 16,
+    },
+    segmentedBar: {
+      flexDirection: "row",
+      borderRadius: 9999,
+      borderWidth: 1,
+      padding: 4,
+      marginBottom: 16,
+      backgroundColor: colors.surfaceMuted,
+      borderColor: colors.line,
+    },
+    segmentBtn: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+      paddingVertical: 8,
+      borderRadius: 9999,
+    },
+    segmentBtnActive: {
+      backgroundColor: colors.surface,
+      shadowColor: colors.text,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 2,
+    },
+    segmentText: {
+      fontSize: 14,
+    },
+    segmentTextActive: {
+      color: colors.text,
+      fontWeight: "700",
+    },
+    segmentTextInactive: {
+      color: colors.muted,
+      fontWeight: "500",
+    },
+  });
