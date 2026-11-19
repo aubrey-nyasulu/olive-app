@@ -45,6 +45,7 @@ export type Colors = ColorPalette;
 
 // Default canonical colors export for direct access without React context
 export const colors = lightColors;
+export default colors;
 
 export const getPalette = (dark: boolean): ColorPalette =>
   dark ? darkColors : lightColors;

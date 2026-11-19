@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text } from "react-native";
-import { useOlive } from "../context/OliveProvider";
+import { colors } from "../constants/colors";
 
 type PillProps = {
   active: boolean;
@@ -8,8 +8,6 @@ type PillProps = {
 };
 
 export function Pill({ active, onPress, label }: PillProps) {
-  const { colors } = useOlive();
-
   return (
     <Pressable
       accessibilityRole="button"
@@ -17,22 +15,11 @@ export function Pill({ active, onPress, label }: PillProps) {
       onPress={onPress}
       style={({ pressed }) => [
         styles.pill,
-        {
-          backgroundColor: active ? colors.text : colors.surface,
-          borderColor: active ? colors.text : colors.line,
-          opacity: pressed ? 0.75 : 1,
-        },
+        active ? styles.pillActive : styles.pillInactive,
+        pressed && styles.pressed,
       ]}
     >
-      <Text
-        style={[
-          styles.text,
-          {
-            color: active ? colors.bg : colors.muted,
-            fontWeight: active ? "700" : "500",
-          },
-        ]}
-      >
+      <Text style={[styles.text, active ? styles.textActive : styles.textInactive]}>
         {label}
       </Text>
     </Pressable>
@@ -48,7 +35,26 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  pillInactive: {
+    backgroundColor: colors.surface,
+    borderColor: colors.line,
+  },
+  pillActive: {
+    backgroundColor: colors.text,
+    borderColor: colors.text,
+  },
+  pressed: {
+    opacity: 0.75,
+  },
   text: {
     fontSize: 13,
+  },
+  textInactive: {
+    color: colors.muted,
+    fontWeight: "500",
+  },
+  textActive: {
+    color: colors.bg,
+    fontWeight: "700",
   },
 });

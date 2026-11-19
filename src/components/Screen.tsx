@@ -2,7 +2,6 @@ import { useEffect, useRef, type ReactNode } from "react";
 import {
   Animated,
   Easing,
-  Image,
   Platform,
   Pressable,
   StyleSheet,
@@ -15,6 +14,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useOlive } from "../context/OliveProvider";
+import { colors } from "../constants/colors";
 
 export const getHeaderHeight = (insetsTop: number) =>
   insetsTop + (Platform.OS === "android" ? 54 : 50);
@@ -32,7 +32,6 @@ export function IconButton({
   color?: string;
   size?: number;
 }) {
-  const { colors } = useOlive();
   return (
     <Pressable
       accessibilityRole="button"
@@ -40,11 +39,7 @@ export function IconButton({
       onPress={onPress}
       style={({ pressed }) => [
         styles.iconButton,
-        {
-          backgroundColor: colors.surfaceMuted,
-          borderColor: colors.line,
-          opacity: pressed ? 0.6 : 1,
-        },
+        pressed && styles.pressedIcon,
       ]}
     >
       <Ionicons name={name} size={size} color={color || colors.text} />
@@ -69,7 +64,6 @@ export function Screen({
 }) {
   const insets = useSafeAreaInsets();
   const {
-    colors,
     config,
     closeSearch,
     searchOpen,
@@ -84,7 +78,6 @@ export function Screen({
   const dimmed = searchOpen || panelOpen;
   const headerHeight = getHeaderHeight(insets.top);
 
-  // Transition header opacity (0.4 when search/panel is open, matching original)
   const headerOpacity = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -108,7 +101,7 @@ export function Screen({
   const showHeader = home || back || title;
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.bg }]}>
+    <View style={styles.root}>
       <View style={styles.container}>
         {/* Fixed Frosted Glassmorphism Header */}
         {showHeader && (
@@ -135,11 +128,7 @@ export function Screen({
               style={[
                 StyleSheet.absoluteFill,
                 styles.glassTintOverlay,
-                {
-                  backgroundColor: config.dark
-                    ? "rgba(20, 19, 18, 0.85)"
-                    : "rgba(250, 248, 245, 0.85)",
-                },
+                config.dark ? styles.glassTintDark : styles.glassTintLight,
               ]}
             />
 
@@ -178,8 +167,8 @@ export function Screen({
                       router.navigate("/");
                     }}
                   >
-                    <Text style={[styles.logoText, { color: colors.text }]}>
-                      olive<Text style={{ color: colors.signal }}>.</Text>
+                    <Text style={styles.logoText}>
+                      olive<Text style={styles.logoDot}>.</Text>
                     </Text>
                   </Pressable>
                 ) : title ? (
@@ -188,7 +177,6 @@ export function Screen({
                     style={[
                       styles.title,
                       back && styles.titleWithBack,
-                      { color: colors.text },
                     ]}
                   >
                     {title}
@@ -212,15 +200,10 @@ export function Screen({
                     }}
                     style={({ pressed }) => [
                       styles.filterButton,
-                      {
-                        backgroundColor:
-                          feedMode !== "all"
-                            ? colors.signalLight
-                            : colors.surfaceMuted,
-                        borderColor:
-                          feedMode !== "all" ? colors.signal : colors.line,
-                        opacity: pressed ? 0.75 : 1,
-                      },
+                      feedMode !== "all"
+                        ? styles.filterButtonActive
+                        : styles.filterButtonDefault,
+                      pressed && styles.pressedIcon,
                     ]}
                   >
                     <Ionicons
@@ -234,14 +217,7 @@ export function Screen({
                       size={18}
                       color={feedMode !== "all" ? colors.signal : colors.text}
                     />
-                    {feedMode !== "all" && (
-                      <View
-                        style={[
-                          styles.filterDot,
-                          { backgroundColor: colors.signal },
-                        ]}
-                      />
-                    )}
+                    {feedMode !== "all" && <View style={styles.filterDot} />}
                   </Pressable>
                 )}
               </View>
@@ -266,6 +242,7 @@ export function Screen({
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+    backgroundColor: colors.bg,
   },
   container: {
     flex: 1,
@@ -289,6 +266,12 @@ const styles = StyleSheet.create({
           WebkitBackdropFilter: "blur(12px)",
         } as any)
       : {}),
+  },
+  glassTintLight: {
+    backgroundColor: "rgba(250, 248, 245, 0.85)",
+  },
+  glassTintDark: {
+    backgroundColor: "rgba(20, 19, 18, 0.85)",
   },
   glassHairline: {
     position: "absolute",
@@ -321,11 +304,16 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     letterSpacing: -0.6,
     lineHeight: 24,
+    color: colors.text,
+  },
+  logoDot: {
+    color: colors.signal,
   },
   title: {
     fontSize: 19,
     fontWeight: "700",
     letterSpacing: -0.4,
+    color: colors.text,
   },
   titleWithBack: {
     fontSize: 17,
@@ -338,6 +326,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: colors.surfaceMuted,
+    borderColor: colors.line,
+  },
+  pressedIcon: {
+    opacity: 0.65,
   },
   filterButton: {
     width: 36,
@@ -348,6 +341,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     position: "relative",
   },
+  filterButtonDefault: {
+    backgroundColor: colors.surfaceMuted,
+    borderColor: colors.line,
+  },
+  filterButtonActive: {
+    backgroundColor: colors.signalLight,
+    borderColor: colors.signal,
+  },
   filterDot: {
     position: "absolute",
     top: 5,
@@ -355,6 +356,7 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
+    backgroundColor: colors.signal,
   },
   content: {
     flex: 1,

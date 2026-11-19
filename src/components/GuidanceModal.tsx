@@ -8,10 +8,11 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useOlive } from "../context/OliveProvider";
+import { colors } from "../constants/colors";
 import { PlaceMap } from "./PlaceMap";
 
 export function GuidanceModal() {
-  const { colors, activeGuidance, nextGuidanceStep, stopGuidance } = useOlive();
+  const { activeGuidance, nextGuidanceStep, stopGuidance } = useOlive();
 
   if (!activeGuidance) return null;
 
@@ -41,33 +42,19 @@ export function GuidanceModal() {
       <View style={styles.modalOverlay}>
         <Pressable
           accessibilityLabel="Dismiss guidance"
-          style={[styles.modalBackdrop, { backgroundColor: colors.overlay }]}
+          style={styles.modalBackdrop}
           onPress={stopGuidance}
         />
-        <View
-          style={[
-            styles.container,
-            {
-              backgroundColor: colors.bg,
-              borderColor: colors.signal,
-            },
-          ]}
-        >
+        <View style={styles.container}>
           {/* Top Handle & Dismiss */}
           <View style={styles.topBar}>
-            <View
-              style={[styles.handleBar, { backgroundColor: colors.line }]}
-            />
+            <View style={styles.handleBar} />
             <Pressable
               accessibilityLabel="Close guidance"
               onPress={stopGuidance}
               style={({ pressed }) => [
                 styles.closeBtn,
-                {
-                  backgroundColor: colors.surfaceMuted,
-                  borderColor: colors.line,
-                  opacity: pressed ? 0.6 : 1,
-                },
+                pressed && styles.closeBtnPressed,
               ]}
             >
               <Ionicons name="close" size={20} color={colors.text} />
@@ -81,35 +68,18 @@ export function GuidanceModal() {
           >
             {/* Active Status Header */}
             <View style={styles.statusRow}>
-              <View
-                style={[
-                  styles.modeBadge,
-                  {
-                    backgroundColor: colors.signalLight,
-                    borderColor: colors.signal,
-                  },
-                ]}
-              >
+              <View style={styles.modeBadge}>
                 <Ionicons name={modeIcon} size={16} color={colors.signal} />
-                <Text style={[styles.modeBadgeText, { color: colors.signal }]}>
+                <Text style={styles.modeBadgeText}>
                   {mode.toUpperCase()} GUIDANCE
                 </Text>
               </View>
 
               <View style={styles.etaBox}>
-                <Text style={[styles.etaValue, { color: colors.text }]}>
-                  {etaMinutes}{" "}
-                  <Text
-                    style={{
-                      fontSize: 14,
-                      fontWeight: "500",
-                      color: colors.muted,
-                    }}
-                  >
-                    min
-                  </Text>
+                <Text style={styles.etaValue}>
+                  {etaMinutes} <Text style={styles.etaUnit}>min</Text>
                 </Text>
-                <Text style={[styles.distRemaining, { color: colors.muted }]}>
+                <Text style={styles.distRemaining}>
                   {distanceRemainingKm} km away
                 </Text>
               </View>
@@ -117,52 +87,35 @@ export function GuidanceModal() {
 
             {/* Place Title */}
             <View style={styles.venueInfo}>
-              <Text style={[styles.venueName, { color: colors.text }]}>
-                {post.author}
-              </Text>
-              <Text style={[styles.venuePlace, { color: colors.muted }]}>
+              <Text style={styles.venueName}>{post.author}</Text>
+              <Text style={styles.venuePlace}>
                 {post.place} · {post.category}
               </Text>
             </View>
 
             {/* Progress Bar */}
-            <View
-              style={[
-                styles.progressTrack,
-                { backgroundColor: colors.surfaceMuted },
-              ]}
-            >
+            <View style={styles.progressTrack}>
               <View
                 style={[
                   styles.progressFill,
                   {
                     width: `${progressPercent}%`,
-                    backgroundColor: colors.signal,
                   },
                 ]}
               />
             </View>
-            <Text style={[styles.stepCountText, { color: colors.muted }]}>
+            <Text style={styles.stepCountText}>
               Step {currentStepIndex + 1} of {steps.length}
             </Text>
 
             {/* Large Turn-by-Turn Guidance Banner */}
-            <View
-              style={[
-                styles.instructionCard,
-                {
-                  backgroundColor: colors.surface,
-                  borderColor: colors.line,
-                  shadowColor: colors.text,
-                },
-              ]}
-            >
+            <View style={styles.instructionCard}>
               <View
                 style={[
                   styles.stepIconWrap,
-                  {
-                    backgroundColor: isFinalStep ? colors.signal : colors.text,
-                  },
+                  isFinalStep
+                    ? styles.stepIconWrapSignal
+                    : styles.stepIconWrapText,
                 ]}
               >
                 <Ionicons
@@ -173,17 +126,13 @@ export function GuidanceModal() {
               </View>
 
               <View style={styles.instructionTextWrap}>
-                <Text
-                  style={[styles.instructionDistance, { color: colors.signal }]}
-                >
+                <Text style={styles.instructionDistance}>
                   In {currentStep.distance}
                 </Text>
-                <Text style={[styles.instructionMain, { color: colors.text }]}>
+                <Text style={styles.instructionMain}>
                   {currentStep.instruction}
                 </Text>
-                <Text
-                  style={[styles.instructionLandmark, { color: colors.muted }]}
-                >
+                <Text style={styles.instructionLandmark}>
                   {currentStep.landmark}
                 </Text>
               </View>
@@ -196,50 +145,37 @@ export function GuidanceModal() {
 
             {/* All Steps Preview */}
             <View style={styles.allStepsWrap}>
-              <Text style={[styles.allStepsHeader, { color: colors.muted }]}>
-                ROUTE ITINERARY
-              </Text>
+              <Text style={styles.allStepsHeader}>ROUTE ITINERARY</Text>
               {steps.map((step, idx) => {
                 const isPast = idx < currentStepIndex;
                 const isCurrent = idx === currentStepIndex;
                 return (
                   <View
                     key={step.id}
-                    style={[
-                      styles.stepRow,
-                      {
-                        borderColor: colors.line,
-                        opacity: isPast ? 0.45 : 1,
-                      },
-                    ]}
+                    style={[styles.stepRow, isPast && styles.stepRowPast]}
                   >
                     <View
                       style={[
                         styles.stepMiniDot,
-                        {
-                          backgroundColor: isCurrent
-                            ? colors.signal
-                            : isPast
-                            ? colors.muted
-                            : colors.line,
-                        },
+                        isCurrent
+                          ? styles.stepMiniDotCurrent
+                          : isPast
+                          ? styles.stepMiniDotPast
+                          : styles.stepMiniDotFuture,
                       ]}
                     />
                     <View style={styles.stepRowContent}>
                       <Text
                         style={[
                           styles.stepRowInstruction,
-                          {
-                            color: isCurrent ? colors.signal : colors.text,
-                            fontWeight: isCurrent ? "700" : "500",
-                          },
+                          isCurrent
+                            ? styles.stepRowInstructionCurrent
+                            : styles.stepRowInstructionDefault,
                         ]}
                       >
                         {step.instruction}
                       </Text>
-                      <Text
-                        style={[styles.stepRowSub, { color: colors.muted }]}
-                      >
+                      <Text style={styles.stepRowSub}>
                         {step.distance} · {step.landmark}
                       </Text>
                     </View>
@@ -250,24 +186,13 @@ export function GuidanceModal() {
           </ScrollView>
 
           {/* Bottom Actions */}
-          <View
-            style={[
-              styles.bottomDock,
-              {
-                backgroundColor: colors.surface,
-                borderTopColor: colors.line,
-              },
-            ]}
-          >
+          <View style={styles.bottomDock}>
             <Pressable
               accessibilityRole="button"
               onPress={isFinalStep ? stopGuidance : nextGuidanceStep}
               style={({ pressed }) => [
                 styles.primaryBtn,
-                {
-                  backgroundColor: colors.signal,
-                  opacity: pressed ? 0.85 : 1,
-                },
+                pressed && styles.primaryBtnPressed,
               ]}
             >
               <Ionicons
@@ -275,12 +200,7 @@ export function GuidanceModal() {
                 size={18}
                 color={colors.signalForeground}
               />
-              <Text
-                style={[
-                  styles.primaryBtnText,
-                  { color: colors.signalForeground },
-                ]}
-              >
+              <Text style={styles.primaryBtnText}>
                 {isFinalStep ? "Arrived at Destination" : "Next Direction"}
               </Text>
             </Pressable>
@@ -290,12 +210,10 @@ export function GuidanceModal() {
               onPress={stopGuidance}
               style={({ pressed }) => [
                 styles.cancelBtn,
-                { opacity: pressed ? 0.6 : 1 },
+                pressed && styles.cancelBtnPressed,
               ]}
             >
-              <Text style={[styles.cancelBtnText, { color: colors.muted }]}>
-                End guidance
-              </Text>
+              <Text style={styles.cancelBtnText}>End guidance</Text>
             </Pressable>
           </View>
         </View>
@@ -314,6 +232,7 @@ const styles = StyleSheet.create({
   },
   modalBackdrop: {
     ...StyleSheet.absoluteFill,
+    backgroundColor: colors.overlay,
   },
   container: {
     width: "100%",
@@ -326,6 +245,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 16,
     elevation: 10,
+    backgroundColor: colors.bg,
+    borderColor: colors.signal,
   },
   topBar: {
     height: 48,
@@ -337,6 +258,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 5,
     borderRadius: 3,
+    backgroundColor: colors.line,
   },
   closeBtn: {
     position: "absolute",
@@ -348,6 +270,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: colors.surfaceMuted,
+    borderColor: colors.line,
+  },
+  closeBtnPressed: {
+    opacity: 0.6,
   },
   scroll: {
     flex: 1,
@@ -370,11 +297,14 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 9999,
     borderWidth: 1,
+    backgroundColor: colors.signalLight,
+    borderColor: colors.signal,
   },
   modeBadgeText: {
     fontSize: 11,
     fontWeight: "800",
     letterSpacing: 0.8,
+    color: colors.signal,
   },
   etaBox: {
     alignItems: "flex-end",
@@ -382,9 +312,16 @@ const styles = StyleSheet.create({
   etaValue: {
     fontSize: 26,
     fontWeight: "900",
+    color: colors.text,
+  },
+  etaUnit: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: colors.muted,
   },
   distRemaining: {
     fontSize: 12,
+    color: colors.muted,
   },
   venueInfo: {
     marginTop: 14,
@@ -393,26 +330,31 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "800",
     letterSpacing: -0.5,
+    color: colors.text,
   },
   venuePlace: {
     fontSize: 13,
     marginTop: 2,
+    color: colors.muted,
   },
   progressTrack: {
     height: 4,
     borderRadius: 2,
     marginTop: 16,
     overflow: "hidden",
+    backgroundColor: colors.surfaceMuted,
   },
   progressFill: {
     height: "100%",
     borderRadius: 2,
+    backgroundColor: colors.signal,
   },
   stepCountText: {
     fontSize: 11,
     fontWeight: "600",
     marginTop: 6,
     textAlign: "right",
+    color: colors.muted,
   },
   instructionCard: {
     flexDirection: "row",
@@ -426,6 +368,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.06,
     shadowRadius: 10,
     elevation: 3,
+    backgroundColor: colors.surface,
+    borderColor: colors.line,
+    shadowColor: colors.text,
   },
   stepIconWrap: {
     width: 52,
@@ -433,6 +378,12 @@ const styles = StyleSheet.create({
     borderRadius: 26,
     alignItems: "center",
     justifyContent: "center",
+  },
+  stepIconWrapSignal: {
+    backgroundColor: colors.signal,
+  },
+  stepIconWrapText: {
+    backgroundColor: colors.text,
   },
   instructionTextWrap: {
     flex: 1,
@@ -442,16 +393,19 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     textTransform: "uppercase",
     letterSpacing: 0.5,
+    color: colors.signal,
   },
   instructionMain: {
     fontSize: 17,
     fontWeight: "700",
     marginTop: 2,
     lineHeight: 22,
+    color: colors.text,
   },
   instructionLandmark: {
     fontSize: 13,
     marginTop: 4,
+    color: colors.muted,
   },
   mapWrap: {
     marginTop: 20,
@@ -466,6 +420,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     letterSpacing: 1,
     marginBottom: 12,
+    color: colors.muted,
   },
   stepRow: {
     flexDirection: "row",
@@ -473,12 +428,25 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingVertical: 12,
     borderBottomWidth: 1,
+    borderColor: colors.line,
+  },
+  stepRowPast: {
+    opacity: 0.45,
   },
   stepMiniDot: {
     width: 10,
     height: 10,
     borderRadius: 5,
     marginTop: 5,
+  },
+  stepMiniDotCurrent: {
+    backgroundColor: colors.signal,
+  },
+  stepMiniDotPast: {
+    backgroundColor: colors.muted,
+  },
+  stepMiniDotFuture: {
+    backgroundColor: colors.line,
   },
   stepRowContent: {
     flex: 1,
@@ -487,9 +455,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 18,
   },
+  stepRowInstructionCurrent: {
+    color: colors.signal,
+    fontWeight: "700",
+  },
+  stepRowInstructionDefault: {
+    color: colors.text,
+    fontWeight: "500",
+  },
   stepRowSub: {
     fontSize: 12,
     marginTop: 2,
+    color: colors.muted,
   },
   bottomDock: {
     paddingHorizontal: 20,
@@ -497,6 +474,8 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
     borderTopWidth: 1,
     gap: 8,
+    backgroundColor: colors.surface,
+    borderTopColor: colors.line,
   },
   primaryBtn: {
     flexDirection: "row",
@@ -505,17 +484,26 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
+    backgroundColor: colors.signal,
+  },
+  primaryBtnPressed: {
+    opacity: 0.85,
   },
   primaryBtnText: {
     fontSize: 15,
     fontWeight: "700",
+    color: colors.signalForeground,
   },
   cancelBtn: {
     alignItems: "center",
     paddingVertical: 6,
   },
+  cancelBtnPressed: {
+    opacity: 0.6,
+  },
   cancelBtnText: {
     fontSize: 13,
     fontWeight: "600",
+    color: colors.muted,
   },
 });

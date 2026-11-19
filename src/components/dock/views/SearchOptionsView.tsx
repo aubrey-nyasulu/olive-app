@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import type { SearchMode } from "../../../models";
 import { useOlive } from "../../../context/OliveProvider";
+import { colors } from "../../../constants/colors";
 
 const SEARCH_OPTIONS = [
   {
@@ -33,15 +34,15 @@ export function SearchOptionsView({
   onToggleSync,
   onSelectSearchMode,
 }: SearchOptionsViewProps) {
-  const { colors, isScanning } = useOlive();
+  const { isScanning } = useOlive();
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={[styles.title, { color: colors.text }]}>
+        <Text style={styles.title}>
           Search & Stream Controls
         </Text>
-        <Text style={[styles.subtitle, { color: colors.muted }]}>
+        <Text style={styles.subtitle}>
           Toggle realtime sync or launch search
         </Text>
       </View>
@@ -53,21 +54,14 @@ export function SearchOptionsView({
           onPress={onToggleSync}
           style={({ pressed }) => [
             styles.card,
-            {
-              backgroundColor: isScanning
-                ? colors.signalLight
-                : colors.surfaceMuted,
-              borderColor: isScanning ? colors.signal : colors.line,
-              opacity: pressed ? 0.8 : 1,
-            },
+            isScanning ? styles.cardActive : styles.cardDefault,
+            pressed && styles.pressed,
           ]}
         >
           <View
             style={[
               styles.iconCircle,
-              {
-                backgroundColor: isScanning ? colors.signal : colors.surface,
-              },
+              isScanning ? styles.iconCircleActive : styles.iconCircleDefault,
             ]}
           >
             <Ionicons
@@ -76,26 +70,23 @@ export function SearchOptionsView({
               color={isScanning ? colors.signalForeground : colors.text}
             />
           </View>
-          <View style={{ flex: 1 }}>
+          <View style={styles.metaCol}>
             <Text
               style={[
                 styles.label,
-                {
-                  color: isScanning ? colors.signal : colors.text,
-                  fontWeight: isScanning ? "700" : "600",
-                },
+                isScanning ? styles.labelActive : styles.labelDefault,
               ]}
             >
               {isScanning ? "Live Feed Sync: Active" : "Live Feed Sync: Paused"}
             </Text>
-            <Text style={[styles.desc, { color: colors.muted }]}>
+            <Text style={styles.desc}>
               {isScanning ? "Realtime stream active" : "Tap to stream live"}
             </Text>
           </View>
           <View
             style={[
               styles.dot,
-              { backgroundColor: isScanning ? colors.signal : colors.muted },
+              isScanning ? styles.dotActive : styles.dotInactive,
             ]}
           />
         </Pressable>
@@ -108,23 +99,18 @@ export function SearchOptionsView({
             onPress={() => onSelectSearchMode(mode)}
             style={({ pressed }) => [
               styles.card,
-              {
-                backgroundColor: colors.surfaceMuted,
-                borderColor: colors.line,
-                opacity: pressed ? 0.8 : 1,
-              },
+              styles.cardDefault,
+              pressed && styles.pressed,
             ]}
           >
-            <View
-              style={[styles.iconCircle, { backgroundColor: colors.surface }]}
-            >
+            <View style={[styles.iconCircle, styles.iconCircleDefault]}>
               <Ionicons name={icon} size={24} color={colors.text} />
             </View>
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.label, { color: colors.text }]}>
+            <View style={styles.metaCol}>
+              <Text style={styles.label}>
                 {label} Search
               </Text>
-              <Text style={[styles.desc, { color: colors.muted }]}>{desc}</Text>
+              <Text style={styles.desc}>{desc}</Text>
             </View>
             <Ionicons name="chevron-forward" size={17} color={colors.muted} />
           </Pressable>
@@ -146,10 +132,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "800",
     letterSpacing: -0.2,
+    color: colors.text,
   },
   subtitle: {
     fontSize: 12,
     marginTop: 1,
+    color: colors.muted,
   },
   optionsWrap: {
     gap: 10,
@@ -165,23 +153,60 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     gap: 12,
   },
+  cardDefault: {
+    backgroundColor: colors.surfaceMuted,
+    borderColor: colors.line,
+  },
+  cardActive: {
+    backgroundColor: colors.signalLight,
+    borderColor: colors.signal,
+  },
+  pressed: {
+    opacity: 0.8,
+  },
   iconCircle: {
     width: 48,
     height: 48,
-    borderRadius: 32,
+    borderRadius: 24,
     alignItems: "center",
     justifyContent: "center",
   },
+  iconCircleDefault: {
+    backgroundColor: colors.surface,
+  },
+  iconCircleActive: {
+    backgroundColor: colors.signal,
+  },
+  metaCol: {
+    flex: 1,
+  },
   label: {
     fontSize: 14,
+    color: colors.text,
+    fontWeight: "600",
+  },
+  labelDefault: {
+    color: colors.text,
+    fontWeight: "600",
+  },
+  labelActive: {
+    color: colors.signal,
+    fontWeight: "700",
   },
   desc: {
     fontSize: 11.5,
     marginTop: 1,
+    color: colors.muted,
   },
   dot: {
     width: 8,
     height: 8,
     borderRadius: 4,
+  },
+  dotActive: {
+    backgroundColor: colors.signal,
+  },
+  dotInactive: {
+    backgroundColor: colors.muted,
   },
 });

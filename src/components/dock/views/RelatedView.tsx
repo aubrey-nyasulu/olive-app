@@ -1,7 +1,7 @@
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import type { Post } from "../../../models";
 import { relatedPosts } from "../../../places";
-import { useOlive } from "../../../context/OliveProvider";
+import { colors } from "../../../constants/colors";
 
 interface RelatedViewProps {
   post: Post;
@@ -9,16 +9,15 @@ interface RelatedViewProps {
 }
 
 export function RelatedView({ post, onSelectPlace }: RelatedViewProps) {
-  const { colors } = useOlive();
   const related = relatedPosts(post);
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={[styles.title, { color: colors.text }]}>
+        <Text style={styles.title}>
           Similar Places Nearby
         </Text>
-        <Text style={[styles.subtitle, { color: colors.muted }]}>
+        <Text style={styles.subtitle}>
           Discovered around {post.place}
         </Text>
       </View>
@@ -30,7 +29,7 @@ export function RelatedView({ post, onSelectPlace }: RelatedViewProps) {
       >
         {related.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Text style={[styles.emptySubtitle, { color: colors.muted }]}>
+            <Text style={styles.emptySubtitle}>
               No similar places nearby right now.
             </Text>
           </View>
@@ -41,29 +40,19 @@ export function RelatedView({ post, onSelectPlace }: RelatedViewProps) {
               onPress={() => onSelectPlace(rel.id)}
               style={({ pressed }) => [
                 styles.itemCard,
-                {
-                  backgroundColor: colors.surfaceMuted,
-                  borderColor: colors.line,
-                  opacity: pressed ? 0.75 : 1,
-                },
+                pressed && styles.pressed,
               ]}
             >
               <Image source={rel.image} style={styles.itemThumb} />
-              <View style={{ flex: 1, gap: 2 }}>
-                <Text
-                  style={[styles.itemTitle, { color: colors.text }]}
-                  numberOfLines={1}
-                >
+              <View style={styles.itemMeta}>
+                <Text style={styles.itemTitle} numberOfLines={1}>
                   {rel.title}
                 </Text>
-                <Text
-                  style={[styles.itemSubtitle, { color: colors.muted }]}
-                  numberOfLines={1}
-                >
+                <Text style={styles.itemSubtitle} numberOfLines={1}>
                   {rel.author} · {rel.place}
                 </Text>
               </View>
-              <Text style={[styles.itemDist, { color: colors.signal }]}>
+              <Text style={styles.itemDist}>
                 {rel.distanceKm} km
               </Text>
             </Pressable>
@@ -86,10 +75,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "800",
     letterSpacing: -0.2,
+    color: colors.text,
   },
   subtitle: {
     fontSize: 12,
     marginTop: 1,
+    color: colors.muted,
   },
   scroll: {
     flex: 1,
@@ -105,6 +96,7 @@ const styles = StyleSheet.create({
   },
   emptySubtitle: {
     fontSize: 13,
+    color: colors.muted,
   },
   itemCard: {
     flexDirection: "row",
@@ -113,21 +105,33 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 10,
     gap: 12,
+    backgroundColor: colors.surfaceMuted,
+    borderColor: colors.line,
+  },
+  pressed: {
+    opacity: 0.75,
   },
   itemThumb: {
     width: 44,
     height: 44,
     borderRadius: 12,
   },
+  itemMeta: {
+    flex: 1,
+    gap: 2,
+  },
   itemTitle: {
     fontSize: 13.5,
     fontWeight: "700",
+    color: colors.text,
   },
   itemSubtitle: {
     fontSize: 11.5,
+    color: colors.muted,
   },
   itemDist: {
     fontSize: 12,
     fontWeight: "700",
+    color: colors.signal,
   },
 });

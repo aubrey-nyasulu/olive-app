@@ -1,7 +1,7 @@
 import { Image, Pressable, ScrollView, Share, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import type { Post } from "../../../models";
-import { useOlive } from "../../../context/OliveProvider";
+import { colors } from "../../../constants/colors";
 
 interface SavedViewProps {
   savedPosts: Post[];
@@ -10,8 +10,6 @@ interface SavedViewProps {
 }
 
 export function SavedView({ savedPosts, onSelectPlace, onRemove }: SavedViewProps) {
-  const { colors } = useOlive();
-
   const handleShare = () => {
     Share.share({
       message: `My saved places on Olive: ${savedPosts.map((p) => p.author).join(", ")}`,
@@ -22,10 +20,10 @@ export function SavedView({ savedPosts, onSelectPlace, onRemove }: SavedViewProp
     <View style={styles.container}>
       <View style={styles.header}>
         <View>
-          <Text style={[styles.title, { color: colors.text }]}>
+          <Text style={styles.title}>
             Saved Places
           </Text>
-          <Text style={[styles.subtitle, { color: colors.muted }]}>
+          <Text style={styles.subtitle}>
             {savedPosts.length} places saved for quick access
           </Text>
         </View>
@@ -33,10 +31,10 @@ export function SavedView({ savedPosts, onSelectPlace, onRemove }: SavedViewProp
           <Pressable
             accessibilityRole="button"
             onPress={handleShare}
-            style={[styles.shareBtn, { backgroundColor: colors.surfaceMuted }]}
+            style={styles.shareBtn}
           >
             <Ionicons name="share-social-outline" size={14} color={colors.text} />
-            <Text style={[styles.shareText, { color: colors.text }]}>Share</Text>
+            <Text style={styles.shareText}>Share</Text>
           </Pressable>
         )}
       </View>
@@ -49,41 +47,26 @@ export function SavedView({ savedPosts, onSelectPlace, onRemove }: SavedViewProp
         {savedPosts.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Ionicons name="bookmark-outline" size={38} color={colors.muted} />
-            <Text style={[styles.emptyTitle, { color: colors.text }]}>
+            <Text style={styles.emptyTitle}>
               Nothing saved yet
             </Text>
-            <Text style={[styles.emptySubtitle, { color: colors.muted }]}>
+            <Text style={styles.emptySubtitle}>
               Tap the bookmark icon on any post in the feed to save it here.
             </Text>
           </View>
         ) : (
           savedPosts.map((post) => (
-            <View
-              key={post.id}
-              style={[
-                styles.itemRow,
-                {
-                  backgroundColor: colors.surfaceMuted,
-                  borderColor: colors.line,
-                },
-              ]}
-            >
+            <View key={post.id} style={styles.itemRow}>
               <Pressable
                 onPress={() => onSelectPlace(post.id)}
                 style={styles.itemPressable}
               >
                 <Image source={post.image} style={styles.itemThumb} />
-                <View style={{ flex: 1, gap: 2 }}>
-                  <Text
-                    style={[styles.itemTitle, { color: colors.text }]}
-                    numberOfLines={1}
-                  >
+                <View style={styles.itemMeta}>
+                  <Text style={styles.itemTitle} numberOfLines={1}>
                     {post.author}
                   </Text>
-                  <Text
-                    style={[styles.itemSub, { color: colors.muted }]}
-                    numberOfLines={1}
-                  >
+                  <Text style={styles.itemSub} numberOfLines={1}>
                     {post.place} · {post.distanceKm} km
                   </Text>
                 </View>
@@ -119,10 +102,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "800",
     letterSpacing: -0.2,
+    color: colors.text,
   },
   subtitle: {
     fontSize: 12,
     marginTop: 1,
+    color: colors.muted,
   },
   shareBtn: {
     flexDirection: "row",
@@ -131,10 +116,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 12,
+    backgroundColor: colors.surfaceMuted,
   },
   shareText: {
     fontSize: 12,
     fontWeight: "600",
+    color: colors.text,
   },
   scroll: {
     flex: 1,
@@ -153,12 +140,14 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 15,
     fontWeight: "700",
+    color: colors.text,
   },
   emptySubtitle: {
     fontSize: 12.5,
     textAlign: "center",
     paddingHorizontal: 20,
     lineHeight: 18,
+    color: colors.muted,
   },
   itemRow: {
     flexDirection: "row",
@@ -167,6 +156,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 10,
     gap: 10,
+    backgroundColor: colors.surfaceMuted,
+    borderColor: colors.line,
   },
   itemPressable: {
     flex: 1,
@@ -179,12 +170,18 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 12,
   },
+  itemMeta: {
+    flex: 1,
+    gap: 2,
+  },
   itemTitle: {
     fontSize: 13.5,
     fontWeight: "700",
+    color: colors.text,
   },
   itemSub: {
     fontSize: 11.5,
+    color: colors.muted,
   },
   trashBtn: {
     width: 34,

@@ -9,6 +9,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useOlive } from "../../../context/OliveProvider";
+import { colors } from "../../../constants/colors";
 import { getProfile } from "../../../profiles";
 
 const userAvatar = require("../../../../assets/images/profile-avatar.jpg");
@@ -19,7 +20,7 @@ interface UserMenuViewProps {
 }
 
 export function UserMenuView({ onClose }: UserMenuViewProps) {
-  const { colors, openExpandedWindow } = useOlive();
+  const { openExpandedWindow } = useOlive();
 
   const handleGoProfile = () => {
     onClose();
@@ -27,7 +28,7 @@ export function UserMenuView({ onClose }: UserMenuViewProps) {
   };
 
   const handleOpenMessages = () => {
-    const recipient = getProfile("mabu");
+    const recipient = getProfile("forno");
     openExpandedWindow({ type: "message", recipient });
   };
 
@@ -41,28 +42,24 @@ export function UserMenuView({ onClose }: UserMenuViewProps) {
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
     >
-      {/* 1. Profile Header Card (The ONE and ONLY instance of Profile) */}
+      {/* 1. Profile Header Card */}
       <Pressable
         accessibilityRole="button"
         accessibilityLabel="Go to your profile"
         onPress={handleGoProfile}
         style={({ pressed }) => [
           styles.profileCard,
-          {
-            backgroundColor: colors.surfaceMuted,
-            borderColor: colors.line,
-            opacity: pressed ? 0.85 : 1,
-          },
+          pressed && styles.pressed,
         ]}
       >
         <Image source={userAvatar} style={styles.avatar} />
         <View style={styles.profileMeta}>
           <View style={styles.nameRow}>
-            <Text style={[styles.name, { color: colors.text }]}>
+            <Text style={styles.name}>
               Chisomo Banda
             </Text>
           </View>
-          <Text style={[styles.handle, { color: colors.muted }]}>
+          <Text style={styles.handle}>
             Area 10 & Old Town
           </Text>
         </View>
@@ -77,19 +74,10 @@ export function UserMenuView({ onClose }: UserMenuViewProps) {
           onPress={handleOpenMessages}
           style={({ pressed }) => [
             styles.menuRow,
-            {
-              backgroundColor: colors.surfaceMuted,
-              borderColor: colors.line,
-              opacity: pressed ? 0.75 : 1,
-            },
+            pressed && styles.pressed,
           ]}
         >
-          <View
-            style={[
-              styles.iconCircle,
-              { backgroundColor: colors.surface, borderColor: colors.line },
-            ]}
-          >
+          <View style={styles.iconCircle}>
             <Ionicons
               name="chatbubble-ellipses-outline"
               size={24}
@@ -98,42 +86,31 @@ export function UserMenuView({ onClose }: UserMenuViewProps) {
           </View>
           <View style={styles.rowText}>
             <View style={styles.labelBadgeRow}>
-              <Text style={[styles.rowTitle, { color: colors.text }]}>
+              <Text style={styles.rowTitle}>
                 Messages
               </Text>
-              <View
-                style={[styles.unreadBadge, { backgroundColor: colors.signal }]}
-              >
+              <View style={styles.unreadBadge}>
                 <Text style={styles.unreadBadgeText}>2 new</Text>
               </View>
             </View>
-            <Text style={[styles.rowSubtitle, { color: colors.muted }]}>
+            <Text style={styles.rowSubtitle}>
               Direct chats with bakeries, venues & guides
             </Text>
           </View>
           <Ionicons name="chevron-forward" size={16} color={colors.muted} />
         </Pressable>
 
-        {/* Notifications (Actual notification center) */}
+        {/* Notifications */}
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Open notifications"
           onPress={handleOpenNotifications}
           style={({ pressed }) => [
             styles.menuRow,
-            {
-              backgroundColor: colors.surfaceMuted,
-              borderColor: colors.line,
-              opacity: pressed ? 0.75 : 1,
-            },
+            pressed && styles.pressed,
           ]}
         >
-          <View
-            style={[
-              styles.iconCircle,
-              { backgroundColor: colors.surface, borderColor: colors.line },
-            ]}
-          >
+          <View style={styles.iconCircle}>
             <Ionicons
               name="notifications-outline"
               size={24}
@@ -142,16 +119,14 @@ export function UserMenuView({ onClose }: UserMenuViewProps) {
           </View>
           <View style={styles.rowText}>
             <View style={styles.labelBadgeRow}>
-              <Text style={[styles.rowTitle, { color: colors.text }]}>
+              <Text style={styles.rowTitle}>
                 Notifications
               </Text>
-              <View
-                style={[styles.unreadBadge, { backgroundColor: colors.signal }]}
-              >
+              <View style={styles.unreadBadge}>
                 <Text style={styles.unreadBadgeText}>3 new</Text>
               </View>
             </View>
-            <Text style={[styles.rowSubtitle, { color: colors.muted }]}>
+            <Text style={styles.rowSubtitle}>
               Live drops, venue alerts & mentions
             </Text>
           </View>
@@ -165,19 +140,10 @@ export function UserMenuView({ onClose }: UserMenuViewProps) {
           onPress={() => openExpandedWindow({ type: "profile_saved" })}
           style={({ pressed }) => [
             styles.menuRow,
-            {
-              backgroundColor: colors.surfaceMuted,
-              borderColor: colors.line,
-              opacity: pressed ? 0.75 : 1,
-            },
+            pressed && styles.pressed,
           ]}
         >
-          <View
-            style={[
-              styles.iconCircle,
-              { backgroundColor: colors.surface, borderColor: colors.line },
-            ]}
-          >
+          <View style={styles.iconCircle}>
             <Ionicons
               name="bookmark-outline"
               size={24}
@@ -185,10 +151,10 @@ export function UserMenuView({ onClose }: UserMenuViewProps) {
             />
           </View>
           <View style={styles.rowText}>
-            <Text style={[styles.rowTitle, { color: colors.text }]}>
+            <Text style={styles.rowTitle}>
               Saved Places
             </Text>
-            <Text style={[styles.rowSubtitle, { color: colors.muted }]}>
+            <Text style={styles.rowSubtitle}>
               Bookmarks, favorite cafes & venues
             </Text>
           </View>
@@ -202,19 +168,10 @@ export function UserMenuView({ onClose }: UserMenuViewProps) {
           onPress={() => openExpandedWindow({ type: "profile_settings" })}
           style={({ pressed }) => [
             styles.menuRow,
-            {
-              backgroundColor: colors.surfaceMuted,
-              borderColor: colors.line,
-              opacity: pressed ? 0.75 : 1,
-            },
+            pressed && styles.pressed,
           ]}
         >
-          <View
-            style={[
-              styles.iconCircle,
-              { backgroundColor: colors.surface, borderColor: colors.line },
-            ]}
-          >
+          <View style={styles.iconCircle}>
             <Ionicons
               name="settings-outline"
               size={24}
@@ -222,10 +179,10 @@ export function UserMenuView({ onClose }: UserMenuViewProps) {
             />
           </View>
           <View style={styles.rowText}>
-            <Text style={[styles.rowTitle, { color: colors.text }]}>
+            <Text style={styles.rowTitle}>
               Settings & Preferences
             </Text>
-            <Text style={[styles.rowSubtitle, { color: colors.muted }]}>
+            <Text style={styles.rowSubtitle}>
               Discovery radius, categories & dark theme
             </Text>
           </View>
@@ -253,6 +210,11 @@ const styles = StyleSheet.create({
     borderRadius: 32,
     borderWidth: 1,
     gap: 12,
+    backgroundColor: colors.surfaceMuted,
+    borderColor: colors.line,
+  },
+  pressed: {
+    opacity: 0.75,
   },
   avatar: {
     width: 48,
@@ -270,10 +232,12 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 16,
     fontWeight: "700",
+    color: colors.text,
   },
   handle: {
     fontSize: 12.5,
     marginTop: 2,
+    color: colors.muted,
   },
   menuGroup: {
     gap: 8,
@@ -286,14 +250,18 @@ const styles = StyleSheet.create({
     borderRadius: 32,
     borderWidth: 1,
     gap: 12,
+    backgroundColor: colors.surfaceMuted,
+    borderColor: colors.line,
   },
   iconCircle: {
     width: 48,
     height: 48,
-    borderRadius: 32,
+    borderRadius: 24,
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: colors.surface,
+    borderColor: colors.line,
   },
   rowText: {
     flex: 1,
@@ -306,11 +274,13 @@ const styles = StyleSheet.create({
   rowTitle: {
     fontSize: 14.5,
     fontWeight: "700",
+    color: colors.text,
   },
   unreadBadge: {
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 10,
+    backgroundColor: colors.signal,
   },
   unreadBadgeText: {
     color: "#FFFFFF",
@@ -320,5 +290,6 @@ const styles = StyleSheet.create({
   rowSubtitle: {
     fontSize: 12,
     marginTop: 2,
+    color: colors.muted,
   },
 });

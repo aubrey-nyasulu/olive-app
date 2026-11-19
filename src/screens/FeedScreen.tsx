@@ -6,10 +6,11 @@ import { PostCard } from "../components/PostCard";
 import { getHeaderHeight, Screen } from "../components/Screen";
 import { StoriesBar } from "../components/StoriesBar";
 import { useOlive } from "../context/OliveProvider";
+import { colors } from "../constants/colors";
 import { POSTS } from "../places";
 
 export default function FeedScreen() {
-  const { config, colors, feedMode } = useOlive();
+  const { config, feedMode } = useOlive();
   const insets = useSafeAreaInsets();
   const headerHeight = getHeaderHeight(insets.top);
 
@@ -67,14 +68,14 @@ export default function FeedScreen() {
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Text style={[styles.emptyTitle, { color: colors.text }]}>
+              <Text style={styles.emptyTitle}>
                 {feedMode === "people"
                   ? `No people drops within ${config.radiusKm} km`
                   : feedMode === "places"
                   ? `No places or events within ${config.radiusKm} km`
                   : `No drops within ${config.radiusKm} km`}
               </Text>
-              <Text style={[styles.emptySubtitle, { color: colors.muted }]}>
+              <Text style={styles.emptySubtitle}>
                 {feedMode === "people"
                   ? "Try switching to Businesses & Places or Show Everything via the top filter button."
                   : feedMode === "places"
@@ -103,11 +104,13 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: "700",
     textAlign: "center",
+    color: colors.text,
   },
   emptySubtitle: {
     fontSize: 13.5,
     lineHeight: 20,
     textAlign: "center",
     marginTop: 8,
+    color: colors.muted,
   },
 });

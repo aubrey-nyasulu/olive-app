@@ -16,7 +16,7 @@ import {
   saveSavedIds,
   saveSettings,
 } from "../storage";
-import { Colors, palette } from "../theme";
+import { colors } from "../constants/colors";
 import { estimateTravelMinutes, generateGuidanceSteps, REVIEWS } from "../places";
 import type { UserProfile } from "../profiles";
 
@@ -38,7 +38,6 @@ export type ExpandedWindow =
 
 type OliveContextType = {
   config: SettingsState;
-  colors: Colors;
   savedIds: string[];
   isSaved: (id: string) => boolean;
   toggleSave: (id: string) => Promise<void>;
@@ -211,8 +210,6 @@ export function OliveProvider({ children }: { children: ReactNode }) {
   const savedIdsRef = useRef(savedIds);
   savedIdsRef.current = savedIds;
 
-  const colors = palette(config.dark);
-
   useEffect(() => {
     Promise.all([loadSettings(), loadSavedIds()])
       .then(([savedConfig, loadedIds]) => {
@@ -288,7 +285,6 @@ export function OliveProvider({ children }: { children: ReactNode }) {
     <Context.Provider
       value={{
         config,
-        colors,
         savedIds,
         isSaved,
         toggleSave,
@@ -327,9 +323,9 @@ export function OliveProvider({ children }: { children: ReactNode }) {
       {ready ? (
         children
       ) : (
-        <View style={[styles.splash, { backgroundColor: colors.bg }]}>
-          <Text style={[styles.brandText, { color: colors.text }]}>
-            olive<Text style={{ color: colors.signal }}>.</Text>
+        <View style={styles.splash}>
+          <Text style={styles.brandText}>
+            olive<Text style={styles.brandDot}>.</Text>
           </Text>
           <ActivityIndicator color={colors.signal} size="small" />
         </View>
@@ -352,10 +348,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     gap: 16,
+    backgroundColor: colors.bg,
   },
   brandText: {
     fontSize: 32,
     fontWeight: "900",
     letterSpacing: -1,
+    color: colors.text,
+  },
+  brandDot: {
+    color: colors.signal,
   },
 });

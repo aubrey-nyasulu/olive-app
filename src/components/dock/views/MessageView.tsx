@@ -1,25 +1,23 @@
 import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import type { UserProfile } from "../../../profiles";
-import { useOlive } from "../../../context/OliveProvider";
+import { colors } from "../../../constants/colors";
 
 interface MessageViewProps {
   recipient: UserProfile;
 }
 
 export function MessageView({ recipient }: MessageViewProps) {
-  const { colors } = useOlive();
-
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.recipientRow}>
           <Image source={recipient.avatar} style={styles.avatar} />
           <View>
-            <Text style={[styles.title, { color: colors.text }]}>
+            <Text style={styles.title}>
               Message {recipient.name}
             </Text>
-            <Text style={[styles.subtitle, { color: colors.muted }]}>
+            <Text style={styles.subtitle}>
               {recipient.handle} · {recipient.neighborhood}
             </Text>
           </View>
@@ -31,17 +29,9 @@ export function MessageView({ recipient }: MessageViewProps) {
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
-        <View
-          style={[
-            styles.hintCard,
-            {
-              backgroundColor: colors.surfaceMuted,
-              borderColor: colors.line,
-            },
-          ]}
-        >
+        <View style={styles.hintCard}>
           <Ionicons name="sparkles" size={16} color={colors.signal} />
-          <Text style={[styles.hintText, { color: colors.textSecondary }]}>
+          <Text style={styles.hintText}>
             Ask about opening hours, table bookings, batch availability, or send a note to {recipient.name}.
           </Text>
         </View>
@@ -72,10 +62,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "800",
     letterSpacing: -0.2,
+    color: colors.text,
   },
   subtitle: {
     fontSize: 12,
     marginTop: 1,
+    color: colors.muted,
   },
   scroll: {
     flex: 1,
@@ -91,10 +83,13 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 14,
     borderWidth: 1,
+    backgroundColor: colors.surfaceMuted,
+    borderColor: colors.line,
   },
   hintText: {
     fontSize: 12.5,
     lineHeight: 18,
     flex: 1,
+    color: colors.textSecondary,
   },
 });

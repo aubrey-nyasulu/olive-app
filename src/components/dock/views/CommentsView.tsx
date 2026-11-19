@@ -1,7 +1,7 @@
 import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import type { Post, Review } from "../../../models";
-import { useOlive } from "../../../context/OliveProvider";
+import { colors } from "../../../constants/colors";
 
 const userAvatar = require("../../../../assets/images/profile-avatar.jpg");
 
@@ -11,21 +11,19 @@ interface CommentsViewProps {
 }
 
 export function CommentsView({ post, reviews }: CommentsViewProps) {
-  const { colors } = useOlive();
-
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <View style={{ flex: 1 }}>
-          <Text style={[styles.title, { color: colors.text }]}>
+        <View style={styles.headerMeta}>
+          <Text style={styles.title}>
             Reviews & Comments
           </Text>
-          <Text style={[styles.subtitle, { color: colors.muted }]} numberOfLines={1}>
+          <Text style={styles.subtitle} numberOfLines={1}>
             {post.author} · {post.place}
           </Text>
         </View>
-        <View style={[styles.badge, { backgroundColor: colors.surfaceMuted }]}>
-          <Text style={[styles.badgeText, { color: colors.signal }]}>
+        <View style={styles.badge}>
+          <Text style={styles.badgeText}>
             {reviews.length} {reviews.length === 1 ? "note" : "notes"}
           </Text>
         </View>
@@ -44,44 +42,28 @@ export function CommentsView({ post, reviews }: CommentsViewProps) {
               size={36}
               color={colors.muted}
             />
-            <Text style={[styles.emptyTitle, { color: colors.text }]}>
+            <Text style={styles.emptyTitle}>
               No reviews yet
             </Text>
-            <Text style={[styles.emptySubtitle, { color: colors.muted }]}>
+            <Text style={styles.emptySubtitle}>
               Be the first to visit and share your experience below.
             </Text>
           </View>
         ) : (
           reviews.map((rev, idx) => (
-            <View
-              key={`${rev.by}-${idx}`}
-              style={[
-                styles.reviewCard,
-                {
-                  backgroundColor: colors.surfaceMuted,
-                  borderColor: colors.line,
-                },
-              ]}
-            >
+            <View key={`${rev.by}-${idx}`} style={styles.reviewCard}>
               <View style={styles.reviewTop}>
-                <View
-                  style={[
-                    styles.avatarCircle,
-                    { backgroundColor: colors.surface },
-                  ]}
-                >
+                <View style={styles.avatarCircle}>
                   {rev.by === "Chisomo Banda" ? (
                     <Image source={userAvatar} style={styles.avatarPhoto} />
                   ) : (
-                    <Text
-                      style={[styles.avatarLetter, { color: colors.text }]}
-                    >
+                    <Text style={styles.avatarLetter}>
                       {rev.by[0]}
                     </Text>
                   )}
                 </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.authorName, { color: colors.text }]}>
+                <View style={styles.reviewMeta}>
+                  <Text style={styles.authorName}>
                     {rev.by}
                   </Text>
                   <View style={styles.starsRow}>
@@ -96,9 +78,7 @@ export function CommentsView({ post, reviews }: CommentsViewProps) {
                   </View>
                 </View>
               </View>
-              <Text
-                style={[styles.reviewText, { color: colors.textSecondary }]}
-              >
+              <Text style={styles.reviewText}>
                 {rev.text}
               </Text>
             </View>
@@ -121,23 +101,30 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
     gap: 8,
   },
+  headerMeta: {
+    flex: 1,
+  },
   title: {
     fontSize: 16,
     fontWeight: "800",
     letterSpacing: -0.2,
+    color: colors.text,
   },
   subtitle: {
     fontSize: 12,
     marginTop: 1,
+    color: colors.muted,
   },
   badge: {
     paddingHorizontal: 10,
     paddingVertical: 3,
     borderRadius: 12,
+    backgroundColor: colors.surfaceMuted,
   },
   badgeText: {
     fontSize: 12,
     fontWeight: "700",
+    color: colors.signal,
   },
   scroll: {
     flex: 1,
@@ -156,18 +143,22 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 15,
     fontWeight: "700",
+    color: colors.text,
   },
   emptySubtitle: {
     fontSize: 12.5,
     textAlign: "center",
     paddingHorizontal: 20,
     lineHeight: 18,
+    color: colors.muted,
   },
   reviewCard: {
     borderRadius: 16,
     borderWidth: 1,
     padding: 12,
     gap: 6,
+    backgroundColor: colors.surfaceMuted,
+    borderColor: colors.line,
   },
   reviewTop: {
     flexDirection: "row",
@@ -181,6 +172,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
+    backgroundColor: colors.surface,
   },
   avatarPhoto: {
     width: "100%",
@@ -189,10 +181,15 @@ const styles = StyleSheet.create({
   avatarLetter: {
     fontSize: 13,
     fontWeight: "700",
+    color: colors.text,
+  },
+  reviewMeta: {
+    flex: 1,
   },
   authorName: {
     fontSize: 13.5,
     fontWeight: "700",
+    color: colors.text,
   },
   starsRow: {
     flexDirection: "row",
@@ -202,5 +199,6 @@ const styles = StyleSheet.create({
   reviewText: {
     fontSize: 13,
     lineHeight: 18,
+    color: colors.textSecondary,
   },
 });

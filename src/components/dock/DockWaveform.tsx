@@ -7,7 +7,7 @@ import {
   StyleSheet,
   View,
 } from "react-native";
-import { useOlive } from "../../context/OliveProvider";
+import { colors } from "../../constants/colors";
 
 const LFO_DURATIONS = [420, 560, 360, 720, 480, 640, 390, 800];
 const NUM_STRANDS = 25;
@@ -32,7 +32,6 @@ export function DockWaveform({
   isListening,
   onToggleListening,
 }: DockWaveformProps) {
-  const { colors } = useOlive();
   const [trackWidth, setTrackWidth] = useState(140);
 
   const sweepAnim = useRef(new Animated.Value(0)).current;
@@ -186,7 +185,6 @@ export function DockWaveform({
             styles.sweepBar,
             {
               width: barWidth,
-              backgroundColor: colors.signal,
               transform: [{ translateX: sweepTranslateX }],
               opacity: sweepOpacityAnim,
             },
@@ -217,8 +215,6 @@ export function DockWaveform({
                 style={[
                   styles.strand,
                   {
-                    backgroundColor: colors.signal,
-                    shadowColor: colors.signal,
                     transform: [{ scaleY: scaleAnim }],
                   },
                 ]}
@@ -254,6 +250,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     height: "100%",
     borderRadius: 2,
+    backgroundColor: colors.signal,
   },
   voiceOverlay: {
     position: "absolute",
@@ -281,6 +278,8 @@ const styles = StyleSheet.create({
     height: 20,
     marginHorizontal: 1.5,
     borderRadius: 1.5,
+    backgroundColor: colors.signal,
+    shadowColor: colors.signal,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.65,
     shadowRadius: 3,

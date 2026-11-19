@@ -8,10 +8,11 @@ import { ProfileHeader } from "../components/profile/ProfileHeader";
 import { ProfileAboutTab } from "../components/profile/ProfileAboutTab";
 import { ProfilePostsTab } from "../components/profile/ProfilePostsTab";
 import { useOlive } from "../context/OliveProvider";
+import { colors } from "../constants/colors";
 import { getProfile, type UserProfile } from "../profiles";
 
 export default function ProfileScreen() {
-  const { colors, profileTab, setProfileTab } = useOlive();
+  const { profileTab, setProfileTab } = useOlive();
   const { author, id } = useLocalSearchParams<{
     author?: string;
     id?: string;
@@ -49,6 +50,9 @@ export default function ProfileScreen() {
     }));
   };
 
+  const isAbout = profileTab === "about";
+  const isPosts = profileTab === "posts";
+
   return (
     <AppShell>
       <Screen>
@@ -68,46 +72,24 @@ export default function ProfileScreen() {
           {/* Profile Section Content */}
           <View style={styles.profileSection}>
             {/* Segmented Tab Switcher */}
-            <View
-              style={[
-                styles.segmentedBar,
-                {
-                  backgroundColor: colors.surfaceMuted,
-                  borderColor: colors.line,
-                },
-              ]}
-            >
+            <View style={styles.segmentedBar}>
               <Pressable
                 accessibilityRole="button"
                 onPress={() => setProfileTab("about")}
                 style={[
                   styles.segmentBtn,
-                  profileTab === "about" && [
-                    styles.segmentBtnActive,
-                    {
-                      backgroundColor: colors.surface,
-                      shadowColor: colors.text,
-                    },
-                  ],
+                  isAbout && styles.segmentBtnActive,
                 ]}
               >
                 <Ionicons
-                  name={
-                    profileTab === "about"
-                      ? "information-circle"
-                      : "information-circle-outline"
-                  }
+                  name={isAbout ? "information-circle" : "information-circle-outline"}
                   size={16}
-                  color={profileTab === "about" ? colors.signal : colors.muted}
+                  color={isAbout ? colors.signal : colors.muted}
                 />
                 <Text
                   style={[
                     styles.segmentText,
-                    {
-                      color:
-                        profileTab === "about" ? colors.text : colors.muted,
-                      fontWeight: profileTab === "about" ? "700" : "500",
-                    },
+                    isAbout ? styles.segmentTextActive : styles.segmentTextInactive,
                   ]}
                 >
                   About
@@ -119,30 +101,18 @@ export default function ProfileScreen() {
                 onPress={() => setProfileTab("posts")}
                 style={[
                   styles.segmentBtn,
-                  profileTab === "posts" && [
-                    styles.segmentBtnActive,
-                    {
-                      backgroundColor: colors.surface,
-                      shadowColor: colors.text,
-                    },
-                  ],
+                  isPosts && styles.segmentBtnActive,
                 ]}
               >
                 <Ionicons
-                  name={
-                    profileTab === "posts" ? "calendar" : "calendar-outline"
-                  }
+                  name={isPosts ? "calendar" : "calendar-outline"}
                   size={16}
-                  color={profileTab === "posts" ? colors.signal : colors.muted}
+                  color={isPosts ? colors.signal : colors.muted}
                 />
                 <Text
                   style={[
                     styles.segmentText,
-                    {
-                      color:
-                        profileTab === "posts" ? colors.text : colors.muted,
-                      fontWeight: profileTab === "posts" ? "700" : "500",
-                    },
+                    isPosts ? styles.segmentTextActive : styles.segmentTextInactive,
                   ]}
                 >
                   Posts ({ownerPosts.length})
@@ -151,7 +121,7 @@ export default function ProfileScreen() {
             </View>
 
             {/* Tab Views */}
-            {profileTab === "posts" ? (
+            {isPosts ? (
               <ProfilePostsTab posts={ownerPosts} userName={profile.name} />
             ) : (
               <ProfileAboutTab
@@ -185,6 +155,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 4,
     marginBottom: 18,
+    backgroundColor: colors.surfaceMuted,
+    borderColor: colors.line,
   },
   segmentBtn: {
     flex: 1,
@@ -196,6 +168,8 @@ const styles = StyleSheet.create({
     borderRadius: 9999,
   },
   segmentBtnActive: {
+    backgroundColor: colors.surface,
+    shadowColor: colors.text,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -203,5 +177,13 @@ const styles = StyleSheet.create({
   },
   segmentText: {
     fontSize: 13,
+  },
+  segmentTextActive: {
+    color: colors.text,
+    fontWeight: "700",
+  },
+  segmentTextInactive: {
+    color: colors.muted,
+    fontWeight: "500",
   },
 });

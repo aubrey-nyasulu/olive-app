@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import type { Post } from "../models";
-import { useOlive } from "../context/OliveProvider";
+import { colors } from "../constants/colors";
 
 type PlaceMapProps = {
   post: Post;
@@ -22,7 +22,6 @@ export function PlaceMap({
   height = 240,
   interactive = true,
 }: PlaceMapProps) {
-  const { colors } = useOlive();
   const [zoomLevel, setZoomLevel] = useState(1);
   const pulseAnim = useRef(new Animated.Value(0)).current;
 
@@ -60,16 +59,7 @@ export function PlaceMap({
   const handleZoomOut = () => setZoomLevel((z) => Math.max(z - 0.3, 0.7));
 
   return (
-    <View
-      style={[
-        styles.mapCard,
-        {
-          height,
-          backgroundColor: colors.mapGround,
-          borderColor: colors.line,
-        },
-      ]}
-    >
+    <View style={[styles.mapCard, { height }]}>
       {/* Aesthetic Topographic & Street Grid Canvas */}
       <View
         style={[
@@ -80,69 +70,31 @@ export function PlaceMap({
         ]}
       >
         {/* Subtle Water feature */}
-        <View
-          style={[
-            styles.waterFeature,
-            { backgroundColor: colors.mapWater, borderColor: colors.line },
-          ]}
-        />
+        <View style={styles.waterFeature} />
 
         {/* Minimalist Grid Street Network */}
-        <View style={[styles.mainRoad, { backgroundColor: colors.mapRoad }]} />
-        <View
-          style={[
-            styles.crossRoad,
-            { backgroundColor: colors.mapRoad },
-          ]}
-        />
-        <View
-          style={[
-            styles.diagonalRoad,
-            { backgroundColor: colors.mapRoad },
-          ]}
-        />
-        <View
-          style={[
-            styles.secondaryRoad1,
-            { backgroundColor: colors.mapRoad },
-          ]}
-        />
-        <View
-          style={[
-            styles.secondaryRoad2,
-            { backgroundColor: colors.mapRoad },
-          ]}
-        />
+        <View style={styles.mainRoad} />
+        <View style={styles.crossRoad} />
+        <View style={styles.diagonalRoad} />
+        <View style={styles.secondaryRoad1} />
+        <View style={styles.secondaryRoad2} />
 
         {/* Street Name Labels */}
-        <Text
-          style={[
-            styles.streetLabel,
-            styles.streetLabel1,
-            { color: colors.muted },
-          ]}
-        >
+        <Text style={[styles.streetLabel, styles.streetLabel1]}>
           Presidential Way
         </Text>
-        <Text
-          style={[
-            styles.streetLabel,
-            styles.streetLabel2,
-            { color: colors.muted },
-          ]}
-        >
+        <Text style={[styles.streetLabel, styles.streetLabel2]}>
           {post.place}
         </Text>
 
         {/* Route trail leading to venue */}
-        <View style={[styles.routeTrail, { borderColor: colors.signal }]} />
+        <View style={styles.routeTrail} />
 
         {/* Radar Pulse around venue */}
         <Animated.View
           style={[
             styles.pulseRing,
             {
-              borderColor: colors.signal,
               transform: [{ scale: scalePulse }],
               opacity: opacityPulse,
             },
@@ -150,25 +102,20 @@ export function PlaceMap({
         />
 
         {/* Destination Marker */}
-        <View style={[styles.beaconPin, { backgroundColor: colors.signal }]}>
+        <View style={styles.beaconPin}>
           <View style={styles.beaconInnerDot} />
         </View>
 
         {/* Current user location dot */}
-        <View style={[styles.userDot, { backgroundColor: colors.text }]}>
-          <View style={[styles.userDotInner, { backgroundColor: colors.bg }]} />
+        <View style={styles.userDot}>
+          <View style={styles.userDotInner} />
         </View>
       </View>
 
       {/* Top Floating Badge: Category & Distance */}
-      <View
-        style={[
-          styles.overlayBadge,
-          { backgroundColor: colors.badgeBg, borderColor: colors.line },
-        ]}
-      >
+      <View style={styles.overlayBadge}>
         <Ionicons name="location" size={13} color={colors.signal} />
-        <Text style={[styles.badgeText, { color: colors.text }]}>
+        <Text style={styles.badgeText}>
           {post.distanceKm} km · {post.category}
         </Text>
       </View>
@@ -181,11 +128,7 @@ export function PlaceMap({
             onPress={handleZoomIn}
             style={({ pressed }) => [
               styles.controlBtn,
-              {
-                backgroundColor: colors.surface,
-                borderColor: colors.line,
-                opacity: pressed ? 0.7 : 1,
-              },
+              pressed && styles.controlBtnPressed,
             ]}
           >
             <Ionicons name="add" size={18} color={colors.text} />
@@ -195,11 +138,7 @@ export function PlaceMap({
             onPress={handleZoomOut}
             style={({ pressed }) => [
               styles.controlBtn,
-              {
-                backgroundColor: colors.surface,
-                borderColor: colors.line,
-                opacity: pressed ? 0.7 : 1,
-              },
+              pressed && styles.controlBtnPressed,
             ]}
           >
             <Ionicons name="remove" size={18} color={colors.text} />
@@ -208,13 +147,8 @@ export function PlaceMap({
       )}
 
       {/* Bottom Coordinates readout */}
-      <View
-        style={[
-          styles.bottomInfo,
-          { backgroundColor: colors.badgeBg, borderColor: colors.line },
-        ]}
-      >
-        <Text style={[styles.coordsText, { color: colors.muted }]}>
+      <View style={styles.bottomInfo}>
+        <Text style={styles.coordsText}>
           {post.lat.toFixed(4)}° N, {Math.abs(post.lng).toFixed(4)}° W
         </Text>
       </View>
@@ -231,6 +165,8 @@ const styles = StyleSheet.create({
     position: "relative",
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: colors.mapGround,
+    borderColor: colors.line,
   },
   canvas: {
     ...StyleSheet.absoluteFill,
@@ -246,6 +182,8 @@ const styles = StyleSheet.create({
     borderRadius: 70,
     borderWidth: 1,
     opacity: 0.6,
+    backgroundColor: colors.mapWater,
+    borderColor: colors.line,
   },
   mainRoad: {
     position: "absolute",
@@ -253,6 +191,7 @@ const styles = StyleSheet.create({
     height: 12,
     top: "48%",
     transform: [{ rotate: "-15deg" }],
+    backgroundColor: colors.mapRoad,
   },
   crossRoad: {
     position: "absolute",
@@ -260,6 +199,7 @@ const styles = StyleSheet.create({
     height: "140%",
     left: "52%",
     transform: [{ rotate: "18deg" }],
+    backgroundColor: colors.mapRoad,
   },
   diagonalRoad: {
     position: "absolute",
@@ -267,6 +207,7 @@ const styles = StyleSheet.create({
     height: 8,
     top: "28%",
     transform: [{ rotate: "35deg" }],
+    backgroundColor: colors.mapRoad,
   },
   secondaryRoad1: {
     position: "absolute",
@@ -274,12 +215,14 @@ const styles = StyleSheet.create({
     height: 6,
     bottom: "22%",
     transform: [{ rotate: "-8deg" }],
+    backgroundColor: colors.mapRoad,
   },
   secondaryRoad2: {
     position: "absolute",
     width: 6,
     height: "100%",
     left: "24%",
+    backgroundColor: colors.mapRoad,
   },
   streetLabel: {
     position: "absolute",
@@ -287,6 +230,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     letterSpacing: 0.5,
     textTransform: "uppercase",
+    color: colors.muted,
   },
   streetLabel1: {
     top: "38%",
@@ -307,6 +251,7 @@ const styles = StyleSheet.create({
     top: "36%",
     left: "40%",
     opacity: 0.6,
+    borderColor: colors.signal,
   },
   pulseRing: {
     position: "absolute",
@@ -318,6 +263,7 @@ const styles = StyleSheet.create({
     left: "50%",
     marginLeft: -22,
     marginTop: -22,
+    borderColor: colors.signal,
   },
   beaconPin: {
     position: "absolute",
@@ -335,6 +281,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.45,
     shadowRadius: 8,
     elevation: 6,
+    backgroundColor: colors.signal,
   },
   beaconInnerDot: {
     width: 8,
@@ -351,11 +298,13 @@ const styles = StyleSheet.create({
     left: "34%",
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: colors.text,
   },
   userDotInner: {
     width: 6,
     height: 6,
     borderRadius: 3,
+    backgroundColor: colors.bg,
   },
   overlayBadge: {
     position: "absolute",
@@ -368,10 +317,13 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     borderRadius: 9999,
     borderWidth: 1,
+    backgroundColor: colors.badgeBg,
+    borderColor: colors.line,
   },
   badgeText: {
     fontSize: 12,
     fontWeight: "600",
+    color: colors.text,
   },
   controls: {
     position: "absolute",
@@ -386,6 +338,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: colors.surface,
+    borderColor: colors.line,
+  },
+  controlBtnPressed: {
+    opacity: 0.7,
   },
   bottomInfo: {
     position: "absolute",
@@ -395,9 +352,12 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 6,
     borderWidth: 1,
+    backgroundColor: colors.badgeBg,
+    borderColor: colors.line,
   },
   coordsText: {
     fontSize: 10,
     fontWeight: "500",
+    color: colors.muted,
   },
 });

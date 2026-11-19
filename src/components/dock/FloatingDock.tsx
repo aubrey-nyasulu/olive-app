@@ -20,6 +20,7 @@ import {
   type ExpandedWindow,
   type FeedMode,
 } from "../../context/OliveProvider";
+import { colors } from "../../constants/colors";
 import { POSTS } from "../../places";
 import type { UserProfile } from "../../profiles";
 import { DockActionBar } from "./DockActionBar";
@@ -69,7 +70,6 @@ export function FloatingDock({
   showToast,
 }: FloatingDockProps) {
   const {
-    colors,
     savedIds,
     toggleSave,
     feedMode,
@@ -435,15 +435,10 @@ export function FloatingDock({
                   { opacity: pressed ? 0.8 : 1 },
                 ]}
               >
-                <Text style={[styles.modeLabel, { color: colors.text }]}>
+                <Text style={styles.modeLabel}>
                   {label}
                 </Text>
-                <View
-                  style={[
-                    styles.modeCircle,
-                    { backgroundColor: colors.text, shadowColor: colors.text },
-                  ]}
-                >
+                <View style={styles.modeCircle}>
                   <Ionicons name={icon} size={18} color={colors.bg} />
                 </View>
               </Pressable>
@@ -459,8 +454,6 @@ export function FloatingDock({
             height: dockHeight,
             backgroundColor: dockBg,
             borderColor: dockBorderColor,
-            borderWidth: 1.5,
-            shadowColor: colors.overlay,
           },
         ]}
       >
@@ -476,9 +469,7 @@ export function FloatingDock({
               accessibilityRole="adjustable"
               accessibilityLabel="Drag down to close menu"
             >
-              <View
-                style={[styles.handleBar, { backgroundColor: colors.line }]}
-              />
+              <View style={styles.handleBar} />
             </View>
 
             {/* Content view based on active window */}
@@ -638,6 +629,8 @@ const styles = StyleSheet.create({
     width: "100%",
     maxWidth: 420,
     borderRadius: 32,
+    borderWidth: 1.5,
+    shadowColor: colors.overlay,
     overflow: "hidden",
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.32,
@@ -661,6 +654,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 5,
     borderRadius: 2.5,
+    backgroundColor: colors.line,
   },
   modesPopup: {
     marginBottom: 16,
@@ -678,6 +672,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "700",
     letterSpacing: 0.2,
+    color: colors.text,
   },
   modeCircle: {
     width: 44,
@@ -685,6 +680,8 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: colors.text,
+    shadowColor: colors.text,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.18,
     shadowRadius: 8,

@@ -1,7 +1,7 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import type { UserProfile } from "../../../profiles";
-import { useOlive } from "../../../context/OliveProvider";
+import { colors } from "../../../constants/colors";
 
 const REPORT_REASONS = [
   "Incorrect venue location or business hours",
@@ -16,15 +16,13 @@ interface ReportViewProps {
 }
 
 export function ReportView({ targetUser, onSubmitReport }: ReportViewProps) {
-  const { colors } = useOlive();
-
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={[styles.title, { color: colors.text }]}>
+        <Text style={styles.title}>
           Report Account
         </Text>
-        <Text style={[styles.subtitle, { color: colors.muted }]}>
+        <Text style={styles.subtitle}>
           {targetUser.handle}
         </Text>
       </View>
@@ -39,14 +37,10 @@ export function ReportView({ targetUser, onSubmitReport }: ReportViewProps) {
             onPress={() => onSubmitReport(reason)}
             style={({ pressed }) => [
               styles.reasonRow,
-              {
-                backgroundColor: colors.surfaceMuted,
-                borderColor: colors.line,
-                opacity: pressed ? 0.75 : 1,
-              },
+              pressed && styles.pressed,
             ]}
           >
-            <Text style={[styles.reasonText, { color: colors.text }]}>
+            <Text style={styles.reasonText}>
               {reason}
             </Text>
             <Ionicons name="chevron-forward" size={15} color={colors.muted} />
@@ -69,10 +63,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "800",
     letterSpacing: -0.2,
+    color: colors.text,
   },
   subtitle: {
     fontSize: 12,
     marginTop: 1,
+    color: colors.muted,
   },
   scroll: {
     flex: 1,
@@ -90,10 +86,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     borderRadius: 14,
     borderWidth: 1,
+    backgroundColor: colors.surfaceMuted,
+    borderColor: colors.line,
+  },
+  pressed: {
+    opacity: 0.75,
   },
   reasonText: {
     fontSize: 13,
     fontWeight: "500",
     flex: 1,
+    color: colors.text,
   },
 });

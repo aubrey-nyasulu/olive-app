@@ -1,6 +1,7 @@
 import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useOlive } from "../../context/OliveProvider";
+import { colors } from "../../constants/colors";
 import type { UserProfile } from "../../profiles";
 
 interface ProfileAboutTabProps {
@@ -14,7 +15,7 @@ export function ProfileAboutTab({
   isMe,
   isFollowing,
 }: ProfileAboutTabProps) {
-  const { colors, openExpandedWindow, startGuidance } = useOlive();
+  const { openExpandedWindow, startGuidance } = useOlive();
 
   const followersCount =
     !isMe &&
@@ -28,34 +29,19 @@ export function ProfileAboutTab({
   return (
     <View style={styles.container}>
       {/* 1. Overview & Bio Card */}
-      <View
-        style={[
-          styles.infoCard,
-          { backgroundColor: colors.surface, borderColor: colors.line },
-        ]}
-      >
+      <View style={styles.infoCard}>
         <View style={styles.cardHeaderRow}>
           <Ionicons name="person" size={18} color={colors.signal} />
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Overview & Bio
-          </Text>
+          <Text style={styles.sectionTitle}>Overview & Bio</Text>
           <View style={styles.spacer} />
-          <View
-            style={[
-              styles.categoryTag,
-              {
-                backgroundColor: colors.surfaceMuted,
-                borderColor: colors.line,
-              },
-            ]}
-          >
+          <View style={styles.categoryTag}>
             <Ionicons
               name="sparkles"
               size={11}
               color={colors.signal}
               style={styles.categorySparkle}
             />
-            <Text style={[styles.categoryTagText, { color: colors.signal }]}>
+            <Text style={styles.categoryTagText}>
               {profile.kind === "Business"
                 ? profile.category
                 : "Local Guide"}
@@ -63,16 +49,12 @@ export function ProfileAboutTab({
           </View>
         </View>
 
-        <Text style={[styles.cardHeadline, { color: colors.text }]}>
-          {profile.info.headline}
-        </Text>
+        <Text style={styles.cardHeadline}>{profile.info.headline}</Text>
 
-        <Text style={[styles.bioText, { color: colors.textSecondary }]}>
-          {profile.bio}
-        </Text>
+        <Text style={styles.bioText}>{profile.bio}</Text>
 
         {/* Stats Shelf */}
-        <View style={[styles.statsShelf, { borderTopColor: colors.line }]}>
+        <View style={styles.statsShelf}>
           <Pressable
             accessibilityRole={isMe ? "button" : undefined}
             accessibilityLabel={isMe ? "View saved places" : undefined}
@@ -83,106 +65,64 @@ export function ProfileAboutTab({
             }
             style={styles.statItem}
           >
-            <Text style={[styles.statValue, { color: colors.text }]}>
-              {profile.stats.statA.value}
-            </Text>
-            <Text style={[styles.statLabel, { color: colors.muted }]}>
-              {profile.stats.statA.label}
-            </Text>
+            <Text style={styles.statValue}>{profile.stats.statA.value}</Text>
+            <Text style={styles.statLabel}>{profile.stats.statA.label}</Text>
           </Pressable>
 
-          <View style={[styles.statDivider, { backgroundColor: colors.line }]} />
+          <View style={styles.statDivider} />
 
           <View style={styles.statItem}>
-            <Text style={[styles.statValue, { color: colors.text }]}>
-              {profile.stats.statB.value}
-            </Text>
-            <Text style={[styles.statLabel, { color: colors.muted }]}>
-              {profile.stats.statB.label}
-            </Text>
+            <Text style={styles.statValue}>{profile.stats.statB.value}</Text>
+            <Text style={styles.statLabel}>{profile.stats.statB.label}</Text>
           </View>
 
-          <View style={[styles.statDivider, { backgroundColor: colors.line }]} />
+          <View style={styles.statDivider} />
 
           <View style={styles.statItem}>
-            <Text style={[styles.statValue, { color: colors.text }]}>
-              {followersCount}
-            </Text>
-            <Text style={[styles.statLabel, { color: colors.muted }]}>
-              {profile.stats.statC.label}
-            </Text>
+            <Text style={styles.statValue}>{followersCount}</Text>
+            <Text style={styles.statLabel}>{profile.stats.statC.label}</Text>
           </View>
         </View>
       </View>
 
       {/* 2. Calendar & Schedule Card */}
-      <View
-        style={[
-          styles.infoCard,
-          { backgroundColor: colors.surface, borderColor: colors.line },
-        ]}
-      >
+      <View style={styles.infoCard}>
         <View style={styles.cardHeaderRow}>
           <Ionicons name="calendar" size={18} color={colors.signal} />
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Calendar & Schedule
-          </Text>
+          <Text style={styles.sectionTitle}>Calendar & Schedule</Text>
         </View>
 
         <View style={styles.scheduleItem}>
-          <Text style={[styles.scheduleLabel, { color: colors.muted }]}>
-            Hours / Timing
-          </Text>
-          <Text style={[styles.scheduleValue, { color: colors.text }]}>
+          <Text style={styles.scheduleLabel}>Hours / Timing</Text>
+          <Text style={styles.scheduleValue}>
             {profile.info.hoursOrSchedule}
           </Text>
         </View>
 
         <View style={styles.scheduleItem}>
-          <Text style={[styles.scheduleLabel, { color: colors.muted }]}>
-            Drop Cadence
-          </Text>
-          <Text
-            style={[styles.scheduleValue, { color: colors.textSecondary }]}
-          >
+          <Text style={styles.scheduleLabel}>Drop Cadence</Text>
+          <Text style={[styles.scheduleValue, styles.scheduleValueSecondary]}>
             {profile.info.calendarHabits}
           </Text>
         </View>
       </View>
 
       {/* 3. Location & Navigation Card */}
-      <View
-        style={[
-          styles.infoCard,
-          { backgroundColor: colors.surface, borderColor: colors.line },
-        ]}
-      >
+      <View style={styles.infoCard}>
         <View style={styles.cardHeaderRow}>
           <Ionicons name="location" size={18} color={colors.signal} />
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Location
-          </Text>
+          <Text style={styles.sectionTitle}>Location</Text>
         </View>
-        <Text style={[styles.locationAddress, { color: colors.text }]}>
-          {profile.info.location}
-        </Text>
+        <Text style={styles.locationAddress}>{profile.info.location}</Text>
 
         {profile.posts[0] && (
           <Pressable
             accessibilityRole="button"
             onPress={() => startGuidance(profile.posts[0])}
-            style={[
-              styles.directionsActionBtn,
-              { backgroundColor: colors.text },
-            ]}
+            style={styles.directionsActionBtn}
           >
             <Ionicons name="navigate" size={15} color={colors.bg} />
-            <Text
-              style={[
-                styles.directionsActionBtnText,
-                { color: colors.bg },
-              ]}
-            >
+            <Text style={styles.directionsActionBtnText}>
               Start In-App Guidance ({profile.posts[0].distanceKm} km)
             </Text>
           </Pressable>
@@ -190,59 +130,26 @@ export function ProfileAboutTab({
       </View>
 
       {/* 4. Highlights & Amenities Card */}
-      <View
-        style={[
-          styles.infoCard,
-          { backgroundColor: colors.surface, borderColor: colors.line },
-        ]}
-      >
+      <View style={styles.infoCard}>
         <View style={styles.cardHeaderRow}>
           <Ionicons name="sparkles" size={18} color={colors.signal} />
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Highlights & Amenities
-          </Text>
+          <Text style={styles.sectionTitle}>Highlights & Amenities</Text>
         </View>
         <View style={styles.badgesWrap}>
           {profile.info.badges.map((badge) => (
-            <View
-              key={badge}
-              style={[
-                styles.badgeChip,
-                {
-                  backgroundColor: colors.surfaceMuted,
-                  borderColor: colors.line,
-                },
-              ]}
-            >
-              <Ionicons
-                name="sparkles"
-                size={12}
-                color={colors.signal}
-              />
-              <Text style={[styles.badgeChipText, { color: colors.text }]}>
-                {badge}
-              </Text>
+            <View key={badge} style={styles.badgeChip}>
+              <Ionicons name="sparkles" size={12} color={colors.signal} />
+              <Text style={styles.badgeChipText}>{badge}</Text>
             </View>
           ))}
         </View>
       </View>
 
       {/* 5. Contact & Community Card */}
-      <View
-        style={[
-          styles.infoCard,
-          { backgroundColor: colors.surface, borderColor: colors.line },
-        ]}
-      >
+      <View style={styles.infoCard}>
         <View style={styles.cardHeaderRow}>
-          <Ionicons
-            name="globe-outline"
-            size={18}
-            color={colors.signal}
-          />
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Contact & Community
-          </Text>
+          <Ionicons name="globe-outline" size={18} color={colors.signal} />
+          <Text style={styles.sectionTitle}>Contact & Community</Text>
         </View>
 
         {profile.info.phone && (
@@ -250,40 +157,22 @@ export function ProfileAboutTab({
             onPress={() => Linking.openURL(`tel:${profile.info.phone}`)}
             style={styles.contactRow}
           >
-            <Ionicons
-              name="call-outline"
-              size={16}
-              color={colors.signal}
-            />
-            <Text style={[styles.contactRowText, { color: colors.text }]}>
-              {profile.info.phone}
-            </Text>
+            <Ionicons name="call-outline" size={16} color={colors.signal} />
+            <Text style={styles.contactRowText}>{profile.info.phone}</Text>
           </Pressable>
         )}
 
         {profile.info.website && (
           <View style={styles.contactRow}>
-            <Ionicons
-              name="globe-outline"
-              size={16}
-              color={colors.signal}
-            />
-            <Text style={[styles.contactRowText, { color: colors.text }]}>
-              {profile.info.website}
-            </Text>
+            <Ionicons name="globe-outline" size={16} color={colors.signal} />
+            <Text style={styles.contactRowText}>{profile.info.website}</Text>
           </View>
         )}
 
         {profile.info.social && (
           <View style={styles.contactRow}>
-            <Ionicons
-              name="logo-instagram"
-              size={16}
-              color={colors.signal}
-            />
-            <Text style={[styles.contactRowText, { color: colors.text }]}>
-              {profile.info.social}
-            </Text>
+            <Ionicons name="logo-instagram" size={16} color={colors.signal} />
+            <Text style={styles.contactRowText}>{profile.info.social}</Text>
           </View>
         )}
 
@@ -294,7 +183,7 @@ export function ProfileAboutTab({
               size={16}
               color={colors.muted}
             />
-            <Text style={[styles.contactRowText, { color: colors.muted }]}>
+            <Text style={[styles.contactRowText, styles.contactRowTextMuted]}>
               {profile.info.memberSince}
             </Text>
           </View>
@@ -305,32 +194,14 @@ export function ProfileAboutTab({
       {isMe && (
         <Pressable
           accessibilityRole="button"
-          onPress={() =>
-            openExpandedWindow({ type: "profile_settings" })
-          }
-          style={[
-            styles.settingsShortcutBtn,
-            {
-              backgroundColor: colors.surfaceMuted,
-              borderColor: colors.line,
-            },
-          ]}
+          onPress={() => openExpandedWindow({ type: "profile_settings" })}
+          style={styles.settingsShortcutBtn}
         >
-          <Ionicons
-            name="options-outline"
-            size={18}
-            color={colors.signal}
-          />
-          <Text
-            style={[styles.settingsShortcutBtnText, { color: colors.text }]}
-          >
+          <Ionicons name="options-outline" size={18} color={colors.signal} />
+          <Text style={styles.settingsShortcutBtnText}>
             Configure App Search & Preferences
           </Text>
-          <Ionicons
-            name="chevron-forward"
-            size={16}
-            color={colors.muted}
-          />
+          <Ionicons name="chevron-forward" size={16} color={colors.muted} />
         </Pressable>
       )}
     </View>
@@ -345,6 +216,8 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
     padding: 16,
+    backgroundColor: colors.surface,
+    borderColor: colors.line,
   },
   cardHeaderRow: {
     flexDirection: "row",
@@ -355,6 +228,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 15,
     fontWeight: "700",
+    color: colors.text,
   },
   spacer: {
     flex: 1,
@@ -366,6 +240,8 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     borderRadius: 9999,
     borderWidth: 1,
+    backgroundColor: colors.surfaceMuted,
+    borderColor: colors.line,
   },
   categorySparkle: {
     marginRight: 4,
@@ -374,17 +250,20 @@ const styles = StyleSheet.create({
     fontSize: 11.5,
     fontWeight: "700",
     letterSpacing: 0.3,
+    color: colors.signal,
   },
   cardHeadline: {
     fontSize: 15.5,
     fontWeight: "700",
     marginBottom: 6,
+    color: colors.text,
   },
   bioText: {
     fontSize: 13.5,
     lineHeight: 20,
     marginTop: 2,
     marginBottom: 14,
+    color: colors.textSecondary,
   },
   statsShelf: {
     flexDirection: "row",
@@ -392,6 +271,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
     borderTopWidth: 1,
     paddingTop: 12,
+    borderTopColor: colors.line,
   },
   statItem: {
     alignItems: "center",
@@ -400,6 +280,7 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 16,
     fontWeight: "800",
+    color: colors.text,
   },
   statLabel: {
     fontSize: 11,
@@ -407,10 +288,12 @@ const styles = StyleSheet.create({
     marginTop: 2,
     textTransform: "uppercase",
     letterSpacing: 0.5,
+    color: colors.muted,
   },
   statDivider: {
     width: 1,
     height: 22,
+    backgroundColor: colors.line,
   },
   scheduleItem: {
     marginBottom: 10,
@@ -421,16 +304,22 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     letterSpacing: 0.4,
     marginBottom: 2,
+    color: colors.muted,
   },
   scheduleValue: {
     fontSize: 13.5,
     lineHeight: 19,
     fontWeight: "500",
+    color: colors.text,
+  },
+  scheduleValueSecondary: {
+    color: colors.textSecondary,
   },
   locationAddress: {
     fontSize: 14,
     fontWeight: "600",
     marginBottom: 12,
+    color: colors.text,
   },
   directionsActionBtn: {
     flexDirection: "row",
@@ -440,10 +329,12 @@ const styles = StyleSheet.create({
     paddingVertical: 11,
     paddingHorizontal: 16,
     borderRadius: 12,
+    backgroundColor: colors.text,
   },
   directionsActionBtnText: {
     fontSize: 13,
     fontWeight: "700",
+    color: colors.bg,
   },
   badgesWrap: {
     flexDirection: "row",
@@ -458,10 +349,13 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 9999,
     borderWidth: 1,
+    backgroundColor: colors.surfaceMuted,
+    borderColor: colors.line,
   },
   badgeChipText: {
     fontSize: 12,
     fontWeight: "600",
+    color: colors.text,
   },
   contactRow: {
     flexDirection: "row",
@@ -472,6 +366,10 @@ const styles = StyleSheet.create({
   contactRowText: {
     fontSize: 13.5,
     fontWeight: "500",
+    color: colors.text,
+  },
+  contactRowTextMuted: {
+    color: colors.muted,
   },
   settingsShortcutBtn: {
     flexDirection: "row",
@@ -481,11 +379,14 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
     marginTop: 4,
+    backgroundColor: colors.surfaceMuted,
+    borderColor: colors.line,
   },
   settingsShortcutBtnText: {
     fontSize: 13.5,
     fontWeight: "700",
     flex: 1,
     marginLeft: 10,
+    color: colors.text,
   },
 });

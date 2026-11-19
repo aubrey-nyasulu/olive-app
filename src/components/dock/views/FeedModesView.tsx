@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useOlive, type FeedMode } from "../../../context/OliveProvider";
+import { colors } from "../../../constants/colors";
 
 const FEED_MODE_OPTIONS = [
   {
@@ -28,15 +29,15 @@ interface FeedModesViewProps {
 }
 
 export function FeedModesView({ onSelectMode }: FeedModesViewProps) {
-  const { colors, feedMode } = useOlive();
+  const { feedMode } = useOlive();
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={[styles.title, { color: colors.text }]}>
+        <Text style={styles.title}>
           Filter Feed Content
         </Text>
-        <Text style={[styles.subtitle, { color: colors.muted }]}>
+        <Text style={styles.subtitle}>
           Choose whether to show drops from users, businesses, or everything
         </Text>
       </View>
@@ -52,23 +53,14 @@ export function FeedModesView({ onSelectMode }: FeedModesViewProps) {
               onPress={() => onSelectMode(mode)}
               style={({ pressed }) => [
                 styles.card,
-                {
-                  backgroundColor: isSelected
-                    ? colors.signalLight
-                    : colors.surfaceMuted,
-                  borderColor: isSelected ? colors.signal : colors.line,
-                  opacity: pressed ? 0.8 : 1,
-                },
+                isSelected ? styles.cardSelected : styles.cardDefault,
+                pressed && styles.pressed,
               ]}
             >
               <View
                 style={[
                   styles.iconCircle,
-                  {
-                    backgroundColor: isSelected
-                      ? colors.signal
-                      : colors.surface,
-                  },
+                  isSelected ? styles.iconCircleSelected : styles.iconCircleDefault,
                 ]}
               >
                 <Ionicons
@@ -77,19 +69,16 @@ export function FeedModesView({ onSelectMode }: FeedModesViewProps) {
                   color={isSelected ? colors.signalForeground : colors.text}
                 />
               </View>
-              <View style={{ flex: 1 }}>
+              <View style={styles.textMeta}>
                 <Text
                   style={[
                     styles.label,
-                    {
-                      color: isSelected ? colors.signal : colors.text,
-                      fontWeight: isSelected ? "700" : "600",
-                    },
+                    isSelected && styles.labelSelected,
                   ]}
                 >
                   {label}
                 </Text>
-                <Text style={[styles.desc, { color: colors.muted }]}>
+                <Text style={styles.desc}>
                   {desc}
                 </Text>
               </View>
@@ -120,10 +109,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "800",
     letterSpacing: -0.2,
+    color: colors.text,
   },
   subtitle: {
     fontSize: 12,
     marginTop: 1,
+    color: colors.muted,
   },
   optionsWrap: {
     gap: 10,
@@ -138,6 +129,17 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     gap: 12,
   },
+  cardDefault: {
+    backgroundColor: colors.surfaceMuted,
+    borderColor: colors.line,
+  },
+  cardSelected: {
+    backgroundColor: colors.signalLight,
+    borderColor: colors.signal,
+  },
+  pressed: {
+    opacity: 0.8,
+  },
   iconCircle: {
     width: 38,
     height: 38,
@@ -145,11 +147,27 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  iconCircleDefault: {
+    backgroundColor: colors.surface,
+  },
+  iconCircleSelected: {
+    backgroundColor: colors.signal,
+  },
+  textMeta: {
+    flex: 1,
+  },
   label: {
     fontSize: 14,
+    color: colors.text,
+    fontWeight: "600",
+  },
+  labelSelected: {
+    color: colors.signal,
+    fontWeight: "700",
   },
   desc: {
     fontSize: 11.5,
     marginTop: 1,
+    color: colors.muted,
   },
 });

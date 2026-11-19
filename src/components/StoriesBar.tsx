@@ -11,11 +11,10 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useOlive } from "../context/OliveProvider";
+import { colors } from "../constants/colors";
 import { STORIES, type StoryItem } from "../stories";
 
 export function StoriesBar() {
-  const { colors } = useOlive();
   const [activeStoryIndex, setActiveStoryIndex] = useState<number | null>(null);
   const [reactedStoryId, setReactedStoryId] = useState<string | null>(null);
 
@@ -85,39 +84,18 @@ export function StoriesBar() {
               onPress={() => handleOpenStory(index)}
               style={({ pressed }) => [
                 styles.storyItem,
-                { opacity: pressed ? 0.85 : 1 },
+                pressed && styles.pressed,
               ]}
             >
               {/* Ring container */}
               <View style={styles.avatarWrapper}>
                 {isOwner ? (
                   // Owner circle with Add '+' badge
-                  <View
-                    style={[
-                      styles.ownerRing,
-                      {
-                        borderColor: colors.line,
-                        backgroundColor: colors.surface,
-                      },
-                    ]}
-                  >
-                    <View
-                      style={[
-                        styles.innerRingSpacer,
-                        { backgroundColor: colors.bg },
-                      ]}
-                    >
+                  <View style={styles.ownerRing}>
+                    <View style={styles.innerRingSpacer}>
                       <Image source={story.avatar} style={styles.avatarImg} />
                     </View>
-                    <View
-                      style={[
-                        styles.addBadge,
-                        {
-                          backgroundColor: colors.signal,
-                          borderColor: colors.surface,
-                        },
-                      ]}
-                    >
+                    <View style={styles.addBadge}>
                       <Ionicons name="add" size={16} color="#FFFFFF" />
                     </View>
                   </View>
@@ -129,32 +107,14 @@ export function StoriesBar() {
                     end={{ x: 1, y: 1 }}
                     style={styles.gradientRing}
                   >
-                    <View
-                      style={[
-                        styles.innerRingSpacer,
-                        { backgroundColor: colors.bg },
-                      ]}
-                    >
+                    <View style={styles.innerRingSpacer}>
                       <Image source={story.avatar} style={styles.avatarImg} />
                     </View>
                   </LinearGradient>
                 ) : (
                   // Viewed/seen story ring
-                  <View
-                    style={[
-                      styles.seenRing,
-                      {
-                        borderColor: colors.line,
-                        backgroundColor: colors.surface,
-                      },
-                    ]}
-                  >
-                    <View
-                      style={[
-                        styles.innerRingSpacer,
-                        { backgroundColor: colors.bg },
-                      ]}
-                    >
+                  <View style={styles.seenRing}>
+                    <View style={styles.innerRingSpacer}>
                       <Image source={story.avatar} style={styles.avatarImg} />
                     </View>
                   </View>
@@ -165,15 +125,11 @@ export function StoriesBar() {
                   <View
                     style={[
                       styles.statusPillBadge,
-                      {
-                        backgroundColor:
-                          story.badge === "LIVE"
-                            ? "#DC2626"
-                            : story.badge === "HOT"
-                            ? colors.signal
-                            : "#10B981",
-                        borderColor: colors.surface,
-                      },
+                      story.badge === "LIVE"
+                        ? styles.statusBadgeLive
+                        : story.badge === "HOT"
+                        ? styles.statusBadgeHot
+                        : styles.statusBadgeNew,
                     ]}
                   >
                     <Text style={styles.statusPillText}>{story.badge}</Text>
@@ -186,10 +142,7 @@ export function StoriesBar() {
                 numberOfLines={1}
                 style={[
                   styles.storyLabel,
-                  {
-                    color: colors.text,
-                    fontWeight: hasUnread ? "700" : "500",
-                  },
+                  hasUnread ? styles.storyLabelUnread : styles.storyLabelDefault,
                 ]}
               >
                 {story.displayName}
@@ -210,35 +163,20 @@ export function StoriesBar() {
           <View style={styles.modalOverlay}>
             <Pressable style={styles.modalBackdrop} onPress={handleClose} />
 
-            <View
-              style={[
-                styles.modalContainer,
-                {
-                  backgroundColor: colors.surface,
-                  borderColor: colors.signal,
-                },
-              ]}
-            >
+            <View style={styles.modalContainer}>
               {/* Top Progress Segments (Timer indicators) */}
               <View style={styles.progressRow}>
                 {STORIES.map((s, idx) => (
                   <View
                     key={s.id}
-                    style={[
-                      styles.progressBarTrack,
-                      { backgroundColor: "rgba(255,255,255,0.25)" },
-                    ]}
+                    style={styles.progressBarTrack}
                   >
                     <View
                       style={[
                         styles.progressBarFill,
-                        {
-                          backgroundColor:
-                            idx <= (activeStoryIndex ?? 0)
-                              ? colors.signal
-                              : "transparent",
-                          width: idx <= (activeStoryIndex ?? 0) ? "100%" : "0%",
-                        },
+                        idx <= (activeStoryIndex ?? 0)
+                          ? styles.progressBarActive
+                          : styles.progressBarInactive,
                       ]}
                     />
                   </View>
@@ -251,12 +189,7 @@ export function StoriesBar() {
                   onPress={handleNavigateToPlace}
                   style={styles.storyAuthorRow}
                 >
-                  <View
-                    style={[
-                      styles.headerAvatarWrap,
-                      { borderColor: colors.signal },
-                    ]}
-                  >
+                  <View style={styles.headerAvatarWrap}>
                     <Image
                       source={activeStory.avatar}
                       style={styles.headerAvatar}
@@ -265,10 +198,7 @@ export function StoriesBar() {
                   <View style={styles.headerMeta}>
                     <View style={styles.authorTitleRow}>
                       <Text
-                        style={[
-                          styles.headerAuthorName,
-                          { color: colors.text },
-                        ]}
+                        style={styles.headerAuthorName}
                         numberOfLines={1}
                       >
                         {activeStory.authorName}
@@ -277,12 +207,9 @@ export function StoriesBar() {
                         <View
                           style={[
                             styles.headerBadgePill,
-                            {
-                              backgroundColor:
-                                activeStory.badge === "LIVE"
-                                  ? "#DC2626"
-                                  : colors.signal,
-                            },
+                            activeStory.badge === "LIVE"
+                              ? styles.statusBadgeLive
+                              : styles.statusBadgeHot,
                           ]}
                         >
                           <Text style={styles.headerBadgeText}>
@@ -297,12 +224,7 @@ export function StoriesBar() {
                         size={11}
                         color={colors.signal}
                       />
-                      <Text
-                        style={[
-                          styles.headerLocationText,
-                          { color: colors.muted },
-                        ]}
-                      >
+                      <Text style={styles.headerLocationText}>
                         {activeStory.location} · {activeStory.timeAgo}
                       </Text>
                     </View>
@@ -313,13 +235,7 @@ export function StoriesBar() {
                   accessibilityRole="button"
                   accessibilityLabel="Close story"
                   onPress={handleClose}
-                  style={[
-                    styles.closeBtn,
-                    {
-                      backgroundColor: colors.bg,
-                      borderColor: colors.line,
-                    },
-                  ]}
+                  style={styles.closeBtn}
                 >
                   <Ionicons name="close" size={18} color={colors.text} />
                 </Pressable>
@@ -355,12 +271,7 @@ export function StoriesBar() {
 
               {/* Reaction Toast Feedback */}
               {reactedStoryId && (
-                <View
-                  style={[
-                    styles.reactionToast,
-                    { backgroundColor: colors.signal },
-                  ]}
-                >
+                <View style={styles.reactionToast}>
                   <Text style={styles.reactionToastText}>
                     Sent {reactedStoryId} to {activeStory.displayName}
                   </Text>
@@ -368,19 +279,14 @@ export function StoriesBar() {
               )}
 
               {/* Bottom Quick-Action & Reaction Row */}
-              <View
-                style={[styles.storyBottomBar, { borderTopColor: colors.line }]}
-              >
+              <View style={styles.storyBottomBar}>
                 {/* View Venue / Drop Button */}
                 <Pressable
                   accessibilityRole="button"
                   onPress={handleNavigateToPlace}
                   style={({ pressed }) => [
                     styles.viewVenueBtn,
-                    {
-                      backgroundColor: colors.signal,
-                      opacity: pressed ? 0.88 : 1,
-                    },
+                    pressed && styles.pressed,
                   ]}
                 >
                   <Ionicons name="compass-outline" size={16} color="#FFFFFF" />
@@ -398,11 +304,7 @@ export function StoriesBar() {
                       onPress={() => handleReaction(emoji)}
                       style={({ pressed }) => [
                         styles.reactionBtn,
-                        {
-                          backgroundColor: colors.bg,
-                          borderColor: colors.line,
-                          transform: [{ scale: pressed ? 1.25 : 1 }],
-                        },
+                        pressed && styles.reactionBtnPressed,
                       ]}
                     >
                       <Text style={styles.reactionEmoji}>{emoji}</Text>
@@ -432,6 +334,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: "auto",
   },
+  pressed: {
+    opacity: 0.85,
+  },
   avatarWrapper: {
     width: "auto",
     height: "auto",
@@ -446,6 +351,8 @@ const styles = StyleSheet.create({
     borderWidth: 2.5,
     alignItems: "center",
     justifyContent: "center",
+    borderColor: colors.line,
+    backgroundColor: colors.surface,
   },
   gradientRing: {
     width: "auto",
@@ -462,6 +369,7 @@ const styles = StyleSheet.create({
     padding: 2,
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: colors.bg,
   },
   seenRing: {
     width: "auto",
@@ -470,6 +378,8 @@ const styles = StyleSheet.create({
     borderWidth: 2.5,
     alignItems: "center",
     justifyContent: "center",
+    borderColor: colors.line,
+    backgroundColor: colors.surface,
   },
   avatarImg: {
     width: "100%",
@@ -486,6 +396,8 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: colors.signal,
+    borderColor: colors.surface,
   },
   statusPillBadge: {
     position: "absolute",
@@ -496,6 +408,16 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     alignItems: "center",
     justifyContent: "center",
+    borderColor: colors.surface,
+  },
+  statusBadgeLive: {
+    backgroundColor: "#DC2626",
+  },
+  statusBadgeHot: {
+    backgroundColor: colors.signal,
+  },
+  statusBadgeNew: {
+    backgroundColor: "#10B981",
   },
   statusPillText: {
     fontSize: 8.5,
@@ -508,9 +430,15 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 6,
     width: 72,
+    color: colors.text,
+  },
+  storyLabelDefault: {
+    fontWeight: "500",
+  },
+  storyLabelUnread: {
+    fontWeight: "700",
   },
 
-  /* Story Viewer Modal - strictly adhering to 100% - 16px, 32px radius & 2px signal border */
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.7)",
@@ -532,6 +460,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 18,
     elevation: 12,
+    backgroundColor: colors.surface,
+    borderColor: colors.signal,
   },
   progressRow: {
     flexDirection: "row",
@@ -545,10 +475,19 @@ const styles = StyleSheet.create({
     height: 3,
     borderRadius: 1.5,
     overflow: "hidden",
+    backgroundColor: "rgba(255, 255, 255, 0.25)",
   },
   progressBarFill: {
     height: "100%",
     borderRadius: 1.5,
+  },
+  progressBarActive: {
+    backgroundColor: colors.signal,
+    width: "100%",
+  },
+  progressBarInactive: {
+    backgroundColor: "transparent",
+    width: "0%",
   },
   storyHeader: {
     flexDirection: "row",
@@ -571,6 +510,7 @@ const styles = StyleSheet.create({
     padding: 1,
     alignItems: "center",
     justifyContent: "center",
+    borderColor: colors.signal,
   },
   headerAvatar: {
     width: "100%",
@@ -589,6 +529,7 @@ const styles = StyleSheet.create({
   headerAuthorName: {
     fontSize: 14,
     fontWeight: "700",
+    color: colors.text,
   },
   headerBadgePill: {
     paddingHorizontal: 5,
@@ -609,6 +550,7 @@ const styles = StyleSheet.create({
   headerLocationText: {
     fontSize: 11.5,
     fontWeight: "500",
+    color: colors.muted,
   },
   closeBtn: {
     width: 34,
@@ -617,6 +559,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: colors.bg,
+    borderColor: colors.line,
   },
   storyMediaCard: {
     flex: 1,
@@ -681,6 +625,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     zIndex: 20,
     elevation: 8,
+    backgroundColor: colors.signal,
   },
   reactionToastText: {
     color: "#FFFFFF",
@@ -695,6 +640,7 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     paddingBottom: 14,
     borderTopWidth: 1,
+    borderTopColor: colors.line,
     gap: 10,
   },
   viewVenueBtn: {
@@ -706,6 +652,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 6,
     paddingHorizontal: 14,
+    backgroundColor: colors.signal,
   },
   viewVenueText: {
     color: "#FFFFFF",
@@ -723,6 +670,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: colors.bg,
+    borderColor: colors.line,
+  },
+  reactionBtnPressed: {
+    transform: [{ scale: 1.25 }],
   },
   reactionEmoji: {
     fontSize: 17,

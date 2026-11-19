@@ -2,7 +2,7 @@ import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useOlive } from "../../context/OliveProvider";
+import { colors } from "../../constants/colors";
 import type { UserProfile } from "../../profiles";
 
 interface ProfileHeaderProps {
@@ -18,7 +18,6 @@ export function ProfileHeader({
   isFollowing,
   onToggleFollow,
 }: ProfileHeaderProps) {
-  const { colors } = useOlive();
   const insets = useSafeAreaInsets();
 
   return (
@@ -35,13 +34,7 @@ export function ProfileHeader({
 
       {/* Avatar & Follow Row */}
       <View style={styles.avatarRow}>
-        <Image
-          source={profile.avatar}
-          style={[
-            styles.largeAvatar,
-            { borderColor: colors.bg, backgroundColor: colors.surface },
-          ]}
-        />
+        <Image source={profile.avatar} style={styles.largeAvatar} />
 
         {!isMe && (
           <Pressable
@@ -54,21 +47,8 @@ export function ProfileHeader({
             onPress={onToggleFollow}
             style={({ pressed }) => [
               styles.followBtn,
-              isFollowing
-                ? [
-                    styles.followBtnActive,
-                    {
-                      backgroundColor: colors.surfaceMuted,
-                      borderColor: colors.line,
-                    },
-                  ]
-                : [
-                    styles.followBtnInactive,
-                    {
-                      backgroundColor: colors.signal,
-                    },
-                  ],
-              { opacity: pressed ? 0.85 : 1 },
+              isFollowing ? styles.followBtnActive : styles.followBtnInactive,
+              pressed && styles.followBtnPressed,
             ]}
           >
             <Ionicons
@@ -79,7 +59,9 @@ export function ProfileHeader({
             <Text
               style={[
                 styles.followBtnText,
-                { color: isFollowing ? colors.text : "#FFFFFF" },
+                isFollowing
+                  ? styles.followBtnTextActive
+                  : styles.followBtnTextInactive,
               ]}
             >
               {isFollowing ? "Following" : "Follow"}
@@ -91,9 +73,7 @@ export function ProfileHeader({
       {/* Profile Identity Group */}
       <View style={styles.metaGroup}>
         <View style={styles.nameRow}>
-          <Text style={[styles.profileName, { color: colors.text }]}>
-            {profile.name}
-          </Text>
+          <Text style={styles.profileName}>{profile.name}</Text>
           {profile.kind === "Business" && (
             <Ionicons
               name="checkmark-circle"
@@ -103,7 +83,7 @@ export function ProfileHeader({
             />
           )}
         </View>
-        <Text style={[styles.profileHandle, { color: colors.muted }]}>
+        <Text style={styles.profileHandle}>
           {profile.handle} · {profile.neighborhood}
         </Text>
       </View>
@@ -139,6 +119,8 @@ const styles = StyleSheet.create({
     borderRadius: 44,
     borderWidth: 4,
     resizeMode: "cover",
+    borderColor: colors.bg,
+    backgroundColor: colors.surface,
   },
   followBtn: {
     flexDirection: "row",
@@ -157,11 +139,24 @@ const styles = StyleSheet.create({
   },
   followBtnActive: {
     borderWidth: 1.5,
+    backgroundColor: colors.surfaceMuted,
+    borderColor: colors.line,
   },
-  followBtnInactive: {},
+  followBtnInactive: {
+    backgroundColor: colors.signal,
+  },
+  followBtnPressed: {
+    opacity: 0.85,
+  },
   followBtnText: {
     fontSize: 13.5,
     fontWeight: "700",
+  },
+  followBtnTextActive: {
+    color: colors.text,
+  },
+  followBtnTextInactive: {
+    color: "#FFFFFF",
   },
   metaGroup: {
     paddingHorizontal: 16,
@@ -175,6 +170,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "800",
     letterSpacing: -0.5,
+    color: colors.text,
   },
   verifiedIcon: {
     marginLeft: 6,
@@ -182,5 +178,6 @@ const styles = StyleSheet.create({
   profileHandle: {
     fontSize: 13.5,
     marginTop: 2,
+    color: colors.muted,
   },
 });

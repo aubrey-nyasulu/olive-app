@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useOlive } from "../../../context/OliveProvider";
+import { colors } from "../../../constants/colors";
 import { POSTS } from "../../../places";
 
 interface NotificationItem {
@@ -29,7 +29,7 @@ const INITIAL_NOTIFICATIONS: NotificationItem[] = [
     time: "20m ago",
     icon: "sparkles",
     unread: true,
-    postId: "mabu-1",
+    postId: "forno",
   },
   {
     id: "notif-2",
@@ -38,30 +38,30 @@ const INITIAL_NOTIFICATIONS: NotificationItem[] = [
     time: "1h ago",
     icon: "musical-notes",
     unread: true,
-    postId: "park-live-1",
+    postId: "park-live",
   },
   {
     id: "notif-3",
     author: "Kondwani Banda",
-    text: "Mentioned you in a comment on the Morning Gravel Ride drop.",
+    text: "Mentioned you in a comment on the Area 43 coffee drop.",
     time: "3h ago",
     icon: "chatbubble-ellipses",
     unread: true,
-    postId: "chambo-1",
+    postId: "kondwani-coffee",
   },
   {
     id: "notif-4",
-    author: "Tamanda Herbs",
-    text: "New organic chamomile & mint bundles available at Four Seasons.",
+    author: "Tamanda Gondwe",
+    text: "Fresh mountain honey jars available at Four Seasons.",
     time: "Yesterday",
     icon: "leaf",
     unread: false,
-    postId: "market-1",
+    postId: "saturday-market",
   },
   {
     id: "notif-5",
-    author: "Dalitso Wildlife",
-    text: "Started following your Area 10 neighborhood drops.",
+    author: "Dalitso Phiri",
+    text: "Started following your neighborhood drops.",
     time: "2d ago",
     icon: "person-add",
     unread: false,
@@ -77,7 +77,6 @@ export function NotificationsView({
   onClose,
   showToast,
 }: NotificationsViewProps) {
-  const { colors, startGuidance } = useOlive();
   const [items, setItems] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS);
 
   const unreadCount = items.filter((n) => n.unread).length;
@@ -88,7 +87,6 @@ export function NotificationsView({
   };
 
   const handlePressItem = (item: NotificationItem) => {
-    // Mark this item as read
     setItems((prev) =>
       prev.map((n) => (n.id === item.id ? { ...n, unread: false } : n))
     );
@@ -107,17 +105,12 @@ export function NotificationsView({
       {/* Notifications Header */}
       <View style={styles.headerRow}>
         <View style={styles.titleRow}>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>
+          <Text style={styles.headerTitle}>
             Notifications
           </Text>
           {unreadCount > 0 && (
-            <View
-              style={[
-                styles.badge,
-                { backgroundColor: colors.signalLight },
-              ]}
-            >
-              <Text style={[styles.badgeText, { color: colors.signal }]}>
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>
                 {unreadCount} new
               </Text>
             </View>
@@ -131,10 +124,10 @@ export function NotificationsView({
             onPress={handleMarkAllRead}
             style={({ pressed }) => [
               styles.markReadBtn,
-              { opacity: pressed ? 0.7 : 1 },
+              pressed && styles.pressed,
             ]}
           >
-            <Text style={[styles.markReadText, { color: colors.signal }]}>
+            <Text style={styles.markReadText}>
               Mark all read
             </Text>
           </Pressable>
@@ -154,24 +147,15 @@ export function NotificationsView({
             onPress={() => handlePressItem(item)}
             style={({ pressed }) => [
               styles.itemRow,
-              {
-                backgroundColor: item.unread
-                  ? colors.surfaceMuted
-                  : colors.surface,
-                borderColor: item.unread ? colors.signal : colors.line,
-                opacity: pressed ? 0.8 : 1,
-              },
+              item.unread ? styles.itemRowUnread : styles.itemRowRead,
+              pressed && styles.pressed,
             ]}
           >
             {/* Category / Event Icon */}
             <View
               style={[
                 styles.iconWrap,
-                {
-                  backgroundColor: item.unread
-                    ? colors.signalLight
-                    : colors.surfaceMuted,
-                },
+                item.unread ? styles.iconWrapUnread : styles.iconWrapRead,
               ]}
             >
               <Ionicons
@@ -184,33 +168,20 @@ export function NotificationsView({
             {/* Notification Meta & Text */}
             <View style={styles.metaCol}>
               <View style={styles.authorRow}>
-                <Text
-                  numberOfLines={1}
-                  style={[styles.authorName, { color: colors.text }]}
-                >
+                <Text numberOfLines={1} style={styles.authorName}>
                   {item.author}
                 </Text>
-                <Text style={[styles.timeText, { color: colors.muted }]}>
+                <Text style={styles.timeText}>
                   {item.time}
                 </Text>
               </View>
-              <Text
-                numberOfLines={2}
-                style={[styles.itemText, { color: colors.textSecondary }]}
-              >
+              <Text numberOfLines={2} style={styles.itemText}>
                 {item.text}
               </Text>
             </View>
 
             {/* Unread indicator dot */}
-            {item.unread && (
-              <View
-                style={[
-                  styles.unreadDot,
-                  { backgroundColor: colors.signal },
-                ]}
-              />
-            )}
+            {item.unread && <View style={styles.unreadDot} />}
           </Pressable>
         )}
       />
@@ -239,15 +210,18 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "800",
     letterSpacing: -0.3,
+    color: colors.text,
   },
   badge: {
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 10,
+    backgroundColor: colors.signalLight,
   },
   badgeText: {
     fontSize: 11,
     fontWeight: "700",
+    color: colors.signal,
   },
   markReadBtn: {
     paddingVertical: 4,
@@ -256,6 +230,7 @@ const styles = StyleSheet.create({
   markReadText: {
     fontSize: 12.5,
     fontWeight: "700",
+    color: colors.signal,
   },
   listContent: {
     gap: 8,
@@ -269,12 +244,29 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     gap: 12,
   },
+  itemRowRead: {
+    backgroundColor: colors.surface,
+    borderColor: colors.line,
+  },
+  itemRowUnread: {
+    backgroundColor: colors.surfaceMuted,
+    borderColor: colors.signal,
+  },
+  pressed: {
+    opacity: 0.8,
+  },
   iconWrap: {
     width: 38,
     height: 38,
     borderRadius: 19,
     alignItems: "center",
     justifyContent: "center",
+  },
+  iconWrapRead: {
+    backgroundColor: colors.surfaceMuted,
+  },
+  iconWrapUnread: {
+    backgroundColor: colors.signalLight,
   },
   metaCol: {
     flex: 1,
@@ -288,17 +280,21 @@ const styles = StyleSheet.create({
   authorName: {
     fontSize: 14,
     fontWeight: "700",
+    color: colors.text,
   },
   timeText: {
     fontSize: 11.5,
+    color: colors.muted,
   },
   itemText: {
     fontSize: 12.5,
     lineHeight: 17,
+    color: colors.textSecondary,
   },
   unreadDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
+    backgroundColor: colors.signal,
   },
 });

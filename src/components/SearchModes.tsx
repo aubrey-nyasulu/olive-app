@@ -1,7 +1,4 @@
-import { useEffect, useRef } from "react";
 import {
-  Animated,
-  Easing,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -11,7 +8,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { CATEGORIES, POSTS } from "../places";
-import { useOlive } from "../context/OliveProvider";
+import { colors } from "../constants/colors";
 
 export function TypeSearch({
   query,
@@ -22,7 +19,6 @@ export function TypeSearch({
   onSelectCategory: (cat: string) => void;
   onClose: () => void;
 }) {
-  const { colors } = useOlive();
   const q = query.trim().toLowerCase();
 
   const results = q
@@ -52,27 +48,15 @@ export function TypeSearch({
                 }}
                 style={({ pressed }) => [
                   styles.resultRow,
-                  {
-                    backgroundColor: colors.surface,
-                    borderColor: colors.line,
-                    opacity: pressed ? 0.7 : 1,
-                  },
+                  pressed && styles.resultRowPressed,
                 ]}
               >
                 <View style={styles.resultMeta}>
-                  <Text style={[styles.resultTitle, { color: colors.text }]}>
-                    {item.author}
-                  </Text>
-                  <Text
-                    style={[styles.resultSubtitle, { color: colors.muted }]}
-                  >
-                    {item.title}
-                  </Text>
+                  <Text style={styles.resultTitle}>{item.author}</Text>
+                  <Text style={styles.resultSubtitle}>{item.title}</Text>
                 </View>
                 <View style={styles.resultRight}>
-                  <Text style={[styles.resultDist, { color: colors.signal }]}>
-                    {item.distanceKm} km
-                  </Text>
+                  <Text style={styles.resultDist}>{item.distanceKm} km</Text>
                   <Ionicons
                     name="chevron-forward"
                     size={16}
@@ -84,7 +68,7 @@ export function TypeSearch({
           </ScrollView>
         ) : (
           <View style={styles.emptyBox}>
-            <Text style={[styles.emptyPrompt, { color: colors.muted }]}>
+            <Text style={styles.emptyPrompt}>
               Nothing nearby matches "{query}". Try searching for "coffee",
               "fuel", or "market".
             </Text>
@@ -92,9 +76,7 @@ export function TypeSearch({
         )
       ) : (
         <View style={styles.quickTagsWrap}>
-          <Text style={[styles.quickTagsHeader, { color: colors.muted }]}>
-            RIGHT NOW
-          </Text>
+          <Text style={styles.quickTagsHeader}>RIGHT NOW</Text>
           <View style={styles.tagsRow}>
             {CATEGORIES.map((cat) => (
               <Pressable
@@ -102,16 +84,10 @@ export function TypeSearch({
                 onPress={() => onSelectCategory(cat)}
                 style={({ pressed }) => [
                   styles.tagPill,
-                  {
-                    backgroundColor: colors.surface,
-                    borderColor: colors.line,
-                    opacity: pressed ? 0.7 : 1,
-                  },
+                  pressed && styles.tagPillPressed,
                 ]}
               >
-                <Text style={[styles.tagText, { color: colors.text }]}>
-                  {cat}
-                </Text>
+                <Text style={styles.tagText}>{cat}</Text>
               </Pressable>
             ))}
           </View>
@@ -122,22 +98,13 @@ export function TypeSearch({
 }
 
 export function VisualSearch() {
-  const { colors } = useOlive();
-
   return (
     <View style={styles.visualContainer}>
-      <View
-        style={[
-          styles.cameraCircle,
-          { borderColor: colors.line, backgroundColor: colors.surface },
-        ]}
-      >
+      <View style={styles.cameraCircle}>
         <Ionicons name="camera-outline" size={36} color={colors.signal} />
       </View>
-      <Text style={[styles.visualComingSoon, { color: colors.text }]}>
-        Visual Finder
-      </Text>
-      <Text style={[styles.visualSub, { color: colors.muted }]}>
+      <Text style={styles.visualComingSoon}>Visual Finder</Text>
+      <Text style={styles.visualSub}>
         Point your camera at the world and Olive will pinpoint where to get it
         nearby.
       </Text>
@@ -163,6 +130,11 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 14,
     borderWidth: 1,
+    backgroundColor: colors.surface,
+    borderColor: colors.line,
+  },
+  resultRowPressed: {
+    opacity: 0.7,
   },
   resultMeta: {
     flex: 1,
@@ -171,10 +143,12 @@ const styles = StyleSheet.create({
   resultTitle: {
     fontSize: 15,
     fontWeight: "700",
+    color: colors.text,
   },
   resultSubtitle: {
     fontSize: 12.5,
     marginTop: 2,
+    color: colors.muted,
   },
   resultRight: {
     flexDirection: "row",
@@ -184,6 +158,7 @@ const styles = StyleSheet.create({
   resultDist: {
     fontSize: 13,
     fontWeight: "600",
+    color: colors.signal,
   },
   emptyBox: {
     paddingVertical: 24,
@@ -193,6 +168,7 @@ const styles = StyleSheet.create({
     fontSize: 13.5,
     lineHeight: 19,
     textAlign: "center",
+    color: colors.muted,
   },
   quickTagsWrap: {
     paddingTop: 8,
@@ -203,6 +179,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     marginBottom: 10,
     paddingLeft: 16,
+    color: colors.muted,
   },
   tagsRow: {
     flexDirection: "row",
@@ -214,34 +191,16 @@ const styles = StyleSheet.create({
     paddingVertical: 9,
     borderRadius: 9999,
     borderWidth: 1,
+    backgroundColor: colors.surface,
+    borderColor: colors.line,
+  },
+  tagPillPressed: {
+    opacity: 0.7,
   },
   tagText: {
     fontSize: 13,
     fontWeight: "600",
-  },
-  voiceContainer: {
-    alignItems: "center",
-    paddingVertical: 20,
-    gap: 12,
-  },
-  waveGroup: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    height: 48,
-  },
-  waveBar: {
-    width: 6,
-    height: 36,
-    borderRadius: 3,
-  },
-  voicePrompt: {
-    fontSize: 15,
-    fontWeight: "700",
-  },
-  voiceSub: {
-    fontSize: 13,
-    textAlign: "center",
+    color: colors.text,
   },
   visualContainer: {
     alignItems: "center",
@@ -257,15 +216,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 6,
+    borderColor: colors.line,
+    backgroundColor: colors.surface,
   },
   visualComingSoon: {
     fontSize: 17,
     fontWeight: "700",
+    color: colors.text,
   },
   visualSub: {
     fontSize: 13,
     textAlign: "center",
     maxWidth: 280,
     lineHeight: 18,
+    color: colors.muted,
   },
 });

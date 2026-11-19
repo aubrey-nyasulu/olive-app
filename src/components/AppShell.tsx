@@ -15,6 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, usePathname } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useOlive } from "../context/OliveProvider";
+import { colors } from "../constants/colors";
 import { getProfile } from "../profiles";
 import { GuidanceModal } from "./GuidanceModal";
 import { TypeSearch, VisualSearch } from "./SearchModes";
@@ -22,7 +23,6 @@ import { FloatingDock } from "./dock/FloatingDock";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const {
-    colors,
     searchOpen,
     activeMode,
     typeQuery,
@@ -127,7 +127,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   };
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.bg }]}>
+    <View style={styles.root}>
       <View style={styles.contentWrap}>{children}</View>
 
       {/* Dimmed backdrop when expanded dock, search, panel, or profile menu is active */}
@@ -138,7 +138,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             closeExpandedWindow();
             handleCloseSearch();
           }}
-          style={[styles.backdrop, { backgroundColor: colors.overlay }]}
+          style={styles.backdrop}
         />
       )}
 
@@ -156,12 +156,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             },
           ]}
         >
-          <View
-            style={[
-              styles.panelCard,
-              { backgroundColor: colors.bg, borderColor: colors.line },
-            ]}
-          >
+          <View style={styles.panelCard}>
             {activeMode === "type" && (
               <TypeSearch
                 query={typeQuery}
@@ -195,13 +190,12 @@ export function AppShell({ children }: { children: ReactNode }) {
           style={[
             styles.floatingToast,
             {
-              backgroundColor: colors.text,
               bottom: normalDockBottom + 76,
             },
           ]}
         >
           <Ionicons name="checkmark-circle" size={16} color={colors.signal} />
-          <Text style={[styles.floatingToastText, { color: colors.bg }]}>
+          <Text style={styles.floatingToastText}>
             {toastMessage}
           </Text>
         </View>
@@ -216,6 +210,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+    backgroundColor: colors.bg,
   },
   contentWrap: {
     flex: 1,
@@ -223,6 +218,7 @@ const styles = StyleSheet.create({
   backdrop: {
     ...StyleSheet.absoluteFill,
     zIndex: 40,
+    backgroundColor: colors.overlay,
   },
   panelContainer: {
     position: "absolute",
@@ -237,6 +233,8 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     borderWidth: 1,
     overflow: "hidden",
+    backgroundColor: colors.bg,
+    borderColor: colors.line,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.22,
@@ -253,6 +251,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 20,
     zIndex: 60,
+    backgroundColor: colors.text,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.16,
@@ -263,5 +262,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "600",
     letterSpacing: 0.1,
+    color: colors.bg,
   },
 });

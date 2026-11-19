@@ -2,6 +2,7 @@ import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-nat
 import { CATEGORIES } from "../../../places";
 import type { TravelMode } from "../../../models";
 import { useOlive } from "../../../context/OliveProvider";
+import { colors } from "../../../constants/colors";
 
 const RADII = [1, 2, 5, 10, 20];
 const MODES: { key: TravelMode; label: string }[] = [
@@ -11,7 +12,7 @@ const MODES: { key: TravelMode; label: string }[] = [
 ];
 
 export function SettingsView() {
-  const { colors, config, updateSettings, resetSettings } = useOlive();
+  const { config, updateSettings, resetSettings } = useOlive();
 
   const handleToggleLane = (cat: string) => {
     const active = config.lanes.includes(cat);
@@ -24,10 +25,10 @@ export function SettingsView() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={[styles.title, { color: colors.text }]}>
+        <Text style={styles.title}>
           Preferences & Filters
         </Text>
-        <Text style={[styles.subtitle, { color: colors.muted }]}>
+        <Text style={styles.subtitle}>
           Discovery radius, transport modes, and alerts
         </Text>
       </View>
@@ -39,10 +40,10 @@ export function SettingsView() {
       >
         {/* Search Radius */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+          <Text style={styles.sectionTitle}>
             Search Radius
           </Text>
-          <Text style={[styles.sectionHint, { color: colors.muted }]}>
+          <Text style={styles.sectionHint}>
             How far Olive looks when exploring nearby
           </Text>
           <View style={styles.pillsRow}>
@@ -54,16 +55,13 @@ export function SettingsView() {
                   onPress={() => updateSettings({ radiusKm: r })}
                   style={[
                     styles.pill,
-                    {
-                      backgroundColor: active ? colors.signal : colors.surfaceMuted,
-                      borderColor: active ? colors.signal : colors.line,
-                    },
+                    active ? styles.pillActive : styles.pillInactive,
                   ]}
                 >
                   <Text
                     style={[
                       styles.pillText,
-                      { color: active ? colors.signalForeground : colors.text },
+                      active ? styles.pillTextActive : styles.pillTextInactive,
                     ]}
                   >
                     {r} km
@@ -76,10 +74,10 @@ export function SettingsView() {
 
         {/* Categories / Lanes */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+          <Text style={styles.sectionTitle}>
             Categories
           </Text>
-          <Text style={[styles.sectionHint, { color: colors.muted }]}>
+          <Text style={styles.sectionHint}>
             Prioritize specific categories in your feed
           </Text>
           <View style={styles.pillsRow}>
@@ -91,16 +89,13 @@ export function SettingsView() {
                   onPress={() => handleToggleLane(cat)}
                   style={[
                     styles.pill,
-                    {
-                      backgroundColor: active ? colors.signal : colors.surfaceMuted,
-                      borderColor: active ? colors.signal : colors.line,
-                    },
+                    active ? styles.pillActive : styles.pillInactive,
                   ]}
                 >
                   <Text
                     style={[
                       styles.pillText,
-                      { color: active ? colors.signalForeground : colors.text },
+                      active ? styles.pillTextActive : styles.pillTextInactive,
                     ]}
                   >
                     {cat}
@@ -113,7 +108,7 @@ export function SettingsView() {
 
         {/* Getting Around / Modes */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+          <Text style={styles.sectionTitle}>
             Getting Around
           </Text>
           <View style={styles.pillsRow}>
@@ -125,16 +120,13 @@ export function SettingsView() {
                   onPress={() => updateSettings({ mode: key })}
                   style={[
                     styles.pill,
-                    {
-                      backgroundColor: active ? colors.signal : colors.surfaceMuted,
-                      borderColor: active ? colors.signal : colors.line,
-                    },
+                    active ? styles.pillActive : styles.pillInactive,
                   ]}
                 >
                   <Text
                     style={[
                       styles.pillText,
-                      { color: active ? colors.signalForeground : colors.text },
+                      active ? styles.pillTextActive : styles.pillTextInactive,
                     ]}
                   >
                     {label}
@@ -146,20 +138,12 @@ export function SettingsView() {
         </View>
 
         {/* Toggles */}
-        <View
-          style={[
-            styles.toggleCard,
-            {
-              backgroundColor: colors.surfaceMuted,
-              borderColor: colors.line,
-            },
-          ]}
-        >
-          <View style={{ flex: 1 }}>
-            <Text style={[styles.toggleTitle, { color: colors.text }]}>
+        <View style={styles.toggleCard}>
+          <View style={styles.toggleMeta}>
+            <Text style={styles.toggleTitle}>
               Dark Theme
             </Text>
-            <Text style={[styles.toggleSub, { color: colors.muted }]}>
+            <Text style={styles.toggleSub}>
               High-contrast night palette
             </Text>
           </View>
@@ -171,20 +155,12 @@ export function SettingsView() {
           />
         </View>
 
-        <View
-          style={[
-            styles.toggleCard,
-            {
-              backgroundColor: colors.surfaceMuted,
-              borderColor: colors.line,
-            },
-          ]}
-        >
-          <View style={{ flex: 1 }}>
-            <Text style={[styles.toggleTitle, { color: colors.text }]}>
+        <View style={styles.toggleCard}>
+          <View style={styles.toggleMeta}>
+            <Text style={styles.toggleTitle}>
               Push Alerts
             </Text>
-            <Text style={[styles.toggleSub, { color: colors.muted }]}>
+            <Text style={styles.toggleSub}>
               Notifications when within walking radius
             </Text>
           </View>
@@ -197,7 +173,7 @@ export function SettingsView() {
         </View>
 
         <Pressable onPress={resetSettings} style={styles.resetBtn}>
-          <Text style={[styles.resetText, { color: colors.muted }]}>
+          <Text style={styles.resetText}>
             Reset to defaults
           </Text>
         </Pressable>
@@ -218,10 +194,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "800",
     letterSpacing: -0.2,
+    color: colors.text,
   },
   subtitle: {
     fontSize: 12,
     marginTop: 1,
+    color: colors.muted,
   },
   scroll: {
     flex: 1,
@@ -238,10 +216,12 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 13.5,
     fontWeight: "700",
+    color: colors.text,
   },
   sectionHint: {
     fontSize: 11.5,
     marginBottom: 4,
+    color: colors.muted,
   },
   pillsRow: {
     flexDirection: "row",
@@ -254,9 +234,23 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     borderWidth: 1,
   },
+  pillInactive: {
+    backgroundColor: colors.surfaceMuted,
+    borderColor: colors.line,
+  },
+  pillActive: {
+    backgroundColor: colors.signal,
+    borderColor: colors.signal,
+  },
   pillText: {
     fontSize: 12,
     fontWeight: "600",
+  },
+  pillTextInactive: {
+    color: colors.text,
+  },
+  pillTextActive: {
+    color: colors.signalForeground,
   },
   toggleCard: {
     flexDirection: "row",
@@ -267,14 +261,21 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
     marginTop: 2,
+    backgroundColor: colors.surfaceMuted,
+    borderColor: colors.line,
+  },
+  toggleMeta: {
+    flex: 1,
   },
   toggleTitle: {
     fontSize: 13,
     fontWeight: "700",
+    color: colors.text,
   },
   toggleSub: {
     fontSize: 11,
     marginTop: 1,
+    color: colors.muted,
   },
   resetBtn: {
     alignSelf: "center",
@@ -284,5 +285,6 @@ const styles = StyleSheet.create({
   resetText: {
     fontSize: 12,
     textDecorationLine: "underline",
+    color: colors.muted,
   },
 });

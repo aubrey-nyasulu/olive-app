@@ -1,7 +1,14 @@
-import { Image, Pressable, StyleSheet, TextInput, View } from "react-native";
+import {
+  Image,
+  Pressable,
+  StyleSheet,
+  TextInput,
+  View,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import type { ExpandedWindow } from "../../context/OliveProvider";
 import { useOlive } from "../../context/OliveProvider";
+import { colors } from "../../constants/colors";
 import { DockWaveform } from "./DockWaveform";
 
 const userAvatar = require("../../../assets/images/profile-avatar.jpg");
@@ -56,24 +63,18 @@ export function DockActionBar({
   onLeftLongPress,
   onToggleListening,
 }: DockActionBarProps) {
-  const { colors, activeMode, typeQuery, setTypeQuery, setIsSearching } =
-    useOlive();
+  const { activeMode, typeQuery, setTypeQuery, setIsSearching } = useOlive();
 
   const isComments = expandedWindow?.type === "comments";
   const isMessage = expandedWindow?.type === "message";
   const isInputMode = isComments || isMessage;
 
   return (
-    <View style={[styles.bar, { height: isExpanded ? 64 : "100%" }]}>
+    <View style={[styles.bar, isExpanded && styles.barExpanded]}>
       {/* LEFT BUTTON SLOT */}
       <View style={styles.slotLeft}>
         {isInputMode ? (
-          <View
-            style={[
-              styles.avatarButtonCircle,
-              { borderColor: colors.signal, backgroundColor: colors.surface },
-            ]}
-          >
+          <View style={[styles.avatarButtonCircle, styles.avatarButtonCircleInputMode]}>
             <Image source={userAvatar} style={styles.dockAvatarImg} />
           </View>
         ) : expandedWindow?.type === "user_menu" ? (
@@ -83,12 +84,8 @@ export function DockActionBar({
             onPress={onLeftPill}
             style={({ pressed }) => [
               styles.sideBtn,
-              {
-                backgroundColor: colors.surfaceMuted,
-                borderColor: colors.line,
-                borderWidth: 1,
-                opacity: pressed ? 0.75 : 1,
-              },
+              styles.sideBtnMuted,
+              pressed && styles.pressed,
             ]}
           >
             <Ionicons name="search" size={20} color={colors.text} />
@@ -100,12 +97,8 @@ export function DockActionBar({
             onPress={onCloseExpanded}
             style={({ pressed }) => [
               styles.sideBtn,
-              {
-                backgroundColor: colors.surfaceMuted,
-                borderColor: colors.line,
-                borderWidth: 1,
-                opacity: pressed ? 0.75 : 1,
-              },
+              styles.sideBtnMuted,
+              pressed && styles.pressed,
             ]}
           >
             <Ionicons name="close" size={20} color={colors.text} />
@@ -125,11 +118,8 @@ export function DockActionBar({
             delayLongPress={320}
             style={({ pressed }) => [
               styles.sideBtn,
-              {
-                backgroundColor:
-                  panelOpen || searchOpen ? colors.signal : colors.bg,
-                opacity: pressed ? 0.75 : 1,
-              },
+              panelOpen || searchOpen ? styles.sideBtnSignal : styles.sideBtnBg,
+              pressed && styles.pressed,
             ]}
           >
             {panelOpen || searchOpen ? (
@@ -157,14 +147,7 @@ export function DockActionBar({
             placeholderTextColor={colors.muted}
             returnKeyType="send"
             onSubmitEditing={onSendComment}
-            style={[
-              styles.expandedInput,
-              {
-                color: colors.text,
-                backgroundColor: colors.surfaceMuted,
-                borderColor: colors.line,
-              },
-            ]}
+            style={styles.expandedInput}
           />
         ) : isMessage && expandedWindow?.type === "message" ? (
           <TextInput
@@ -174,17 +157,9 @@ export function DockActionBar({
             placeholderTextColor={colors.muted}
             returnKeyType="send"
             onSubmitEditing={onSendMessage}
-            style={[
-              styles.expandedInput,
-              {
-                color: colors.text,
-                backgroundColor: colors.surfaceMuted,
-                borderColor: colors.line,
-              },
-            ]}
+            style={styles.expandedInput}
           />
         ) : isExpanded ? (
-          // In expanded menus, center is an empty spacer
           <View style={styles.centerSpacer} />
         ) : activeMode === "type" ? (
           <TextInput
@@ -202,7 +177,7 @@ export function DockActionBar({
             }}
             autoCapitalize="none"
             autoCorrect={false}
-            style={[styles.input, { color: colors.bg }]}
+            style={styles.input}
           />
         ) : showAnimatingLine ? (
           <DockWaveform
@@ -212,7 +187,7 @@ export function DockActionBar({
             onToggleListening={onToggleListening}
           />
         ) : (
-          <View style={styles.restingPill}></View>
+          <View style={styles.restingPill} />
         )}
       </View>
 
@@ -225,12 +200,8 @@ export function DockActionBar({
             onPress={onSendComment}
             style={({ pressed }) => [
               styles.sideBtn,
-              {
-                backgroundColor: commentDraft.trim()
-                  ? colors.signal
-                  : colors.surfaceMuted,
-                opacity: pressed ? 0.75 : 1,
-              },
+              commentDraft.trim() ? styles.sideBtnSignal : styles.sideBtnMuted,
+              pressed && styles.pressed,
             ]}
           >
             <Ionicons
@@ -248,12 +219,8 @@ export function DockActionBar({
             onPress={onSendMessage}
             style={({ pressed }) => [
               styles.sideBtn,
-              {
-                backgroundColor: messageDraft.trim()
-                  ? colors.signal
-                  : colors.surfaceMuted,
-                opacity: pressed ? 0.75 : 1,
-              },
+              messageDraft.trim() ? styles.sideBtnSignal : styles.sideBtnMuted,
+              pressed && styles.pressed,
             ]}
           >
             <Ionicons
@@ -271,12 +238,8 @@ export function DockActionBar({
             onPress={onCloseExpanded}
             style={({ pressed }) => [
               styles.sideBtn,
-              {
-                backgroundColor: colors.surfaceMuted,
-                borderColor: colors.line,
-                borderWidth: 1,
-                opacity: pressed ? 0.75 : 1,
-              },
+              styles.sideBtnMuted,
+              pressed && styles.pressed,
             ]}
           >
             <Ionicons name="close" size={20} color={colors.text} />
@@ -289,12 +252,8 @@ export function DockActionBar({
               onPress={onToggleSearch}
               style={({ pressed }) => [
                 styles.sideBtn,
-                {
-                  backgroundColor: colors.surfaceMuted,
-                  borderColor: colors.line,
-                  borderWidth: 1,
-                  opacity: pressed ? 0.75 : 1,
-                },
+                styles.sideBtnMuted,
+                pressed && styles.pressed,
               ]}
             >
               <Ionicons name="chevron-up" size={22} color={colors.text} />
@@ -308,20 +267,11 @@ export function DockActionBar({
               delayLongPress={320}
               style={({ pressed }) => [
                 styles.sideBtn,
-                {
-                  backgroundColor: "transparent",
-                  opacity: pressed ? 0.8 : 1,
-                },
+                styles.sideBtnTransparent,
+                pressed && styles.pressed,
               ]}
             >
-              <View
-                style={[
-                  styles.avatarButtonCircle,
-                  {
-                    backgroundColor: colors.surface,
-                  },
-                ]}
-              >
+              <View style={styles.avatarButtonCircle}>
                 <Image source={userAvatar} style={styles.dockAvatarImg} />
               </View>
             </Pressable>
@@ -333,10 +283,8 @@ export function DockActionBar({
             onPress={onToggleSearch}
             style={({ pressed }) => [
               styles.sideBtn,
-              {
-                backgroundColor: colors.signal,
-                opacity: pressed ? 0.75 : 1,
-              },
+              styles.sideBtnSignal,
+              pressed && styles.pressed,
             ]}
           >
             {activeMode === "voice" ? (
@@ -368,10 +316,8 @@ export function DockActionBar({
             onPress={onToggleSearch}
             style={({ pressed }) => [
               styles.sideBtn,
-              {
-                backgroundColor: profileMenuOpen ? colors.signal : colors.bg,
-                opacity: pressed ? 0.75 : 1,
-              },
+              profileMenuOpen ? styles.sideBtnSignal : styles.sideBtnBg,
+              pressed && styles.pressed,
             ]}
           >
             <Ionicons
@@ -389,20 +335,11 @@ export function DockActionBar({
             delayLongPress={320}
             style={({ pressed }) => [
               styles.sideBtn,
-              {
-                backgroundColor: "transparent",
-                opacity: pressed ? 0.8 : 1,
-              },
+              styles.sideBtnTransparent,
+              pressed && styles.pressed,
             ]}
           >
-            <View
-              style={[
-                styles.avatarButtonCircle,
-                {
-                  backgroundColor: colors.surface,
-                },
-              ]}
-            >
+            <View style={styles.avatarButtonCircle}>
               <Image source={userAvatar} style={styles.dockAvatarImg} />
             </View>
           </Pressable>
@@ -415,10 +352,14 @@ export function DockActionBar({
 const styles = StyleSheet.create({
   bar: {
     width: "100%",
+    height: "100%",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 8,
+  },
+  barExpanded: {
+    height: 64,
   },
   slotLeft: {
     alignItems: "center",
@@ -443,6 +384,23 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  sideBtnMuted: {
+    backgroundColor: colors.surfaceMuted,
+    borderColor: colors.line,
+    borderWidth: 1,
+  },
+  sideBtnSignal: {
+    backgroundColor: colors.signal,
+  },
+  sideBtnBg: {
+    backgroundColor: colors.bg,
+  },
+  sideBtnTransparent: {
+    backgroundColor: "transparent",
+  },
+  pressed: {
+    opacity: 0.75,
+  },
   avatarButtonCircle: {
     width: 44,
     height: 44,
@@ -451,6 +409,11 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: colors.surface,
+  },
+  avatarButtonCircleInputMode: {
+    borderWidth: 1.5,
+    borderColor: colors.signal,
   },
   dockAvatarImg: {
     width: "100%",
@@ -463,13 +426,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     fontSize: 14,
     borderWidth: 1,
+    color: colors.text,
+    backgroundColor: colors.surfaceMuted,
+    borderColor: colors.line,
   },
   input: {
     fontSize: 14,
     fontWeight: "500",
     paddingVertical: 4,
     borderBottomWidth: 1,
-    borderBottomColor: "#FF6326",
+    borderBottomColor: colors.signal,
+    color: colors.bg,
   },
   restingPill: {
     opacity: 0,

@@ -2,10 +2,12 @@ import { Stack, ThemeProvider, DarkTheme, DefaultTheme } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { OliveProvider, useOlive } from "../context/OliveProvider";
+import { colors, darkColors } from "../constants/colors";
 
 function Navigation() {
-  const { config, colors } = useOlive();
+  const { config } = useOlive();
   const baseTheme = config.dark ? DarkTheme : DefaultTheme;
+  const currentColors = config.dark ? darkColors : colors;
 
   return (
     <ThemeProvider
@@ -13,11 +15,11 @@ function Navigation() {
         ...baseTheme,
         colors: {
           ...baseTheme.colors,
-          background: colors.bg,
-          card: colors.card,
-          text: colors.text,
-          border: colors.line,
-          primary: colors.signal,
+          background: currentColors.bg,
+          card: currentColors.card,
+          text: currentColors.text,
+          border: currentColors.line,
+          primary: currentColors.signal,
         },
       }}
     >
@@ -25,7 +27,7 @@ function Navigation() {
       <Stack
         screenOptions={{
           headerShown: false,
-          contentStyle: { backgroundColor: colors.bg },
+          contentStyle: { backgroundColor: currentColors.bg },
           animation: "slide_from_right",
         }}
       >

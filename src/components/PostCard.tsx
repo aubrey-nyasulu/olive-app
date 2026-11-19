@@ -5,8 +5,8 @@ import { router } from "expo-router";
 import type { Post } from "../models";
 import { relatedPosts, REVIEWS } from "../places";
 import { useOlive } from "../context/OliveProvider";
+import { colors } from "../constants/colors";
 
-// Fixed 1:1 square media aspect ratio
 export const POST_MEDIA_ASPECT_RATIO = 1;
 
 export function PostCard({
@@ -16,15 +16,8 @@ export function PostCard({
   post: Post;
   hideAuthor?: boolean;
 }) {
-  const {
-    colors,
-    isSaved,
-    toggleSave,
-    startGuidance,
-    closeSearch,
-    openExpandedWindow,
-    reviewsMap,
-  } = useOlive();
+  const { isSaved, toggleSave, closeSearch, openExpandedWindow, reviewsMap } =
+    useOlive();
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(
     () => Math.floor(Math.abs(post.lat * 100) % 35) + 8
@@ -33,7 +26,6 @@ export function PostCard({
 
   const reviews = reviewsMap[post.id] ?? REVIEWS[post.id] ?? [];
   const latestReview = reviews.length > 0 ? reviews[0] : null;
-  const related = relatedPosts(post);
   const saved = isSaved(post.id);
 
   const openPlace = () => {
@@ -62,13 +54,9 @@ export function PostCard({
     });
   };
 
-  const handleGuide = () => {
-    startGuidance(post);
-  };
-
   return (
     <View style={styles.card}>
-      {/* Author Header (hidden on profile screen where author is already displayed) */}
+      {/* Author Header */}
       {!hideAuthor && (
         <View style={styles.headerRow}>
           <Pressable
@@ -77,25 +65,16 @@ export function PostCard({
             onPress={openAuthorProfile}
             style={styles.authorGroup}
           >
-            <View
-              style={[
-                styles.avatarCircle,
-                { backgroundColor: colors.surfaceMuted },
-              ]}
-            >
+            <View style={styles.avatarCircle}>
               {post.image ? (
                 <Image source={post.image} style={styles.avatarPhoto} />
               ) : (
-                <Text style={[styles.avatarLetter, { color: colors.text }]}>
-                  {post.author[0]}
-                </Text>
+                <Text style={styles.avatarLetter}>{post.author[0]}</Text>
               )}
             </View>
             <View style={styles.authorMeta}>
-              <Text style={[styles.authorName, { color: colors.text }]}>
-                {post.author}
-              </Text>
-              <Text style={[styles.authorSub, { color: colors.muted }]}>
+              <Text style={styles.authorName}>{post.author}</Text>
+              <Text style={styles.authorSub}>
                 {post.kind} · {post.category} · {post.distanceKm} km
               </Text>
             </View>
@@ -110,16 +89,6 @@ export function PostCard({
         style={styles.imageWrap}
       >
         <Image source={post.image} style={styles.postImage} />
-        <View
-          style={[
-            styles.whenBadge,
-            { backgroundColor: colors.badgeBg, borderColor: colors.line },
-          ]}
-        >
-          <Text style={[styles.whenBadgeText, { color: colors.badgeText }]}>
-            {post.when}
-          </Text>
-        </View>
       </Pressable>
 
       {/* 1. Tactical & Social Action Bar */}
@@ -132,7 +101,7 @@ export function PostCard({
             onPress={handleLike}
             style={({ pressed }) => [
               styles.actionItem,
-              { opacity: pressed ? 0.65 : 1 },
+              pressed && styles.pressed,
             ]}
           >
             <Ionicons
@@ -140,9 +109,7 @@ export function PostCard({
               size={22}
               color={isLiked ? "#FF3B30" : colors.text}
             />
-            <Text style={[styles.actionCount, { color: colors.text }]}>
-              {likeCount}
-            </Text>
+            <Text style={styles.actionCount}>{likeCount}</Text>
           </Pressable>
 
           {/* Comments / Reviews */}
@@ -152,14 +119,12 @@ export function PostCard({
             onPress={() => openExpandedWindow({ type: "comments", post })}
             style={({ pressed }) => [
               styles.actionItem,
-              { opacity: pressed ? 0.65 : 1 },
+              pressed && styles.pressed,
             ]}
           >
             <Ionicons name="chatbubble-outline" size={20} color={colors.text} />
             {reviews.length > 0 && (
-              <Text style={[styles.actionCount, { color: colors.text }]}>
-                {reviews.length}
-              </Text>
+              <Text style={styles.actionCount}>{reviews.length}</Text>
             )}
           </Pressable>
 
@@ -170,7 +135,7 @@ export function PostCard({
             onPress={handleShare}
             style={({ pressed }) => [
               styles.actionItem,
-              { opacity: pressed ? 0.65 : 1 },
+              pressed && styles.pressed,
             ]}
           >
             <Ionicons name="flower-outline" size={20} color={colors.text} />
@@ -184,7 +149,7 @@ export function PostCard({
           onPress={() => toggleSave(post.id)}
           style={({ pressed }) => [
             styles.actionBookmarkBtn,
-            { opacity: pressed ? 0.65 : 1 },
+            pressed && styles.pressed,
           ]}
         >
           <Ionicons
@@ -199,10 +164,7 @@ export function PostCard({
       <View style={styles.postBodySection}>
         {/* Drop Headline */}
         <Pressable onPress={openPlace} style={styles.titleWrap}>
-          <Text
-            style={[styles.postTitle, { color: colors.text }]}
-            numberOfLines={2}
-          >
+          <Text style={styles.postTitle} numberOfLines={2}>
             {post.title}
           </Text>
         </Pressable>
@@ -213,40 +175,27 @@ export function PostCard({
           style={styles.captionWrap}
         >
           <Text
-            style={[styles.captionText, { color: colors.textSecondary }]}
+            style={styles.captionText}
             numberOfLines={captionExpanded ? undefined : 2}
           >
-            <Text style={[styles.captionAuthor, { color: colors.text }]}>
-              {post.author}{" "}
-            </Text>
+            <Text style={styles.captionAuthor}>{post.author} </Text>
             {post.body}
           </Text>
           {post.body.length > 85 && !captionExpanded && (
-            <Text style={[styles.captionMore, { color: colors.muted }]}>
-              more
-            </Text>
+            <Text style={styles.captionMore}>more</Text>
           )}
         </Pressable>
 
-        {/* Hyperlocal Venue Capsule & Details Sheet Trigger */}
+        {/* Venue Capsule & Details Trigger */}
         <View style={styles.venueRow}>
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={`Location: ${post.place}`}
             onPress={openPlace}
-            style={[
-              styles.venueCapsule,
-              {
-                backgroundColor: colors.surfaceMuted,
-                borderColor: colors.line,
-              },
-            ]}
+            style={styles.venueCapsule}
           >
             <Ionicons name="location-sharp" size={12} color={colors.signal} />
-            <Text
-              numberOfLines={1}
-              style={[styles.venueCapsuleText, { color: colors.text }]}
-            >
+            <Text numberOfLines={1} style={styles.venueCapsuleText}>
               {post.place}
             </Text>
           </Pressable>
@@ -255,38 +204,23 @@ export function PostCard({
             accessibilityRole="button"
             accessibilityLabel="Open details sheet"
             onPress={() => openExpandedWindow({ type: "details", post })}
-            style={[
-              styles.detailsChip,
-              {
-                backgroundColor: colors.surfaceMuted,
-                borderColor: colors.line,
-              },
-            ]}
+            style={styles.detailsChip}
           >
-            <Text
-              style={[styles.detailsChipText, { color: colors.textSecondary }]}
-            >
-              Details
-            </Text>
+            <Text style={styles.detailsChipText}>Details</Text>
             <Ionicons name="chevron-forward" size={11} color={colors.muted} />
           </Pressable>
         </View>
 
-        {/* Community Review Highlight (Social Proof) */}
+        {/* Community Review Highlight */}
         {latestReview && (
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={`Community review from ${latestReview.by}`}
             onPress={() => openExpandedWindow({ type: "comments", post })}
-            style={[styles.reviewHighlight, { borderLeftColor: colors.signal }]}
+            style={styles.reviewHighlight}
           >
-            <Text
-              numberOfLines={1}
-              style={[styles.reviewQuote, { color: colors.muted }]}
-            >
-              <Text style={[styles.reviewAuthorPrefix, { color: colors.text }]}>
-                {latestReview.by}:{" "}
-              </Text>
+            <Text numberOfLines={1} style={styles.reviewQuote}>
+              <Text style={styles.reviewAuthorPrefix}>{latestReview.by}: </Text>
               “{latestReview.text}”
             </Text>
           </Pressable>
@@ -319,6 +253,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: colors.surfaceMuted,
   },
   avatarPhoto: {
     width: "100%",
@@ -328,6 +263,7 @@ const styles = StyleSheet.create({
   avatarLetter: {
     fontSize: 16,
     fontWeight: "700",
+    color: colors.text,
   },
   authorMeta: {
     flex: 1,
@@ -335,45 +271,31 @@ const styles = StyleSheet.create({
   authorName: {
     fontSize: 15,
     fontWeight: "700",
+    color: colors.text,
   },
   authorSub: {
     fontSize: 12.5,
     marginTop: 1,
+    color: colors.muted,
   },
-
   imageWrap: {
     width: "100%",
     aspectRatio: POST_MEDIA_ASPECT_RATIO,
-    borderRadius: 18,
+    borderRadius: 32,
     overflow: "hidden",
     position: "relative",
   },
   postImage: {
     width: "100%",
     height: "100%",
-    borderRadius: 32,
     resizeMode: "cover",
   },
-  whenBadge: {
-    position: "absolute",
-    left: 12,
-    top: 12,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 9999,
-    borderWidth: 1,
-  },
-  whenBadgeText: {
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  /* Action Bar */
   actionBar: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingTop: 12,
-    paddingBottom: 6,
+    paddingTop: 10,
+    paddingBottom: 4,
   },
   actionLeftGroup: {
     flexDirection: "row",
@@ -391,10 +313,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#E6CDBA50",
     borderColor: "#E6CDBA",
   },
-  actionCount: {
-    fontSize: 13,
-    fontWeight: "600",
-  },
   actionBookmarkBtn: {
     flexDirection: "row",
     alignItems: "center",
@@ -406,43 +324,49 @@ const styles = StyleSheet.create({
     backgroundColor: "#E6CDBA50",
     borderColor: "#E6CDBA",
   },
-
-  /* Post Content & Story Narrative */
+  actionCount: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: colors.text,
+  },
+  pressed: {
+    opacity: 0.65,
+  },
   postBodySection: {
-    gap: 7,
-    marginTop: 2,
+    paddingTop: 8,
+    gap: 4,
   },
   titleWrap: {
-    marginTop: 2,
+    paddingVertical: 1,
   },
   postTitle: {
-    fontSize: 15.5,
+    fontSize: 15,
     fontWeight: "700",
     lineHeight: 20,
-    letterSpacing: -0.2,
+    color: colors.text,
   },
   captionWrap: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    alignItems: "center",
+    paddingVertical: 1,
   },
   captionText: {
     fontSize: 13.5,
     lineHeight: 19,
+    color: colors.textSecondary,
   },
   captionAuthor: {
     fontWeight: "700",
+    color: colors.text,
   },
   captionMore: {
-    fontSize: 12.5,
-    fontWeight: "600",
-    marginLeft: 4,
+    fontSize: 13,
+    fontWeight: "500",
+    color: colors.muted,
   },
   venueRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    marginTop: 3,
+    paddingTop: 2,
   },
   venueCapsule: {
     flexDirection: "row",
@@ -453,10 +377,13 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     borderWidth: 1,
     flexShrink: 1,
+    backgroundColor: colors.surfaceMuted,
+    borderColor: colors.line,
   },
   venueCapsuleText: {
     fontSize: 12,
     fontWeight: "600",
+    color: colors.text,
   },
   detailsChip: {
     flexDirection: "row",
@@ -466,202 +393,30 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     borderRadius: 14,
     borderWidth: 1,
+    backgroundColor: colors.surfaceMuted,
+    borderColor: colors.line,
   },
   detailsChipText: {
     fontSize: 12,
     fontWeight: "600",
+    color: colors.textSecondary,
   },
   reviewHighlight: {
     borderLeftWidth: 2,
     paddingLeft: 8,
     paddingVertical: 2,
     marginTop: 3,
+    borderLeftColor: colors.signal,
   },
   reviewQuote: {
     fontSize: 12,
     fontStyle: "italic",
     lineHeight: 16,
+    color: colors.muted,
   },
   reviewAuthorPrefix: {
     fontWeight: "700",
     fontStyle: "normal",
-  },
-  modalOverlay: {
-    flex: 1,
-    justifyContent: "flex-end",
-    alignItems: "center",
-    paddingHorizontal: 8,
-    paddingBottom: 12,
-  },
-  modalBackdrop: {
-    ...StyleSheet.absoluteFill,
-  },
-  modalContainer: {
-    width: "100%",
-    height: "98%",
-    borderRadius: 32,
-    borderWidth: 2,
-    overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 16,
-    elevation: 10,
-  },
-  modalHeader: {
-    height: 48,
-    alignItems: "center",
-    justifyContent: "center",
-    position: "relative",
-  },
-  modalHandle: {
-    width: 44,
-    height: 5,
-    borderRadius: 3,
-  },
-  modalClose: {
-    position: "absolute",
-    right: 16,
-    top: 10,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    borderWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  modalTabsRow: {
-    flexDirection: "row",
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-  },
-  modalTabBtn: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 9999,
-    borderWidth: 1,
-  },
-  modalTabBtnText: {
-    fontSize: 13,
-  },
-  modalScroll: {
-    flex: 1,
-  },
-  modalScrollContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 40,
-  },
-  detailsContent: {
-    gap: 14,
-  },
-  detailTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-  },
-  detailBody: {
-    fontSize: 14.5,
-    lineHeight: 21,
-  },
-  infoGrid: {
-    borderRadius: 14,
-    borderWidth: 1,
-    padding: 14,
-    gap: 10,
-  },
-  infoRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  infoLabel: {
-    fontSize: 13,
-  },
-  infoValue: {
-    fontSize: 13,
-    fontWeight: "600",
-  },
-  guideActionBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    height: 50,
-    borderRadius: 9999,
-    marginTop: 8,
-  },
-  guideActionText: {
-    fontSize: 15,
-    fontWeight: "700",
-  },
-  reviewsContent: {
-    gap: 12,
-  },
-  reviewCard: {
-    padding: 14,
-    borderRadius: 14,
-    borderWidth: 1,
-  },
-  reviewHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    marginBottom: 8,
-  },
-  reviewAvatar: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  reviewAvatarLetter: {
-    fontSize: 12,
-    fontWeight: "700",
-  },
-  reviewAuthor: {
-    fontSize: 13.5,
-    fontWeight: "600",
-    flex: 1,
-  },
-  starsRow: {
-    flexDirection: "row",
-    gap: 2,
-  },
-  reviewText: {
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  relatedContent: {
-    gap: 10,
-  },
-  relatedRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: 14,
-    borderRadius: 14,
-    borderWidth: 1,
-  },
-  relatedMeta: {
-    flex: 1,
-    marginRight: 12,
-  },
-  relatedTitle: {
-    fontSize: 14.5,
-    fontWeight: "600",
-  },
-  relatedSub: {
-    fontSize: 12.5,
-    marginTop: 2,
-  },
-  relatedDist: {
-    fontSize: 13,
-    fontWeight: "600",
-  },
-  emptyText: {
-    fontSize: 13.5,
-    fontStyle: "italic",
-    textAlign: "center",
-    marginTop: 32,
+    color: colors.text,
   },
 });
