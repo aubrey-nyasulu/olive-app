@@ -89,7 +89,7 @@ const createStyles = (colors: ColorPalette) =>
   },
   scrollContent: {
     paddingHorizontal: 16,
-    paddingBottom: 16,
+    paddingBottom: 88,
     gap: 8,
   },
   emptyContainer: {

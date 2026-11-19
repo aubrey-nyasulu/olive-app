@@ -13,9 +13,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useThemeStyles, type ColorPalette } from "../theme";
 import { STORIES, type StoryItem } from "../stories";
+import { useOlive } from "../context/OliveProvider";
+import { getPostById } from "../places";
 
 export function StoriesBar() {
   const { styles, colors } = useThemeStyles(createStyles);
+  const { openExpandedWindow } = useOlive();
   const [activeStoryIndex, setActiveStoryIndex] = useState<number | null>(null);
   const [reactedStoryId, setReactedStoryId] = useState<string | null>(null);
 
@@ -62,7 +65,10 @@ export function StoriesBar() {
     if (activeStory.isOwner) {
       router.push("/profile");
     } else if (activeStory.targetPostId) {
-      router.push(`/p/${activeStory.targetPostId}` as any);
+      const targetPost = getPostById(activeStory.targetPostId);
+      if (targetPost) {
+        openExpandedWindow({ type: "details", post: targetPost });
+      }
     }
   };
 

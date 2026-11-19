@@ -31,7 +31,7 @@ export function PostCard({
 
   const openPlace = () => {
     closeSearch();
-    router.push(`/p/${post.id}`);
+    openExpandedWindow({ type: "details", post });
   };
 
   const openAuthorProfile = () => {

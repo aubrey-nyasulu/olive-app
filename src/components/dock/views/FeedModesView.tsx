@@ -122,6 +122,7 @@ const createStyles = (colors: ColorPalette) =>
     gap: 8,
     paddingHorizontal: 16,
     paddingTop: 8,
+    paddingBottom: 88,
   },
   card: {
     flexDirection: "row",

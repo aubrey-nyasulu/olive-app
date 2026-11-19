@@ -31,7 +31,6 @@ function Navigation() {
       >
         <Stack.Screen name="index" />
         <Stack.Screen name="profile" />
-        <Stack.Screen name="p/[id]" />
       </Stack>
     </ThemeProvider>
   );

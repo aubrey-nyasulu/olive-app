@@ -6,8 +6,8 @@ import {
   View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
 import { CATEGORIES, POSTS } from "../places";
+import { useOlive } from "../context/OliveProvider";
 import { useThemeStyles, type ColorPalette } from "../theme";
 
 export function TypeSearch({
@@ -20,6 +20,7 @@ export function TypeSearch({
   onClose: () => void;
 }) {
   const { styles, colors } = useThemeStyles(createStyles);
+  const { openExpandedWindow } = useOlive();
   const q = query.trim().toLowerCase();
 
   const results = q
@@ -45,7 +46,7 @@ export function TypeSearch({
                 key={item.id}
                 onPress={() => {
                   onClose();
-                  router.push(`/p/${item.id}`);
+                  openExpandedWindow({ type: "details", post: item });
                 }}
                 style={({ pressed }) => [
                   styles.resultRow,

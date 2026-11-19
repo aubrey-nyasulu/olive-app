@@ -202,7 +202,7 @@ const createStyles = (colors: ColorPalette) =>
   content: {
     paddingHorizontal: 16,
     paddingTop: 8,
-    paddingBottom: 20,
+    paddingBottom: 88,
     gap: 12,
   },
   profileCard: {

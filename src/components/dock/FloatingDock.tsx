@@ -13,6 +13,8 @@ import {
   View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { BlurView } from "expo-blur";
+import { LinearGradient } from "expo-linear-gradient";
 import { router, usePathname } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
@@ -21,7 +23,7 @@ import {
   type FeedMode,
 } from "../../context/OliveProvider";
 import { useThemeStyles, type ColorPalette } from "../../theme";
-import { POSTS } from "../../places";
+import { POSTS, getPostById } from "../../places";
 import type { UserProfile } from "../../profiles";
 import { DockActionBar } from "./DockActionBar";
 import { CommentsView } from "./views/CommentsView";
@@ -69,7 +71,7 @@ export function FloatingDock({
   setProfileMenuOpen,
   showToast,
 }: FloatingDockProps) {
-  const { styles, colors } = useThemeStyles(createStyles);
+  const { styles, colors, isDark } = useThemeStyles(createStyles);
   const {
     savedIds,
     toggleSave,
@@ -172,12 +174,17 @@ export function FloatingDock({
     return () => subs.forEach((s) => s.remove());
   }, [keyboardShiftAnim, normalDockBottom]);
 
+  const [renderedWindow, setRenderedWindow] =
+    useState<ExpandedWindow>(expandedWindow);
+
   // Height bounds
+  const isDetailsWindow =
+    (renderedWindow ?? expandedWindow)?.type === "details";
   const expandedMaxHeight = Math.min(
     keyboardHeight > 0
       ? screenHeight - keyboardHeight - insets.top - 40
-      : screenHeight * 0.72,
-    520
+      : screenHeight * (isDetailsWindow ? 0.78 : 0.72),
+    isDetailsWindow ? 580 : 520
   );
   const maxDockHeight = Math.max(280, expandedMaxHeight);
   const maxCollapseDelta = maxDockHeight - 64;
@@ -224,9 +231,6 @@ export function FloatingDock({
     })
   ).current;
 
-  const [renderedWindow, setRenderedWindow] =
-    useState<ExpandedWindow>(expandedWindow);
-
   // Spring animation when expanded & keep content mounted until collapse finishes
   useEffect(() => {
     if (isExpanded) {
@@ -272,6 +276,24 @@ export function FloatingDock({
   const contentOpacity = dockExpandedAnim.interpolate({
     inputRange: [0, 0.4, 1],
     outputRange: [0, 0, 1],
+    extrapolate: "clamp",
+  });
+
+  const contentTranslateY = dockExpandedAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [24, 0],
+    extrapolate: "clamp",
+  });
+
+  const handleOpacity = dockExpandedAnim.interpolate({
+    inputRange: [0, 0.35, 0.8],
+    outputRange: [0, 0, 1],
+    extrapolate: "clamp",
+  });
+
+  const glassOpacity = dockExpandedAnim.interpolate({
+    inputRange: [0, 0.25, 1],
+    outputRange: [0, 0.85, 1],
     extrapolate: "clamp",
   });
 
@@ -436,9 +458,7 @@ export function FloatingDock({
                   { opacity: pressed ? 0.8 : 1 },
                 ]}
               >
-                <Text style={styles.modeLabel}>
-                  {label}
-                </Text>
+                <Text style={styles.modeLabel}>{label}</Text>
                 <View style={styles.modeCircle}>
                   <Ionicons name={icon} size={18} color={colors.bg} />
                 </View>
@@ -461,17 +481,23 @@ export function FloatingDock({
         {/* Expanded Window View */}
         {renderedWindow !== null && (
           <Animated.View
-            style={[styles.expandedWrap, { opacity: contentOpacity }]}
+            style={[
+              styles.expandedWrap,
+              {
+                opacity: contentOpacity,
+                transform: [{ translateY: contentTranslateY }],
+              },
+            ]}
           >
             {/* Top Drag Handle (Functional Drag down to close) */}
-            <View
+            <Animated.View
               {...panResponder.panHandlers}
-              style={styles.handleRow}
+              style={[styles.handleRow, { opacity: handleOpacity }]}
               accessibilityRole="adjustable"
               accessibilityLabel="Drag down to close menu"
             >
               <View style={styles.handleBar} />
-            </View>
+            </Animated.View>
 
             {/* Content view based on active window */}
             {renderedWindow.type === "comments" && (
@@ -489,6 +515,24 @@ export function FloatingDock({
                   closeExpandedWindow();
                   startGuidance(p);
                 }}
+                onSelectPlace={(other) => {
+                  openExpandedWindow({ type: "details", post: other });
+                }}
+                onOpenProfile={() => {
+                  const p = renderedWindow.post;
+                  closeExpandedWindow();
+                  router.push({
+                    pathname: "/profile",
+                    params: { author: p.author, id: p.id },
+                  });
+                }}
+                onOpenReviews={() => {
+                  openExpandedWindow({
+                    type: "comments",
+                    post: renderedWindow.post,
+                  });
+                }}
+                showToast={showToast}
               />
             )}
 
@@ -496,8 +540,10 @@ export function FloatingDock({
               <RelatedView
                 post={renderedWindow.post}
                 onSelectPlace={(id) => {
-                  closeExpandedWindow();
-                  router.push(`/p/${id}`);
+                  const p = getPostById(id);
+                  if (p) {
+                    openExpandedWindow({ type: "details", post: p });
+                  }
                 }}
               />
             )}
@@ -506,8 +552,10 @@ export function FloatingDock({
               <SavedView
                 savedPosts={savedPosts}
                 onSelectPlace={(id) => {
-                  closeExpandedWindow();
-                  router.push(`/p/${id}`);
+                  const p = getPostById(id);
+                  if (p) {
+                    openExpandedWindow({ type: "details", post: p });
+                  }
                 }}
                 onRemove={(id) => toggleSave(id)}
               />
@@ -575,44 +623,93 @@ export function FloatingDock({
           </Animated.View>
         )}
 
-        {/* Action Bar (Contextual when expanded, standard when collapsed) */}
-        <DockActionBar
-          isExpanded={isExpanded}
-          expandedWindow={expandedWindow}
-          showAnimatingLine={showAnimatingLine}
-          onFeed={onFeed}
-          onProfile={onProfile}
-          panelOpen={panelOpen}
-          searchOpen={searchOpen}
-          profileMenuOpen={profileMenuOpen}
-          isListening={isListening}
-          isOtherUser={isOtherUser}
-          commentDraft={commentDraft}
-          setCommentDraft={setCommentDraft}
-          messageDraft={messageDraft}
-          setMessageDraft={setMessageDraft}
-          savedCount={savedPosts.length}
-          onSendComment={handleSendComment}
-          onSendMessage={handleSendMessage}
-          onCloseExpanded={closeExpandedWindow}
-          onToggleSearch={handleRightPress}
-          onRightLongPress={() => {
-            if (onFeed && !panelOpen) {
-              openExpandedWindow({ type: "search_options" });
-            }
-          }}
-          onLeftPill={handleLeftPill}
-          onLeftLongPress={() => {
-            if (onFeed && !panelOpen && !searchOpen) {
-              openExpandedWindow({ type: "feed_modes" });
-            }
-          }}
-          onToggleListening={() => setIsListening((l) => !l)}
-          onDoneExpanded={() => {
-            closeExpandedWindow();
-            showToast("Saved");
-          }}
-        />
+        {/* Fixed Bottom Glassmorphism Action Bar Container */}
+        <View style={styles.fixedBottomWrap} pointerEvents="box-none">
+          {/* Glassmorphism Background Layer */}
+          <Animated.View
+            style={[styles.glassContainer, { opacity: glassOpacity }]}
+            pointerEvents="none"
+          >
+            {/* Top Soft Fade Gradient Scrim */}
+            <LinearGradient
+              colors={
+                isDark
+                  ? [
+                      "rgba(20, 19, 18, 0)",
+                      "rgba(20, 19, 18, 0.65)",
+                      "rgba(20, 19, 18, 0.92)",
+                    ]
+                  : [
+                      "rgba(255, 255, 255, 0)",
+                      "rgba(255, 255, 255, 0.65)",
+                      "rgba(255, 255, 255, 0.92)",
+                    ]
+              }
+              locations={[0, 0.45, 1]}
+              style={styles.glassScrimGradient}
+            />
+
+            {/* Frosted Glass Pane with BlurView and Tint */}
+            <View style={styles.glassFrostedPane}>
+              <BlurView
+                intensity={Platform.OS === "ios" ? 54 : 74}
+                tint={isDark ? "dark" : "light"}
+                style={StyleSheet.absoluteFill}
+              />
+              <View
+                style={[
+                  StyleSheet.absoluteFill,
+                  styles.glassTintOverlay,
+                  isDark ? styles.glassTintDark : styles.glassTintLight,
+                ]}
+              />
+            </View>
+
+            {/* Subtle Frosted Top Hairline */}
+            <View style={styles.glassTopBorder} />
+          </Animated.View>
+
+          {/* Action Bar (Contextual when expanded, standard when collapsed) */}
+          <DockActionBar
+            expandProgress={dockExpandedAnim}
+            renderedWindow={renderedWindow}
+            isExpanded={isExpanded}
+            expandedWindow={expandedWindow}
+            showAnimatingLine={showAnimatingLine}
+            onFeed={onFeed}
+            onProfile={onProfile}
+            panelOpen={panelOpen}
+            searchOpen={searchOpen}
+            profileMenuOpen={profileMenuOpen}
+            isListening={isListening}
+            isOtherUser={isOtherUser}
+            commentDraft={commentDraft}
+            setCommentDraft={setCommentDraft}
+            messageDraft={messageDraft}
+            setMessageDraft={setMessageDraft}
+            savedCount={savedPosts.length}
+            onSendComment={handleSendComment}
+            onSendMessage={handleSendMessage}
+            onCloseExpanded={closeExpandedWindow}
+            onToggleSearch={handleRightPress}
+            onRightLongPress={() => {
+              if (onFeed && !panelOpen) {
+                openExpandedWindow({ type: "search_options" });
+              }
+            }}
+            onLeftPill={handleLeftPill}
+            onLeftLongPress={() => {
+              if (onFeed && !panelOpen && !searchOpen) {
+                openExpandedWindow({ type: "feed_modes" });
+              }
+            }}
+            onToggleListening={() => setIsListening((l) => !l)}
+            onDoneExpanded={() => {
+              closeExpandedWindow();
+              showToast("Saved");
+            }}
+          />
+        </View>
       </Animated.View>
     </Animated.View>
   );
@@ -621,72 +718,131 @@ export function FloatingDock({
 const createStyles = (colors: ColorPalette) =>
   StyleSheet.create({
     dockWrap: {
-    position: "absolute",
-    left: 16,
-    right: 16,
-    alignItems: "center",
-    zIndex: 50,
-  },
-  dockCard: {
-    width: "100%",
-    maxWidth: 420,
-    borderRadius: 32,
-    borderWidth: 1,
-    shadowColor: colors.overlay,
-    overflow: "hidden",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.32,
-    shadowRadius: 24,
-    elevation: 12,
-    justifyContent: "flex-end",
-  },
-  expandedWrap: {
-    flex: 1,
-    overflow: "hidden",
-  },
-  handleRow: {
-    height: 32,
-    width: "100%",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingTop: 8,
-    paddingBottom: 8,
-  },
-  handleBar: {
-    width: 44,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: colors.line,
-  },
-  modesPopup: {
-    marginBottom: 16,
-    alignItems: "flex-end",
-    gap: 12,
-    alignSelf: "flex-end",
-    paddingRight: 8,
-  },
-  modeOptionRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  modeLabel: {
-    fontSize: 14,
-    fontWeight: "700",
-    letterSpacing: 0.2,
-    color: colors.text,
-  },
-  modeCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.text,
-    shadowColor: colors.text,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.18,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-});
+      position: "absolute",
+      left: 16,
+      right: 16,
+      alignItems: "center",
+      zIndex: 50,
+    },
+    dockCard: {
+      width: "100%",
+      maxWidth: 420,
+      borderRadius: 32,
+      borderWidth: 1,
+      shadowColor: colors.overlay,
+      overflow: "hidden",
+      shadowOffset: { width: 0, height: 10 },
+      shadowOpacity: 0.32,
+      shadowRadius: 24,
+      elevation: 12,
+      justifyContent: "flex-end",
+    },
+    expandedWrap: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      overflow: "hidden",
+    },
+    fixedBottomWrap: {
+      position: "absolute",
+      bottom: 0,
+      left: 0,
+      right: 0,
+      height: 64,
+      zIndex: 20,
+      justifyContent: "flex-end",
+    },
+    glassContainer: {
+      position: "absolute",
+      left: 0,
+      right: 0,
+      bottom: 0,
+      height: 88,
+      overflow: "hidden",
+    },
+    glassScrimGradient: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      height: 24,
+    },
+    glassFrostedPane: {
+      position: "absolute",
+      bottom: 0,
+      left: 0,
+      right: 0,
+      height: 64,
+      overflow: "hidden",
+    },
+    glassTintOverlay: {
+      ...(Platform.OS === "web"
+        ? ({
+            backdropFilter: "blur(16px)",
+            WebkitBackdropFilter: "blur(16px)",
+          } as any)
+        : {}),
+    },
+    glassTintLight: {
+      backgroundColor: "rgba(255, 255, 255, 0.72)",
+    },
+    glassTintDark: {
+      backgroundColor: "rgba(20, 19, 18, 0.76)",
+    },
+    glassTopBorder: {
+      position: "absolute",
+      top: 24,
+      left: 0,
+      right: 0,
+      height: 1,
+      backgroundColor: colors.line,
+      opacity: 0.5,
+    },
+    handleRow: {
+      height: 32,
+      width: "100%",
+      alignItems: "center",
+      justifyContent: "center",
+      paddingTop: 8,
+      paddingBottom: 8,
+    },
+    handleBar: {
+      width: 44,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: colors.line,
+    },
+    modesPopup: {
+      marginBottom: 16,
+      alignItems: "flex-end",
+      gap: 12,
+      alignSelf: "flex-end",
+      paddingRight: 8,
+    },
+    modeOptionRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+    },
+    modeLabel: {
+      fontSize: 14,
+      fontWeight: "700",
+      letterSpacing: 0.2,
+      color: colors.text,
+    },
+    modeCircle: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.text,
+      shadowColor: colors.text,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.18,
+      shadowRadius: 8,
+      elevation: 5,
+    },
+  });

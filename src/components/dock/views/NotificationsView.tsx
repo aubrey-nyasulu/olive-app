@@ -7,7 +7,7 @@ import {
   View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { useOlive } from "../../../context/OliveProvider";
 import { useThemeStyles, type ColorPalette } from "../../../theme";
 import { POSTS } from "../../../places";
 
@@ -78,6 +78,7 @@ export function NotificationsView({
   showToast,
 }: NotificationsViewProps) {
   const { styles, colors } = useThemeStyles(createStyles);
+  const { openExpandedWindow } = useOlive();
   const [items, setItems] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS);
 
   const unreadCount = items.filter((n) => n.unread).length;
@@ -95,8 +96,7 @@ export function NotificationsView({
     if (item.postId) {
       const targetPost = POSTS.find((p) => p.id === item.postId);
       if (targetPost) {
-        onClose();
-        router.push(`/p/${targetPost.id}`);
+        openExpandedWindow({ type: "details", post: targetPost });
       }
     }
   };
@@ -236,7 +236,7 @@ const createStyles = (colors: ColorPalette) =>
   },
   listContent: {
     gap: 8,
-    paddingBottom: 20,
+    paddingBottom: 88,
   },
   itemRow: {
     flexDirection: "row",
