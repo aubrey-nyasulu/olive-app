@@ -181,8 +181,8 @@ export function FloatingDock({
   const maxDockHeight = Math.max(280, expandedMaxHeight);
   const maxCollapseDelta = maxDockHeight - 64;
 
-  // Drag-to-collapse height delta
-  const dragHeightDelta = useRef(new Animated.Value(0)).current;
+  const maxCollapseDeltaRef = useRef(maxCollapseDelta);
+  maxCollapseDeltaRef.current = maxCollapseDelta;
 
   const panResponder = useRef(
     PanResponder.create({
@@ -191,27 +191,31 @@ export function FloatingDock({
         return gestureState.dy > 2;
       },
       onPanResponderMove: (_, gestureState) => {
-        if (gestureState.dy > 0) {
-          dragHeightDelta.setValue(Math.min(maxCollapseDelta, gestureState.dy));
-        }
+        const collapseDelta = maxCollapseDeltaRef.current;
+        const dy = Math.max(0, gestureState.dy);
+        const progress = Math.max(0, Math.min(1, 1 - dy / collapseDelta));
+        dockExpandedAnim.setValue(progress);
       },
       onPanResponderRelease: (_, gestureState) => {
         if (gestureState.dy > 65 || gestureState.vy > 0.45) {
-          // Collapse height down to 64 smoothly, then close
-          Animated.timing(dragHeightDelta, {
-            toValue: maxCollapseDelta,
-            duration: 160,
-            useNativeDriver: false,
-          }).start(() => {
-            dragHeightDelta.setValue(0);
-            closeExpandedWindow();
-          });
+          closeExpandedWindow();
         } else {
-          // Spring height back up to full expanded height
-          Animated.spring(dragHeightDelta, {
-            toValue: 0,
-            friction: 8,
-            tension: 80,
+          Animated.spring(dockExpandedAnim, {
+            toValue: 1,
+            friction: 9,
+            tension: 70,
+            useNativeDriver: false,
+          }).start();
+        }
+      },
+      onPanResponderTerminate: (_, gestureState) => {
+        if (gestureState.dy > 65 || gestureState.vy > 0.45) {
+          closeExpandedWindow();
+        } else {
+          Animated.spring(dockExpandedAnim, {
+            toValue: 1,
+            friction: 9,
+            tension: 70,
             useNativeDriver: false,
           }).start();
         }
@@ -221,12 +225,6 @@ export function FloatingDock({
 
   const [renderedWindow, setRenderedWindow] =
     useState<ExpandedWindow>(expandedWindow);
-
-  useEffect(() => {
-    if (!isExpanded) {
-      dragHeightDelta.setValue(0);
-    }
-  }, [isExpanded, dragHeightDelta]);
 
   // Spring animation when expanded & keep content mounted until collapse finishes
   useEffect(() => {
@@ -255,39 +253,26 @@ export function FloatingDock({
   const dockHeight = dockExpandedAnim.interpolate({
     inputRange: [0, 1],
     outputRange: [64, maxDockHeight],
-  });
-
-  const clampedDrag = dragHeightDelta.interpolate({
-    inputRange: [0, maxCollapseDelta],
-    outputRange: [0, maxCollapseDelta],
     extrapolate: "clamp",
   });
-
-  // Height directly collapses relative to the dragged line; menu bottom stays pinned
-  const effectiveDockHeight = Animated.subtract(dockHeight, clampedDrag);
 
   const dockBg = dockExpandedAnim.interpolate({
     inputRange: [0, 1],
     outputRange: [colors.text, colors.surface],
+    extrapolate: "clamp",
   });
 
   const dockBorderColor = dockExpandedAnim.interpolate({
     inputRange: [0, 0.2, 1],
     outputRange: ["rgba(0,0,0,0)", colors.line, colors.line],
+    extrapolate: "clamp",
   });
 
   const contentOpacity = dockExpandedAnim.interpolate({
     inputRange: [0, 0.4, 1],
     outputRange: [0, 0, 1],
-  });
-
-  const dragFade = dragHeightDelta.interpolate({
-    inputRange: [0, 160],
-    outputRange: [1, 0.1],
     extrapolate: "clamp",
   });
-
-  const effectiveOpacity = Animated.multiply(contentOpacity, dragFade);
 
   const savedPosts = useMemo(
     () => POSTS.filter((p) => savedIds.includes(p.id)),
@@ -334,6 +319,14 @@ export function FloatingDock({
       closeSearch();
       return;
     }
+    if (expandedWindow?.type === "search_options") {
+      closeExpandedWindow();
+      return;
+    }
+    if (isExpanded) {
+      openExpandedWindow({ type: "search_options" });
+      return;
+    }
     if (onProfile) {
       if (router.canGoBack()) {
         router.back();
@@ -343,11 +336,7 @@ export function FloatingDock({
       return;
     }
     // On feed: left button shows search icon; clicking it shows search options
-    if (expandedWindow?.type === "search_options") {
-      closeExpandedWindow();
-    } else {
-      openExpandedWindow({ type: "search_options" });
-    }
+    openExpandedWindow({ type: "search_options" });
   };
 
   const handleRightPress = () => {
@@ -363,9 +352,13 @@ export function FloatingDock({
     // Right button shows profile image; clicking it expands dock to show user options
     if (expandedWindow?.type === "user_menu") {
       closeExpandedWindow();
-    } else {
-      openExpandedWindow({ type: "user_menu" });
+      return;
     }
+    if (isExpanded) {
+      openExpandedWindow({ type: "user_menu" });
+      return;
+    }
+    openExpandedWindow({ type: "user_menu" });
   };
 
   return (
@@ -463,7 +456,7 @@ export function FloatingDock({
         style={[
           styles.dockCard,
           {
-            height: effectiveDockHeight,
+            height: dockHeight,
             backgroundColor: dockBg,
             borderColor: dockBorderColor,
             borderWidth: 1.5,
@@ -474,7 +467,7 @@ export function FloatingDock({
         {/* Expanded Window View */}
         {renderedWindow !== null && (
           <Animated.View
-            style={[styles.expandedWrap, { opacity: effectiveOpacity }]}
+            style={[styles.expandedWrap, { opacity: contentOpacity }]}
           >
             {/* Top Drag Handle (Functional Drag down to close) */}
             <View

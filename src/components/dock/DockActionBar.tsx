@@ -2,7 +2,6 @@ import {
   Image,
   Pressable,
   StyleSheet,
-  Text,
   TextInput,
   View,
 } from "react-native";
@@ -28,7 +27,7 @@ interface DockActionBarProps {
   setCommentDraft: (text: string) => void;
   messageDraft: string;
   setMessageDraft: (text: string) => void;
-  savedCount: number;
+  savedCount?: number;
   onSendComment: () => void;
   onSendMessage: () => void;
   onCloseExpanded: () => void;
@@ -37,38 +36,8 @@ interface DockActionBarProps {
   onLeftPill: () => void;
   onLeftLongPress: () => void;
   onToggleListening: () => void;
-  onDoneExpanded: () => void;
+  onDoneExpanded?: () => void;
 }
-
-const getMenuTitleInfo = (
-  type?: string
-): {
-  title: string;
-  icon: React.ComponentProps<typeof Ionicons>["name"];
-} => {
-  switch (type) {
-    case "search_options":
-      return { title: "Search and Stream controls", icon: "radio" };
-    case "user_menu":
-      return { title: "Account and Options", icon: "person-circle" };
-    case "feed_modes":
-      return { title: "Feed Filter", icon: "filter" };
-    case "profile_saved":
-      return { title: "Saved Places", icon: "bookmark" };
-    case "profile_settings":
-      return { title: "Preferences", icon: "options" };
-    case "details":
-      return { title: "Place Details", icon: "location" };
-    case "related":
-      return { title: "Similar Nearby", icon: "compass" };
-    case "report":
-      return { title: "Report Account", icon: "flag" };
-    case "notifications":
-      return { title: "Notifications", icon: "notifications" };
-    default:
-      return { title: "Menu", icon: "sparkles" };
-  }
-};
 
 export function DockActionBar({
   isExpanded,
@@ -100,8 +69,6 @@ export function DockActionBar({
   const isMessage = expandedWindow?.type === "message";
   const isInputMode = isComments || isMessage;
 
-  const menuInfo = getMenuTitleInfo(expandedWindow?.type);
-
   return (
     <View style={[styles.bar, { height: isExpanded ? 64 : "100%" }]}>
       {/* LEFT BUTTON SLOT */}
@@ -115,6 +82,23 @@ export function DockActionBar({
           >
             <Image source={userAvatar} style={styles.dockAvatarImg} />
           </View>
+        ) : expandedWindow?.type === "user_menu" ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Search and stream controls"
+            onPress={onLeftPill}
+            style={({ pressed }) => [
+              styles.sideBtn,
+              {
+                backgroundColor: colors.surfaceMuted,
+                borderColor: colors.line,
+                borderWidth: 1,
+                opacity: pressed ? 0.75 : 1,
+              },
+            ]}
+          >
+            <Ionicons name="search" size={20} color={colors.text} />
+          </Pressable>
         ) : isExpanded ? (
           <Pressable
             accessibilityRole="button"
@@ -206,7 +190,7 @@ export function DockActionBar({
             ]}
           />
         ) : isExpanded ? (
-          // Middle text element removed for menus; empty flexible spacer
+          // In expanded menus, center is an empty spacer
           <View style={styles.centerSpacer} />
         ) : activeMode === "type" ? (
           <TextInput
@@ -286,29 +270,68 @@ export function DockActionBar({
               }
             />
           </Pressable>
-        ) : isExpanded ? (
-          // Menu title pill replacing checkmark button
+        ) : expandedWindow?.type === "user_menu" ? (
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={menuInfo.title}
+            accessibilityLabel="Close menu"
             onPress={onCloseExpanded}
             style={({ pressed }) => [
-              styles.menuTitlePill,
+              styles.sideBtn,
               {
                 backgroundColor: colors.surfaceMuted,
                 borderColor: colors.line,
-                opacity: pressed ? 0.8 : 1,
+                borderWidth: 1,
+                opacity: pressed ? 0.75 : 1,
               },
             ]}
           >
-            <Ionicons name={menuInfo.icon} size={15} color={colors.signal} />
-            <Text
-              numberOfLines={1}
-              style={[styles.menuTitleText, { color: colors.text }]}
-            >
-              {menuInfo.title}
-            </Text>
+            <Ionicons name="close" size={20} color={colors.text} />
           </Pressable>
+        ) : isExpanded ? (
+          onProfile && isOtherUser ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Profile options"
+              onPress={onToggleSearch}
+              style={({ pressed }) => [
+                styles.sideBtn,
+                {
+                  backgroundColor: colors.surfaceMuted,
+                  borderColor: colors.line,
+                  borderWidth: 1,
+                  opacity: pressed ? 0.75 : 1,
+                },
+              ]}
+            >
+              <Ionicons name="chevron-up" size={22} color={colors.text} />
+            </Pressable>
+          ) : (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Account and options"
+              onPress={onToggleSearch}
+              onLongPress={onRightLongPress}
+              delayLongPress={320}
+              style={({ pressed }) => [
+                styles.sideBtn,
+                {
+                  backgroundColor: "transparent",
+                  opacity: pressed ? 0.8 : 1,
+                },
+              ]}
+            >
+              <View
+                style={[
+                  styles.avatarButtonCircle,
+                  {
+                    backgroundColor: colors.surface,
+                  },
+                ]}
+              >
+                <Image source={userAvatar} style={styles.dockAvatarImg} />
+              </View>
+            </Pressable>
+          )
         ) : panelOpen ? (
           <Pressable
             accessibilityRole="button"
@@ -343,7 +366,6 @@ export function DockActionBar({
             )}
           </Pressable>
         ) : onProfile && isOtherUser ? (
-          // Visiting another user's profile: show caret for other user profile options
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={
@@ -365,7 +387,6 @@ export function DockActionBar({
             />
           </Pressable>
         ) : (
-          // Collapsed resting profile avatar (feed or own profile)
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Account and options"
@@ -441,21 +462,6 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     resizeMode: "cover",
-  },
-  menuTitlePill: {
-    height: 42,
-    borderRadius: 21,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 7,
-    paddingHorizontal: 15,
-    borderWidth: 1,
-    maxWidth: 240,
-  },
-  menuTitleText: {
-    fontSize: 13,
-    fontWeight: "700",
-    letterSpacing: 0.1,
   },
   expandedInput: {
     height: 44,
