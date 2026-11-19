@@ -1,10 +1,4 @@
-import {
-  Image,
-  Pressable,
-  StyleSheet,
-  TextInput,
-  View,
-} from "react-native";
+import { Image, Pressable, StyleSheet, TextInput, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import type { ExpandedWindow } from "../../context/OliveProvider";
 import { useOlive } from "../../context/OliveProvider";
@@ -71,11 +65,16 @@ export function DockActionBar({
   const isInputMode = isComments || isMessage;
 
   return (
-    <View style={[styles.bar, isExpanded && styles.barExpanded]}>
+    <View style={styles.bar}>
       {/* LEFT BUTTON SLOT */}
       <View style={styles.slotLeft}>
         {isInputMode ? (
-          <View style={[styles.avatarButtonCircle, styles.avatarButtonCircleInputMode]}>
+          <View
+            style={[
+              styles.avatarButtonCircle,
+              styles.avatarButtonCircleInputMode,
+            ]}
+          >
             <Image source={userAvatar} style={styles.dockAvatarImg} />
           </View>
         ) : expandedWindow?.type === "user_menu" ? (
@@ -353,103 +352,100 @@ export function DockActionBar({
 const createStyles = (colors: ColorPalette) =>
   StyleSheet.create({
     bar: {
-    width: "100%",
-    height: "100%",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 8,
-  },
-  barExpanded: {
-    height: 64,
-  },
-  slotLeft: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  slotCenter: {
-    flex: 1,
-    paddingHorizontal: 8,
-    justifyContent: "center",
-  },
-  slotRight: {
-    alignItems: "flex-end",
-    justifyContent: "center",
-  },
-  centerSpacer: {
-    flex: 1,
-  },
-  sideBtn: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  sideBtnMuted: {
-    backgroundColor: colors.surfaceMuted,
-    borderColor: colors.line,
-    borderWidth: 1,
-  },
-  sideBtnSignal: {
-    backgroundColor: colors.signal,
-  },
-  sideBtnBg: {
-    backgroundColor: colors.bg,
-  },
-  sideBtnTransparent: {
-    backgroundColor: "transparent",
-  },
-  pressed: {
-    opacity: 0.75,
-  },
-  avatarButtonCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    borderWidth: 0,
-    overflow: "hidden",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.surface,
-  },
-  avatarButtonCircleInputMode: {
-    borderWidth: 2,
-    borderColor: colors.signal,
-  },
-  dockAvatarImg: {
-    width: "100%",
-    height: "100%",
-    resizeMode: "cover",
-  },
-  expandedInput: {
-    height: 44,
-    borderRadius: 22,
-    paddingHorizontal: 16,
-    fontSize: 14,
-    borderWidth: 1,
-    color: colors.text,
-    backgroundColor: colors.surfaceMuted,
-    borderColor: colors.line,
-  },
-  input: {
-    fontSize: 14,
-    fontWeight: "500",
-    paddingVertical: 4,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.signal,
-    color: colors.bg,
-  },
-  restingPill: {
-    opacity: 0,
-    width: "100%",
-    height: 20,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    borderRadius: 16,
-    backgroundColor: "rgba(255, 255, 255, 0.12)",
-    alignSelf: "center",
-  },
-});
+      width: "100%",
+      height: 64,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: 8,
+    },
+    slotLeft: {
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    slotCenter: {
+      flex: 1,
+      paddingHorizontal: 8,
+      justifyContent: "center",
+    },
+    slotRight: {
+      alignItems: "flex-end",
+      justifyContent: "center",
+    },
+    centerSpacer: {
+      flex: 1,
+    },
+    sideBtn: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    sideBtnMuted: {
+      backgroundColor: colors.surfaceMuted,
+      borderColor: colors.line,
+      borderWidth: 1,
+    },
+    sideBtnSignal: {
+      backgroundColor: colors.signal,
+    },
+    sideBtnBg: {
+      backgroundColor: colors.bg,
+    },
+    sideBtnTransparent: {
+      backgroundColor: "transparent",
+    },
+    pressed: {
+      opacity: 0.75,
+    },
+    avatarButtonCircle: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      borderWidth: 0,
+      overflow: "hidden",
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.surface,
+    },
+    avatarButtonCircleInputMode: {
+      borderWidth: 2,
+      borderColor: colors.signal,
+    },
+    dockAvatarImg: {
+      width: "100%",
+      height: "100%",
+      resizeMode: "cover",
+    },
+    expandedInput: {
+      height: 44,
+      borderRadius: 22,
+      paddingHorizontal: 16,
+      fontSize: 14,
+      borderWidth: 1,
+      color: colors.text,
+      backgroundColor: colors.surfaceMuted,
+      borderColor: colors.line,
+    },
+    input: {
+      fontSize: 14,
+      fontWeight: "500",
+      paddingVertical: 4,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.signal,
+      color: colors.bg,
+    },
+    restingPill: {
+      opacity: 0,
+      width: "100%",
+      height: 20,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+      borderRadius: 16,
+      backgroundColor: "rgba(255, 255, 255, 0.12)",
+      alignSelf: "center",
+    },
+  });
