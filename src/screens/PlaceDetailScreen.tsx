@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
     paddingBottom: 48,
   },
   metaText: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: "600",
     color: colors.muted,
   },
@@ -191,8 +191,8 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   bodyDescription: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 16,
+    lineHeight: 24,
     marginTop: 8,
     color: colors.textSecondary,
   },
@@ -202,17 +202,17 @@ const styles = StyleSheet.create({
   },
   mapContainer: {
     marginTop: 20,
-    borderRadius: 18,
+    borderRadius: 16,
     overflow: "hidden",
   },
   placeRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    gap: 8,
     marginTop: 12,
   },
   placeText: {
-    fontSize: 13.5,
+    fontSize: 14,
     color: colors.muted,
   },
   guideBtn: {
@@ -241,10 +241,10 @@ const styles = StyleSheet.create({
     marginTop: 32,
   },
   nearbyHeader: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: "700",
     letterSpacing: 0.2,
-    marginBottom: 10,
+    marginBottom: 8,
     color: colors.muted,
   },
   nearbyCard: {
@@ -259,7 +259,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingVertical: 12,
   },
   nearbyRowBorder: {
     borderBottomWidth: 1,
@@ -273,22 +273,22 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   nearbyAuthor: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: "700",
     color: colors.text,
   },
   nearbyTitle: {
-    fontSize: 12.5,
+    fontSize: 12,
     marginTop: 2,
     color: colors.muted,
   },
   nearbyRight: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    gap: 8,
   },
   nearbyDist: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: "600",
     color: colors.signal,
   },

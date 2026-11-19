@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    paddingHorizontal: 18,
+    paddingHorizontal: 16,
     paddingBottom: 8,
   },
   title: {
@@ -113,20 +113,20 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 12,
-    marginTop: 1,
+    marginTop: 2,
     color: colors.muted,
   },
   optionsWrap: {
-    gap: 10,
+    gap: 8,
     paddingHorizontal: 16,
-    paddingTop: 6,
+    paddingTop: 8,
   },
   card: {
     flexDirection: "row",
     alignItems: "center",
     padding: 8,
     borderRadius: 32,
-    borderWidth: 1.5,
+    borderWidth: 1,
     gap: 12,
   },
   cardDefault: {
@@ -141,9 +141,9 @@ const styles = StyleSheet.create({
     opacity: 0.8,
   },
   iconCircle: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -166,8 +166,8 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   desc: {
-    fontSize: 11.5,
-    marginTop: 1,
+    fontSize: 12,
+    marginTop: 2,
     color: colors.muted,
   },
 });

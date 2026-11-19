@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 16,
     marginTop: -44,
-    marginBottom: 14,
+    marginBottom: 16,
   },
   largeAvatar: {
     width: 88,
@@ -126,10 +126,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 6,
-    height: 38,
-    paddingHorizontal: 18,
-    borderRadius: 19,
+    gap: 8,
+    height: 40,
+    paddingHorizontal: 16,
+    borderRadius: 20,
     marginBottom: 4,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   followBtnActive: {
-    borderWidth: 1.5,
+    borderWidth: 1,
     backgroundColor: colors.surfaceMuted,
     borderColor: colors.line,
   },
@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     opacity: 0.85,
   },
   followBtnText: {
-    fontSize: 13.5,
+    fontSize: 14,
     fontWeight: "700",
   },
   followBtnTextActive: {
@@ -173,10 +173,10 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   verifiedIcon: {
-    marginLeft: 6,
+    marginLeft: 8,
   },
   profileHandle: {
-    fontSize: 13.5,
+    fontSize: 14,
     marginTop: 2,
     color: colors.muted,
   },

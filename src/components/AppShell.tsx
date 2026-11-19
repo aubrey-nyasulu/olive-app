@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 8,
     paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingVertical: 8,
     borderRadius: 20,
     zIndex: 60,
     backgroundColor: colors.text,
@@ -259,7 +259,7 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   floatingToastText: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: "600",
     letterSpacing: 0.1,
     color: colors.bg,

@@ -412,7 +412,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
   },
   avatarButtonCircleInputMode: {
-    borderWidth: 1.5,
+    borderWidth: 2,
     borderColor: colors.signal,
   },
   dockAvatarImg: {
@@ -445,7 +445,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 6,
+    gap: 8,
     borderRadius: 16,
     backgroundColor: "rgba(255, 255, 255, 0.12)",
     alignSelf: "center",

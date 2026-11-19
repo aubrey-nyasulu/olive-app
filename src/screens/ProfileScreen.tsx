@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
   contentContainer: {
     paddingHorizontal: 0,
     paddingTop: 0,
-    paddingBottom: 130, // Clearance for floating dock
+    paddingBottom: 128, // Clearance for floating dock
   },
   profileSection: {
     paddingHorizontal: 16,
@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
     borderRadius: 9999,
     borderWidth: 1,
     padding: 4,
-    marginBottom: 18,
+    marginBottom: 16,
     backgroundColor: colors.surfaceMuted,
     borderColor: colors.line,
   },
@@ -163,8 +163,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 6,
-    paddingVertical: 10,
+    gap: 8,
+    paddingVertical: 8,
     borderRadius: 9999,
   },
   segmentBtnActive: {
@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   segmentText: {
-    fontSize: 13,
+    fontSize: 14,
   },
   segmentTextActive: {
     color: colors.text,

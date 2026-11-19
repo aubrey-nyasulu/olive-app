@@ -29,7 +29,7 @@ export function Pill({ active, onPress, label }: PillProps) {
 const styles = StyleSheet.create({
   pill: {
     paddingHorizontal: 16,
-    paddingVertical: 9,
+    paddingVertical: 8,
     borderRadius: 9999,
     borderWidth: 1,
     alignItems: "center",
@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
     opacity: 0.75,
   },
   text: {
-    fontSize: 13,
+    fontSize: 14,
   },
   textInactive: {
     color: colors.muted,

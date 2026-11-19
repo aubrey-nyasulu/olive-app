@@ -17,7 +17,7 @@ import { useOlive } from "../context/OliveProvider";
 import { colors } from "../constants/colors";
 
 export const getHeaderHeight = (insetsTop: number) =>
-  insetsTop + (Platform.OS === "android" ? 54 : 50);
+  insetsTop + (Platform.OS === "android" ? 56 : 52);
 
 export function IconButton({
   name,
@@ -310,13 +310,13 @@ const styles = StyleSheet.create({
     color: colors.signal,
   },
   title: {
-    fontSize: 19,
+    fontSize: 20,
     fontWeight: "700",
     letterSpacing: -0.4,
     color: colors.text,
   },
   titleWithBack: {
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: "600",
   },
   iconButton: {
@@ -336,7 +336,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    borderWidth: 1.5,
+    borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
     position: "relative",
@@ -351,11 +351,11 @@ const styles = StyleSheet.create({
   },
   filterDot: {
     position: "absolute",
-    top: 5,
-    right: 5,
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+    top: 4,
+    right: 4,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
     backgroundColor: colors.signal,
   },
   content: {

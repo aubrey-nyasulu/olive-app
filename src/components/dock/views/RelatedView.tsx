@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    paddingHorizontal: 18,
+    paddingHorizontal: 16,
     paddingBottom: 8,
   },
   title: {
@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 12,
-    marginTop: 1,
+    marginTop: 2,
     color: colors.muted,
   },
   scroll: {
@@ -88,14 +88,14 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 16,
     paddingBottom: 16,
-    gap: 10,
+    gap: 8,
   },
   emptyContainer: {
     paddingVertical: 36,
     alignItems: "center",
   },
   emptySubtitle: {
-    fontSize: 13,
+    fontSize: 14,
     color: colors.muted,
   },
   itemCard: {
@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: 16,
     borderWidth: 1,
-    padding: 10,
+    padding: 12,
     gap: 12,
     backgroundColor: colors.surfaceMuted,
     borderColor: colors.line,
@@ -121,12 +121,12 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   itemTitle: {
-    fontSize: 13.5,
+    fontSize: 14,
     fontWeight: "700",
     color: colors.text,
   },
   itemSubtitle: {
-    fontSize: 11.5,
+    fontSize: 12,
     color: colors.muted,
   },
   itemDist: {

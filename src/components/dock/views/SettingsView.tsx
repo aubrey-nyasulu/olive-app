@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    paddingHorizontal: 18,
+    paddingHorizontal: 16,
     paddingBottom: 8,
   },
   title: {
@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 12,
-    marginTop: 1,
+    marginTop: 2,
     color: colors.muted,
   },
   scroll: {
@@ -207,19 +207,19 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 16,
     paddingBottom: 16,
-    gap: 10,
+    gap: 12,
   },
   section: {
-    gap: 6,
+    gap: 8,
     marginBottom: 4,
   },
   sectionTitle: {
-    fontSize: 13.5,
+    fontSize: 14,
     fontWeight: "700",
     color: colors.text,
   },
   sectionHint: {
-    fontSize: 11.5,
+    fontSize: 12,
     marginBottom: 4,
     color: colors.muted,
   },
@@ -230,8 +230,8 @@ const styles = StyleSheet.create({
   },
   pill: {
     paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 14,
+    paddingVertical: 8,
+    borderRadius: 16,
     borderWidth: 1,
   },
   pillInactive: {
@@ -256,11 +256,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 14,
-    paddingVertical: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderRadius: 16,
     borderWidth: 1,
-    marginTop: 2,
+    marginTop: 4,
     backgroundColor: colors.surfaceMuted,
     borderColor: colors.line,
   },
@@ -268,13 +268,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   toggleTitle: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: "700",
     color: colors.text,
   },
   toggleSub: {
-    fontSize: 11,
-    marginTop: 1,
+    fontSize: 12,
+    marginTop: 2,
     color: colors.muted,
   },
   resetBtn: {

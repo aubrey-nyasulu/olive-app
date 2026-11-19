@@ -42,14 +42,14 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   emptyTitle: {
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: "700",
     color: colors.text,
   },
   emptyText: {
-    fontSize: 13.5,
+    fontSize: 14,
     textAlign: "center",
-    lineHeight: 19,
+    lineHeight: 20,
     color: colors.muted,
   },
 });

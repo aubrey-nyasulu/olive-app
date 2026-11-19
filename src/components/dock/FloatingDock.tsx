@@ -629,7 +629,7 @@ const styles = StyleSheet.create({
     width: "100%",
     maxWidth: 420,
     borderRadius: 32,
-    borderWidth: 1.5,
+    borderWidth: 1,
     shadowColor: colors.overlay,
     overflow: "hidden",
     shadowOffset: { width: 0, height: 10 },
@@ -648,12 +648,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingTop: 8,
-    paddingBottom: 6,
+    paddingBottom: 8,
   },
   handleBar: {
     width: 44,
-    height: 5,
-    borderRadius: 2.5,
+    height: 4,
+    borderRadius: 2,
     backgroundColor: colors.line,
   },
   modesPopup: {
@@ -666,10 +666,10 @@ const styles = StyleSheet.create({
   modeOptionRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
+    gap: 8,
   },
   modeLabel: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: "700",
     letterSpacing: 0.2,
     color: colors.text,

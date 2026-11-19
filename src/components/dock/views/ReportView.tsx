@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    paddingHorizontal: 18,
+    paddingHorizontal: 16,
     paddingBottom: 8,
   },
   title: {
@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 12,
-    marginTop: 1,
+    marginTop: 2,
     color: colors.muted,
   },
   scroll: {
@@ -83,8 +83,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingVertical: 12,
-    paddingHorizontal: 14,
-    borderRadius: 14,
+    paddingHorizontal: 16,
+    borderRadius: 16,
     borderWidth: 1,
     backgroundColor: colors.surfaceMuted,
     borderColor: colors.line,
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
     opacity: 0.75,
   },
   reasonText: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: "500",
     flex: 1,
     color: colors.text,

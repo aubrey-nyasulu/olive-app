@@ -63,7 +63,7 @@ export default function FeedScreen() {
           ListHeaderComponent={<StoriesBar />}
           contentContainerStyle={[
             styles.listContent,
-            { paddingTop: headerHeight + 14 },
+            { paddingTop: headerHeight + 16 },
           ]}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
@@ -101,13 +101,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   emptyTitle: {
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: "700",
     textAlign: "center",
     color: colors.text,
   },
   emptySubtitle: {
-    fontSize: 13.5,
+    fontSize: 14,
     lineHeight: 20,
     textAlign: "center",
     marginTop: 8,

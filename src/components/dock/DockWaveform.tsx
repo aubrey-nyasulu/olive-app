@@ -274,10 +274,10 @@ const styles = StyleSheet.create({
     height: 24,
   },
   strand: {
-    width: 2.5,
+    width: 2,
     height: 20,
-    marginHorizontal: 1.5,
-    borderRadius: 1.5,
+    marginHorizontal: 2,
+    borderRadius: 2,
     backgroundColor: colors.signal,
     shadowColor: colors.signal,
     shadowOffset: { width: 0, height: 0 },

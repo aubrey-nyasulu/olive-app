@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
   nameRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    gap: 8,
   },
   name: {
     fontSize: 16,
@@ -235,7 +235,7 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   handle: {
-    fontSize: 12.5,
+    fontSize: 12,
     marginTop: 2,
     color: colors.muted,
   },
@@ -272,19 +272,19 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   rowTitle: {
-    fontSize: 14.5,
+    fontSize: 14,
     fontWeight: "700",
     color: colors.text,
   },
   unreadBadge: {
-    paddingHorizontal: 6,
+    paddingHorizontal: 8,
     paddingVertical: 2,
-    borderRadius: 10,
+    borderRadius: 12,
     backgroundColor: colors.signal,
   },
   unreadBadgeText: {
     color: "#FFFFFF",
-    fontSize: 10.5,
+    fontSize: 10,
     fontWeight: "700",
   },
   rowSubtitle: {

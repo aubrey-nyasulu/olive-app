@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 18,
+    paddingHorizontal: 16,
     paddingBottom: 8,
     gap: 8,
   },
@@ -112,12 +112,12 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 12,
-    marginTop: 1,
+    marginTop: 2,
     color: colors.muted,
   },
   badge: {
-    paddingHorizontal: 10,
-    paddingVertical: 3,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
     borderRadius: 12,
     backgroundColor: colors.surfaceMuted,
   },
@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 16,
     paddingBottom: 16,
-    gap: 10,
+    gap: 8,
   },
   emptyContainer: {
     paddingVertical: 36,
@@ -141,12 +141,12 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   emptyTitle: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: "700",
     color: colors.text,
   },
   emptySubtitle: {
-    fontSize: 12.5,
+    fontSize: 12,
     textAlign: "center",
     paddingHorizontal: 20,
     lineHeight: 18,
@@ -156,14 +156,14 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
     padding: 12,
-    gap: 6,
+    gap: 8,
     backgroundColor: colors.surfaceMuted,
     borderColor: colors.line,
   },
   reviewTop: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
+    gap: 8,
   },
   avatarCircle: {
     width: 32,
@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
     height: "100%",
   },
   avatarLetter: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: "700",
     color: colors.text,
   },
@@ -187,18 +187,18 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   authorName: {
-    fontSize: 13.5,
+    fontSize: 14,
     fontWeight: "700",
     color: colors.text,
   },
   starsRow: {
     flexDirection: "row",
     gap: 2,
-    marginTop: 1,
+    marginTop: 2,
   },
   reviewText: {
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 14,
+    lineHeight: 20,
     color: colors.textSecondary,
   },
 });

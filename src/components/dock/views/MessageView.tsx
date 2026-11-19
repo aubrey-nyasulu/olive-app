@@ -45,13 +45,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    paddingHorizontal: 18,
+    paddingHorizontal: 16,
     paddingBottom: 8,
   },
   recipientRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
+    gap: 12,
   },
   avatar: {
     width: 36,
@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 12,
-    marginTop: 1,
+    marginTop: 2,
     color: colors.muted,
   },
   scroll: {
@@ -79,15 +79,15 @@ const styles = StyleSheet.create({
   hintCard: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
+    gap: 12,
     padding: 12,
-    borderRadius: 14,
+    borderRadius: 16,
     borderWidth: 1,
     backgroundColor: colors.surfaceMuted,
     borderColor: colors.line,
   },
   hintText: {
-    fontSize: 12.5,
+    fontSize: 12,
     lineHeight: 18,
     flex: 1,
     color: colors.textSecondary,

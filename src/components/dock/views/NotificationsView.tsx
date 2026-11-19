@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: 10,
+    paddingVertical: 8,
     marginBottom: 4,
   },
   titleRow: {
@@ -214,21 +214,21 @@ const styles = StyleSheet.create({
   },
   badge: {
     paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
     backgroundColor: colors.signalLight,
   },
   badgeText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: "700",
     color: colors.signal,
   },
   markReadBtn: {
     paddingVertical: 4,
-    paddingHorizontal: 6,
+    paddingHorizontal: 8,
   },
   markReadText: {
-    fontSize: 12.5,
+    fontSize: 12,
     fontWeight: "700",
     color: colors.signal,
   },
@@ -256,9 +256,9 @@ const styles = StyleSheet.create({
     opacity: 0.8,
   },
   iconWrap: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -275,7 +275,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 3,
+    marginBottom: 4,
   },
   authorName: {
     fontSize: 14,
@@ -283,12 +283,12 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   timeText: {
-    fontSize: 11.5,
+    fontSize: 12,
     color: colors.muted,
   },
   itemText: {
-    fontSize: 12.5,
-    lineHeight: 17,
+    fontSize: 12,
+    lineHeight: 18,
     color: colors.textSecondary,
   },
   unreadDot: {

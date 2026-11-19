@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 18,
+    paddingHorizontal: 16,
     paddingBottom: 8,
   },
   headerMeta: {
@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 12,
-    marginTop: 1,
+    marginTop: 2,
     color: colors.muted,
   },
   scroll: {
@@ -114,34 +114,34 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 16,
     paddingBottom: 16,
-    gap: 10,
+    gap: 12,
   },
   bodyText: {
-    fontSize: 13.5,
+    fontSize: 14,
     lineHeight: 20,
-    marginBottom: 6,
+    marginBottom: 8,
     color: colors.textSecondary,
   },
   grid: {
     borderRadius: 16,
     borderWidth: 1,
     padding: 12,
-    gap: 10,
+    gap: 8,
     backgroundColor: colors.surfaceMuted,
     borderColor: colors.line,
   },
   gridRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
+    gap: 8,
   },
   gridLabel: {
     fontSize: 12,
-    width: 65,
+    width: 64,
     color: colors.muted,
   },
   gridValue: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: "600",
     flex: 1,
     color: colors.text,
@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    marginTop: 6,
+    marginTop: 8,
     backgroundColor: colors.signal,
   },
   pressed: {
