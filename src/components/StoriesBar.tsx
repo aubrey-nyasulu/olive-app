@@ -351,7 +351,7 @@ const createStyles = (colors: ColorPalette) =>
     ownerRing: {
       width: "auto",
       height: "auto",
-      borderRadius: 32,
+      borderRadius: 40,
       borderWidth: 2,
       alignItems: "center",
       justifyContent: "center",
@@ -361,14 +361,14 @@ const createStyles = (colors: ColorPalette) =>
     gradientRing: {
       width: "auto",
       height: "auto",
-      borderRadius: 32,
+      borderRadius: 40,
       padding: 2,
       alignItems: "center",
       justifyContent: "center",
     },
     innerRingSpacer: {
-      width: 64,
-      height: 64,
+      width: 80,
+      height: 106,
       borderRadius: 32,
       padding: 2,
       alignItems: "center",
@@ -378,7 +378,7 @@ const createStyles = (colors: ColorPalette) =>
     seenRing: {
       width: "auto",
       height: "auto",
-      borderRadius: 32,
+      borderRadius: 40,
       borderWidth: 2,
       alignItems: "center",
       justifyContent: "center",
@@ -388,7 +388,7 @@ const createStyles = (colors: ColorPalette) =>
     avatarImg: {
       width: "100%",
       height: "100%",
-      borderRadius: 998,
+      borderRadius: 32,
       resizeMode: "cover",
     },
     addBadge: {
