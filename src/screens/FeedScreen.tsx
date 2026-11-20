@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 import { FlatList, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { AppShell } from "../components/AppShell";
 import { PostCard } from "../components/PostCard";
 import { getHeaderHeight, Screen } from "../components/Screen";
 import { StoriesBar } from "../components/StoriesBar";
@@ -55,39 +54,37 @@ export default function FeedScreen() {
   }, [config.lanes, config.radiusKm, feedMode]);
 
   return (
-    <AppShell>
-      <Screen home>
-        <FlatList
-          data={sortedPosts}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <PostCard post={item} />}
-          ListHeaderComponent={<StoriesBar />}
-          contentContainerStyle={[
-            styles.listContent,
-            { paddingTop: headerHeight + 16 },
-          ]}
-          showsVerticalScrollIndicator={false}
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyTitle}>
-                {feedMode === "people"
-                  ? `No people drops within ${config.radiusKm} km`
-                  : feedMode === "places"
-                  ? `No places or events within ${config.radiusKm} km`
-                  : `No drops within ${config.radiusKm} km`}
-              </Text>
-              <Text style={styles.emptySubtitle}>
-                {feedMode === "people"
-                  ? "Try switching to Businesses & Places or Show Everything via the top filter button."
-                  : feedMode === "places"
-                  ? "Try expanding your search radius or switching to Show Everything."
-                  : "Try expanding your search radius or enabling more categories in your Profile settings."}
-              </Text>
-            </View>
-          }
-        />
-      </Screen>
-    </AppShell>
+    <Screen home>
+      <FlatList
+        data={sortedPosts}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => <PostCard post={item} />}
+        ListHeaderComponent={<StoriesBar />}
+        contentContainerStyle={[
+          styles.listContent,
+          { paddingTop: headerHeight + 16 },
+        ]}
+        showsVerticalScrollIndicator={false}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyTitle}>
+              {feedMode === "people"
+                ? `No people drops within ${config.radiusKm} km`
+                : feedMode === "places"
+                ? `No places or events within ${config.radiusKm} km`
+                : `No drops within ${config.radiusKm} km`}
+            </Text>
+            <Text style={styles.emptySubtitle}>
+              {feedMode === "people"
+                ? "Try switching to Businesses & Places or Show Everything via the top filter button."
+                : feedMode === "places"
+                ? "Try expanding your search radius or switching to Show Everything."
+                : "Try expanding your search radius or enabling more categories in your Profile settings."}
+            </Text>
+          </View>
+        }
+      />
+    </Screen>
   );
 }
 

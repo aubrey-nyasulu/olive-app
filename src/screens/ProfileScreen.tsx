@@ -8,7 +8,6 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
-import { AppShell } from "../components/AppShell";
 import { Screen } from "../components/Screen";
 import {
   ProfileHeader,
@@ -66,9 +65,8 @@ export default function ProfileScreen() {
   const isPosts = profileTab === "posts";
 
   return (
-    <AppShell>
-      <Screen>
-        {/* Fixed Collapsible Top Header & Floating Scaling Avatar */}
+    <Screen>
+      {/* Fixed Collapsible Top Header & Floating Scaling Avatar */}
         <ProfileHeader
           profile={profile}
           isMe={isMe}
@@ -169,7 +167,6 @@ export default function ProfileScreen() {
           </View>
         </Animated.ScrollView>
       </Screen>
-    </AppShell>
   );
 }
 

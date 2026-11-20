@@ -12,7 +12,7 @@ import {
   View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useLocalSearchParams, usePathname } from "expo-router";
+import { useGlobalSearchParams, usePathname } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useOlive } from "../context/OliveProvider";
 import { useThemeStyles, type ColorPalette } from "../theme";
@@ -46,7 +46,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const maxPanelHeight = Math.min(screenHeight * 0.58, 460);
 
   const pathname = usePathname();
-  const { author, id } = useLocalSearchParams<{
+  const { author, id } = useGlobalSearchParams<{
     author?: string;
     id?: string;
   }>();

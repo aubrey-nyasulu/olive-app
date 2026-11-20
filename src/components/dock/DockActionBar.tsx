@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import {
   Animated,
   Image,
@@ -78,8 +79,7 @@ export function DockActionBar({
   const isUserMenu = activeWin?.type === "user_menu";
   const isWindowActive = activeWin !== null;
 
-  // Continuous interpolation curves tied directly to dockExpandedAnim (height progress)
-  // 1. Resting button morph (fades out, scales down, rotates -45deg)
+  // 1. Height-proportional continuous interpolations (tied directly to expandProgress)
   const restingOpacity = expandProgress.interpolate({
     inputRange: [0, 0.42],
     outputRange: [1, 0],
@@ -96,7 +96,6 @@ export function DockActionBar({
     extrapolate: "clamp",
   });
 
-  // 2. Expanded button morph (fades in, scales up to 1, rotates from 45deg to 0deg)
   const expandedOpacity = expandProgress.interpolate({
     inputRange: [0.36, 0.86],
     outputRange: [0, 1],
@@ -113,7 +112,6 @@ export function DockActionBar({
     extrapolate: "clamp",
   });
 
-  // 3. Center resting waveform / resting pill (fades and scales out as dock expands)
   const centerRestingOpacity = expandProgress.interpolate({
     inputRange: [0, 0.35],
     outputRange: [1, 0],
@@ -125,7 +123,6 @@ export function DockActionBar({
     extrapolate: "clamp",
   });
 
-  // 4. Center input layer (slides up and fades in for review or message drafting)
   const centerInputOpacity = expandProgress.interpolate({
     inputRange: [0.4, 0.9],
     outputRange: [0, 1],
@@ -137,12 +134,432 @@ export function DockActionBar({
     extrapolate: "clamp",
   });
 
+  // 2. Context-switching continuous spring animations (Screen: Feed <-> Profile, Menu: Closed <-> Open)
+  const profileAnim = useRef(new Animated.Value(onProfile ? 1 : 0)).current;
+  const otherUserAnim = useRef(new Animated.Value(isOtherUser ? 1 : 0)).current;
+  const searchActiveAnim = useRef(
+    new Animated.Value(panelOpen || searchOpen ? 1 : 0)
+  ).current;
+  const profileMenuAnim = useRef(
+    new Animated.Value(profileMenuOpen ? 1 : 0)
+  ).current;
+
+  useEffect(() => {
+    Animated.spring(profileAnim, {
+      toValue: onProfile ? 1 : 0,
+      friction: 9,
+      tension: 75,
+      useNativeDriver: true,
+    }).start();
+  }, [onProfile, profileAnim]);
+
+  useEffect(() => {
+    Animated.spring(otherUserAnim, {
+      toValue: isOtherUser ? 1 : 0,
+      friction: 9,
+      tension: 75,
+      useNativeDriver: true,
+    }).start();
+  }, [isOtherUser, otherUserAnim]);
+
+  useEffect(() => {
+    Animated.spring(searchActiveAnim, {
+      toValue: panelOpen || searchOpen ? 1 : 0,
+      friction: 9,
+      tension: 75,
+      useNativeDriver: true,
+    }).start();
+  }, [panelOpen, searchOpen, searchActiveAnim]);
+
+  useEffect(() => {
+    Animated.spring(profileMenuAnim, {
+      toValue: profileMenuOpen ? 1 : 0,
+      friction: 9,
+      tension: 75,
+      useNativeDriver: true,
+    }).start();
+  }, [profileMenuOpen, profileMenuAnim]);
+
+  // Left Slot Interpolations: Search (Feed) <-> Back Arrow (Profile) <-> Close (Search Open)
+  const searchIconOpacity = Animated.multiply(
+    profileAnim.interpolate({
+      inputRange: [0, 0.45],
+      outputRange: [1, 0],
+      extrapolate: "clamp",
+    }),
+    searchActiveAnim.interpolate({
+      inputRange: [0, 0.45],
+      outputRange: [1, 0],
+      extrapolate: "clamp",
+    })
+  );
+  const searchIconScale = profileAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 0.65],
+    extrapolate: "clamp",
+  });
+  const searchIconRotate = profileAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0deg", "-60deg"],
+    extrapolate: "clamp",
+  });
+
+  const backIconOpacity = Animated.multiply(
+    profileAnim.interpolate({
+      inputRange: [0.55, 1],
+      outputRange: [0, 1],
+      extrapolate: "clamp",
+    }),
+    searchActiveAnim.interpolate({
+      inputRange: [0, 0.45],
+      outputRange: [1, 0],
+      extrapolate: "clamp",
+    })
+  );
+  const backIconScale = profileAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.65, 1],
+    extrapolate: "clamp",
+  });
+  const backIconRotate = profileAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["60deg", "0deg"],
+    extrapolate: "clamp",
+  });
+
+  const closeSearchIconOpacity = searchActiveAnim.interpolate({
+    inputRange: [0.55, 1],
+    outputRange: [0, 1],
+    extrapolate: "clamp",
+  });
+  const closeSearchIconScale = searchActiveAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.65, 1],
+    extrapolate: "clamp",
+  });
+  const closeSearchIconRotate = searchActiveAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["-60deg", "0deg"],
+    extrapolate: "clamp",
+  });
+
+  const leftNormalBgOpacity = searchActiveAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 0],
+    extrapolate: "clamp",
+  });
+  const leftSignalBgOpacity = searchActiveAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 1],
+    extrapolate: "clamp",
+  });
+
+  // Right Slot Interpolations: Avatar (Feed / Own Profile) <-> Chevron / Close (Other User)
+  const avatarOpacity = otherUserAnim.interpolate({
+    inputRange: [0, 0.45],
+    outputRange: [1, 0],
+    extrapolate: "clamp",
+  });
+  const avatarScale = otherUserAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 0.65],
+    extrapolate: "clamp",
+  });
+  const avatarRotate = otherUserAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0deg", "-45deg"],
+    extrapolate: "clamp",
+  });
+
+  const otherUserBtnOpacity = otherUserAnim.interpolate({
+    inputRange: [0.55, 1],
+    outputRange: [0, 1],
+    extrapolate: "clamp",
+  });
+  const otherUserBtnScale = otherUserAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.65, 1],
+    extrapolate: "clamp",
+  });
+  const otherUserBtnRotate = otherUserAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["45deg", "0deg"],
+    extrapolate: "clamp",
+  });
+
+  const chevronMenuOpacity = profileMenuAnim.interpolate({
+    inputRange: [0, 0.45],
+    outputRange: [1, 0],
+    extrapolate: "clamp",
+  });
+  const chevronMenuRotate = profileMenuAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0deg", "180deg"],
+    extrapolate: "clamp",
+  });
+  const chevronMenuScale = profileMenuAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 0.65],
+    extrapolate: "clamp",
+  });
+
+  const closeMenuOpacity = profileMenuAnim.interpolate({
+    inputRange: [0.55, 1],
+    outputRange: [0, 1],
+    extrapolate: "clamp",
+  });
+  const closeMenuRotate = profileMenuAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["-90deg", "0deg"],
+    extrapolate: "clamp",
+  });
+  const closeMenuScale = profileMenuAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.65, 1],
+    extrapolate: "clamp",
+  });
+
+  const otherUserNormalBgOpacity = profileMenuAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 0],
+    extrapolate: "clamp",
+  });
+  const otherUserSignalBgOpacity = profileMenuAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 1],
+    extrapolate: "clamp",
+  });
+
+  // Render resting Left Button with continuous morphing layers
+  const renderRestingLeftButton = () => (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={
+        panelOpen || searchOpen
+          ? "Cancel search"
+          : onProfile
+          ? "Back to feed"
+          : "Search and stream controls"
+      }
+      onPress={onLeftPill}
+      onLongPress={onLeftLongPress}
+      delayLongPress={320}
+      style={({ pressed }) => [styles.sideBtn, pressed && styles.pressed]}
+    >
+      {/* Background Layer: Normal Bg */}
+      <Animated.View
+        style={[
+          StyleSheet.absoluteFill,
+          styles.sideBtnBg,
+          { opacity: leftNormalBgOpacity },
+        ]}
+      />
+      {/* Background Layer: Signal Bg */}
+      <Animated.View
+        style={[
+          StyleSheet.absoluteFill,
+          styles.sideBtnSignal,
+          { opacity: leftSignalBgOpacity },
+        ]}
+      />
+
+      {/* Icon Layer 1: Search (Feed) */}
+      <Animated.View
+        style={[
+          styles.iconLayer,
+          {
+            opacity: searchIconOpacity,
+            transform: [
+              { scale: searchIconScale },
+              { rotate: searchIconRotate },
+            ],
+          },
+        ]}
+        pointerEvents="none"
+      >
+        <Ionicons name="search" size={20} color={colors.text} />
+      </Animated.View>
+
+      {/* Icon Layer 2: Back Arrow (Profile) */}
+      <Animated.View
+        style={[
+          styles.iconLayer,
+          {
+            opacity: backIconOpacity,
+            transform: [{ scale: backIconScale }, { rotate: backIconRotate }],
+          },
+        ]}
+        pointerEvents="none"
+      >
+        <Ionicons name="arrow-back" size={20} color={colors.text} />
+      </Animated.View>
+
+      {/* Icon Layer 3: Close (Search / Panel Open) */}
+      <Animated.View
+        style={[
+          styles.iconLayer,
+          {
+            opacity: closeSearchIconOpacity,
+            transform: [
+              { scale: closeSearchIconScale },
+              { rotate: closeSearchIconRotate },
+            ],
+          },
+        ]}
+        pointerEvents="none"
+      >
+        <Ionicons name="close" size={20} color={colors.signalForeground} />
+      </Animated.View>
+    </Pressable>
+  );
+
+  // Render resting Right Button with continuous morphing layers
+  const renderRestingRightButton = () => (
+    <View style={styles.sideBtn}>
+      {/* Avatar Layer (Feed / Own Profile) */}
+      <Animated.View
+        style={[
+          styles.slotButtonLayer,
+          {
+            opacity: avatarOpacity,
+            transform: [{ scale: avatarScale }, { rotate: avatarRotate }],
+          },
+        ]}
+        pointerEvents={isOtherUser ? "none" : "auto"}
+      >
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Account and options"
+          onPress={onToggleSearch}
+          onLongPress={onRightLongPress}
+          delayLongPress={320}
+          style={({ pressed }) => [styles.sideBtn, pressed && styles.pressed]}
+        >
+          <View style={styles.avatarButtonCircle}>
+            <Image source={userAvatar} style={styles.dockAvatarImg} />
+          </View>
+        </Pressable>
+      </Animated.View>
+
+      {/* Other User Options Layer (Chevron-Up <-> Close) */}
+      <Animated.View
+        style={[
+          styles.slotButtonLayer,
+          {
+            opacity: otherUserBtnOpacity,
+            transform: [
+              { scale: otherUserBtnScale },
+              { rotate: otherUserBtnRotate },
+            ],
+          },
+        ]}
+        pointerEvents={isOtherUser ? "auto" : "none"}
+      >
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={
+            profileMenuOpen ? "Close options" : "Profile options"
+          }
+          onPress={onToggleSearch}
+          style={({ pressed }) => [styles.sideBtn, pressed && styles.pressed]}
+        >
+          {/* Background Normal */}
+          <Animated.View
+            style={[
+              StyleSheet.absoluteFill,
+              styles.sideBtnBg,
+              { opacity: otherUserNormalBgOpacity },
+            ]}
+          />
+          {/* Background Signal (when menu open) */}
+          <Animated.View
+            style={[
+              StyleSheet.absoluteFill,
+              styles.sideBtnSignal,
+              { opacity: otherUserSignalBgOpacity },
+            ]}
+          />
+
+          {/* Chevron Icon */}
+          <Animated.View
+            style={[
+              styles.iconLayer,
+              {
+                opacity: chevronMenuOpacity,
+                transform: [
+                  { scale: chevronMenuScale },
+                  { rotate: chevronMenuRotate },
+                ],
+              },
+            ]}
+            pointerEvents="none"
+          >
+            <Ionicons name="chevron-up" size={22} color={colors.text} />
+          </Animated.View>
+
+          {/* Close Icon (when menu open) */}
+          <Animated.View
+            style={[
+              styles.iconLayer,
+              {
+                opacity: closeMenuOpacity,
+                transform: [
+                  { scale: closeMenuScale },
+                  { rotate: closeMenuRotate },
+                ],
+              },
+            ]}
+            pointerEvents="none"
+          >
+            <Ionicons name="close" size={20} color={colors.signalForeground} />
+          </Animated.View>
+        </Pressable>
+      </Animated.View>
+
+      {/* Search Actions Layer (when panelOpen on Feed) */}
+      {panelOpen && (
+        <Animated.View style={StyleSheet.absoluteFill}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Search actions"
+            onPress={onToggleSearch}
+            style={({ pressed }) => [
+              styles.sideBtn,
+              styles.sideBtnSignal,
+              pressed && styles.pressed,
+            ]}
+          >
+            {activeMode === "voice" ? (
+              <Ionicons
+                name={isListening ? "mic" : "mic-outline"}
+                size={20}
+                color={colors.signalForeground}
+              />
+            ) : activeMode === "type" ? (
+              <Ionicons
+                name="arrow-forward"
+                size={20}
+                color={colors.signalForeground}
+              />
+            ) : (
+              <Ionicons
+                name="close"
+                size={20}
+                color={colors.signalForeground}
+              />
+            )}
+          </Pressable>
+        </Animated.View>
+      )}
+    </View>
+  );
+
   return (
     <View style={styles.bar}>
       {/* LEFT BUTTON SLOT */}
       <View style={styles.slotLeft}>
         {isInputMode ? (
-          // Input mode: Search icon morphs into User Avatar relative to dock height
+          // Input mode: Resting Left Button morphs into User Avatar relative to dock height
           <>
             <Animated.View
               style={[
@@ -157,18 +574,7 @@ export function DockActionBar({
               ]}
               pointerEvents={isExpanded ? "none" : "auto"}
             >
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Search and stream controls"
-                onPress={onLeftPill}
-                style={({ pressed }) => [
-                  styles.sideBtn,
-                  styles.sideBtnBg,
-                  pressed && styles.pressed,
-                ]}
-              >
-                <Ionicons name="search" size={20} color={colors.text} />
-              </Pressable>
+              {renderRestingLeftButton()}
             </Animated.View>
 
             <Animated.View
@@ -192,23 +598,12 @@ export function DockActionBar({
             </Animated.View>
           </>
         ) : isUserMenu ? (
-          // User Menu: Left button stays Search icon (Right button was the one clicked)
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Search and stream controls"
-            onPress={onLeftPill}
-            style={({ pressed }) => [
-              styles.sideBtn,
-              styles.sideBtnMuted,
-              pressed && styles.pressed,
-            ]}
-          >
-            <Ionicons name="search" size={20} color={colors.text} />
-          </Pressable>
+          // User Menu: Left button stays resting (Right button was the one clicked)
+          renderRestingLeftButton()
         ) : isWindowActive ? (
           // Left button clicked to expand menu: morphs to Close icon relative to height!
           <>
-            {/* Resting Button (Search / Back) */}
+            {/* Resting Button (Search / Back / Close) */}
             <Animated.View
               style={[
                 styles.slotButtonLayer,
@@ -222,38 +617,7 @@ export function DockActionBar({
               ]}
               pointerEvents={isExpanded ? "none" : "auto"}
             >
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={
-                  panelOpen || searchOpen
-                    ? "Cancel search"
-                    : onProfile
-                    ? "Back to feed"
-                    : "Search and stream controls"
-                }
-                onPress={onLeftPill}
-                onLongPress={onLeftLongPress}
-                delayLongPress={320}
-                style={({ pressed }) => [
-                  styles.sideBtn,
-                  panelOpen || searchOpen
-                    ? styles.sideBtnSignal
-                    : styles.sideBtnBg,
-                  pressed && styles.pressed,
-                ]}
-              >
-                {panelOpen || searchOpen ? (
-                  <Ionicons
-                    name="close"
-                    size={20}
-                    color={colors.signalForeground}
-                  />
-                ) : onProfile ? (
-                  <Ionicons name="arrow-back" size={20} color={colors.text} />
-                ) : (
-                  <Ionicons name="search" size={20} color={colors.text} />
-                )}
-              </Pressable>
+              {renderRestingLeftButton()}
             </Animated.View>
 
             {/* Expanded Close Button */}
@@ -286,38 +650,7 @@ export function DockActionBar({
           </>
         ) : (
           // Default Resting State when Dock is completely collapsed
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={
-              panelOpen || searchOpen
-                ? "Cancel search"
-                : onProfile
-                ? "Back to feed"
-                : "Search and stream controls"
-            }
-            onPress={onLeftPill}
-            onLongPress={onLeftLongPress}
-            delayLongPress={320}
-            style={({ pressed }) => [
-              styles.sideBtn,
-              panelOpen || searchOpen
-                ? styles.sideBtnSignal
-                : styles.sideBtnBg,
-              pressed && styles.pressed,
-            ]}
-          >
-            {panelOpen || searchOpen ? (
-              <Ionicons
-                name="close"
-                size={20}
-                color={colors.signalForeground}
-              />
-            ) : onProfile ? (
-              <Ionicons name="arrow-back" size={20} color={colors.text} />
-            ) : (
-              <Ionicons name="search" size={20} color={colors.text} />
-            )}
-          </Pressable>
+          renderRestingLeftButton()
         )}
       </View>
 
@@ -452,16 +785,7 @@ export function DockActionBar({
               ]}
               pointerEvents={isExpanded ? "none" : "auto"}
             >
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Account and options"
-                onPress={onToggleSearch}
-                style={styles.sideBtn}
-              >
-                <View style={styles.avatarButtonCircle}>
-                  <Image source={userAvatar} style={styles.dockAvatarImg} />
-                </View>
-              </Pressable>
+              {renderRestingRightButton()}
             </Animated.View>
 
             <Animated.View
@@ -502,7 +826,7 @@ export function DockActionBar({
             </Animated.View>
           </>
         ) : isUserMenu ? (
-          // User Menu: Right button (Avatar) morphs into Close button relative to height!
+          // User Menu: Right button morphs into Close button relative to height!
           <>
             {/* Resting Avatar Layer */}
             <Animated.View
@@ -518,18 +842,7 @@ export function DockActionBar({
               ]}
               pointerEvents={isExpanded ? "none" : "auto"}
             >
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Account and options"
-                onPress={onToggleSearch}
-                onLongPress={onRightLongPress}
-                delayLongPress={320}
-                style={styles.sideBtn}
-              >
-                <View style={styles.avatarButtonCircle}>
-                  <Image source={userAvatar} style={styles.dockAvatarImg} />
-                </View>
-              </Pressable>
+              {renderRestingRightButton()}
             </Animated.View>
 
             {/* Expanded Close Button Layer */}
@@ -561,100 +874,11 @@ export function DockActionBar({
             </Animated.View>
           </>
         ) : isWindowActive ? (
-          // Other windows: Right button stays Avatar (Left button morphed to Close)
-          onProfile && isOtherUser ? (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Profile options"
-              onPress={onToggleSearch}
-              style={({ pressed }) => [
-                styles.sideBtn,
-                styles.sideBtnMuted,
-                pressed && styles.pressed,
-              ]}
-            >
-              <Ionicons name="chevron-up" size={22} color={colors.text} />
-            </Pressable>
-          ) : (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Account and options"
-              onPress={onToggleSearch}
-              onLongPress={onRightLongPress}
-              delayLongPress={320}
-              style={styles.sideBtn}
-            >
-              <View style={styles.avatarButtonCircle}>
-                <Image source={userAvatar} style={styles.dockAvatarImg} />
-              </View>
-            </Pressable>
-          )
+          // Other windows: Right button stays resting
+          renderRestingRightButton()
         ) : (
           // Standard Resting State when Dock is completely collapsed
-          panelOpen ? (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Search actions"
-              onPress={onToggleSearch}
-              style={({ pressed }) => [
-                styles.sideBtn,
-                styles.sideBtnSignal,
-                pressed && styles.pressed,
-              ]}
-            >
-              {activeMode === "voice" ? (
-                <Ionicons
-                  name={isListening ? "mic" : "mic-outline"}
-                  size={20}
-                  color={colors.signalForeground}
-                />
-              ) : activeMode === "type" ? (
-                <Ionicons
-                  name="arrow-forward"
-                  size={20}
-                  color={colors.signalForeground}
-                />
-              ) : (
-                <Ionicons
-                  name="close"
-                  size={20}
-                  color={colors.signalForeground}
-                />
-              )}
-            </Pressable>
-          ) : onProfile && isOtherUser ? (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={
-                profileMenuOpen ? "Close options" : "Profile options"
-              }
-              onPress={onToggleSearch}
-              style={({ pressed }) => [
-                styles.sideBtn,
-                profileMenuOpen ? styles.sideBtnSignal : styles.sideBtnBg,
-                pressed && styles.pressed,
-              ]}
-            >
-              <Ionicons
-                name={profileMenuOpen ? "close" : "chevron-up"}
-                size={profileMenuOpen ? 20 : 22}
-                color={profileMenuOpen ? colors.signalForeground : colors.text}
-              />
-            </Pressable>
-          ) : (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Account and options"
-              onPress={onToggleSearch}
-              onLongPress={onRightLongPress}
-              delayLongPress={320}
-              style={styles.sideBtn}
-            >
-              <View style={styles.avatarButtonCircle}>
-                <Image source={userAvatar} style={styles.dockAvatarImg} />
-              </View>
-            </Pressable>
-          )
+          renderRestingRightButton()
         )}
       </View>
     </View>
@@ -699,6 +923,13 @@ const createStyles = (colors: ColorPalette) =>
       alignItems: "center",
       justifyContent: "center",
     },
+    iconLayer: {
+      position: "absolute",
+      width: 48,
+      height: 48,
+      alignItems: "center",
+      justifyContent: "center",
+    },
     centerContentLayer: {
       position: "absolute",
       left: 8,
@@ -712,6 +943,8 @@ const createStyles = (colors: ColorPalette) =>
       borderRadius: 24,
       alignItems: "center",
       justifyContent: "center",
+      overflow: "hidden",
+      position: "relative",
     },
     sideBtnMuted: {
       backgroundColor: colors.surfaceMuted,
