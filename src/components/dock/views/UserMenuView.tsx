@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import {
   Image,
   Pressable,
@@ -22,10 +23,25 @@ interface UserMenuViewProps {
 export function UserMenuView({ onClose }: UserMenuViewProps) {
   const { styles, colors } = useThemeStyles(createStyles);
   const { openExpandedWindow } = useOlive();
+  const isNavigatingRef = useRef(false);
+  const navTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (navTimerRef.current) {
+        clearTimeout(navTimerRef.current);
+      }
+    };
+  }, []);
 
   const handleGoProfile = () => {
+    if (isNavigatingRef.current) return;
+    isNavigatingRef.current = true;
     onClose();
-    router.push("/profile");
+    navTimerRef.current = setTimeout(() => {
+      router.push("/profile");
+      isNavigatingRef.current = false;
+    }, 280);
   };
 
   const handleOpenMessages = () => {

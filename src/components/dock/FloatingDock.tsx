@@ -521,10 +521,12 @@ export function FloatingDock({
                 onOpenProfile={() => {
                   const p = renderedWindow.post;
                   closeExpandedWindow();
-                  router.push({
-                    pathname: "/profile",
-                    params: { author: p.author, id: p.id },
-                  });
+                  setTimeout(() => {
+                    router.push({
+                      pathname: "/profile",
+                      params: { author: p.author, id: p.id },
+                    });
+                  }, 280);
                 }}
                 onOpenReviews={() => {
                   openExpandedWindow({

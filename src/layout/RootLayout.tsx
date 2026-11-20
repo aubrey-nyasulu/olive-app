@@ -28,7 +28,8 @@ function Navigation() {
           screenOptions={{
             headerShown: false,
             contentStyle: { backgroundColor: currentColors.bg },
-            animation: "slide_from_right",
+            animation: "fade",
+            animationDuration: 280,
           }}
         >
           <Stack.Screen name="index" />

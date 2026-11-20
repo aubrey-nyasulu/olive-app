@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, type ReactNode } from "react";
 import {
   Animated,
   Easing,
@@ -12,7 +12,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { useOlive } from "../context/OliveProvider";
 import { useThemeStyles, useColors, type ColorPalette } from "../theme";
 
@@ -85,7 +85,7 @@ export function Screen({
   useEffect(() => {
     Animated.timing(headerOpacity, {
       toValue: dimmed ? 0.4 : 1,
-      duration: 300,
+      duration: 500,
       easing: Easing.out(Easing.quad),
       useNativeDriver: true,
     }).start();
@@ -102,9 +102,48 @@ export function Screen({
 
   const showHeader = home || back || title;
 
+  const isInitialMount = useRef(true);
+  const transitionAnim = useRef(new Animated.Value(home ? 1 : 0)).current;
+
+  useFocusEffect(
+    useCallback(() => {
+      if (isInitialMount.current && home) {
+        isInitialMount.current = false;
+        return;
+      }
+      isInitialMount.current = false;
+
+      transitionAnim.setValue(0);
+      Animated.timing(transitionAnim, {
+        toValue: 1,
+        duration: 500,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }).start();
+    }, [home, transitionAnim])
+  );
+
+  const screenOpacity = transitionAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 1],
+  });
+
+  const screenTranslateY = transitionAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [home ? 32 : -32, 0],
+  });
+
   return (
     <View style={styles.root}>
-      <View style={styles.container}>
+      <Animated.View
+        style={[
+          styles.container,
+          {
+            opacity: screenOpacity,
+            transform: [{ translateY: screenTranslateY }],
+          },
+        ]}
+      >
         {/* Fixed Frosted Glassmorphism Header */}
         {showHeader && (
           <Animated.View
@@ -233,7 +272,7 @@ export function Screen({
         >
           {children}
         </View>
-      </View>
+      </Animated.View>
     </View>
   );
 }
