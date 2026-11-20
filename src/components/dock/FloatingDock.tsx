@@ -630,29 +630,10 @@ export function FloatingDock({
             style={[styles.glassContainer, { opacity: glassOpacity }]}
             pointerEvents="none"
           >
-            {/* Top Soft Fade Gradient Scrim */}
-            <LinearGradient
-              colors={
-                isDark
-                  ? [
-                      "rgba(20, 19, 18, 0)",
-                      "rgba(20, 19, 18, 0.65)",
-                      "rgba(20, 19, 18, 0.92)",
-                    ]
-                  : [
-                      "rgba(255, 255, 255, 0)",
-                      "rgba(255, 255, 255, 0.65)",
-                      "rgba(255, 255, 255, 0.92)",
-                    ]
-              }
-              locations={[0, 0.45, 1]}
-              style={styles.glassScrimGradient}
-            />
-
             {/* Frosted Glass Pane with BlurView and Tint */}
             <View style={styles.glassFrostedPane}>
               <BlurView
-                intensity={Platform.OS === "ios" ? 54 : 74}
+                intensity={Platform.OS === "ios" ? 120 : 200}
                 tint={isDark ? "dark" : "light"}
                 style={StyleSheet.absoluteFill}
               />
@@ -761,13 +742,6 @@ const createStyles = (colors: ColorPalette) =>
       bottom: 0,
       height: 88,
       overflow: "hidden",
-    },
-    glassScrimGradient: {
-      position: "absolute",
-      top: 0,
-      left: 0,
-      right: 0,
-      height: 24,
     },
     glassFrostedPane: {
       position: "absolute",
