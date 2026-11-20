@@ -221,16 +221,6 @@ export function StoriesBar() {
                         </View>
                       )}
                     </View>
-                    <View style={styles.locationTimeRow}>
-                      <Ionicons
-                        name="location-sharp"
-                        size={11}
-                        color={colors.signal}
-                      />
-                      <Text style={styles.headerLocationText}>
-                        {activeStory.location} · {activeStory.timeAgo}
-                      </Text>
-                    </View>
                   </View>
                 </Pressable>
 
@@ -292,7 +282,6 @@ export function StoriesBar() {
                     pressed && styles.pressed,
                   ]}
                 >
-                  <Ionicons name="compass-outline" size={16} color="#FFFFFF" />
                   <Text style={styles.viewVenueText}>
                     {activeStory.isOwner ? "View My Profile" : "View Venue"}
                   </Text>

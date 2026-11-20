@@ -43,9 +43,7 @@ export function ProfileAboutTab({
               style={styles.categorySparkle}
             />
             <Text style={styles.categoryTagText}>
-              {profile.kind === "Business"
-                ? profile.category
-                : "Local Guide"}
+              {profile.kind === "Business" ? profile.category : "Local Guide"}
             </Text>
           </View>
         </View>
@@ -212,183 +210,183 @@ export function ProfileAboutTab({
 const createStyles = (colors: ColorPalette) =>
   StyleSheet.create({
     container: {
-    gap: 14,
-  },
-  infoCard: {
-    borderRadius: 16,
-    borderWidth: 1,
-    padding: 16,
-    backgroundColor: colors.surface,
-    borderColor: colors.line,
-  },
-  cardHeaderRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    marginBottom: 12,
-  },
-  sectionTitle: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: colors.text,
-  },
-  spacer: {
-    flex: 1,
-  },
-  categoryTag: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 9999,
-    borderWidth: 1,
-    backgroundColor: colors.surfaceMuted,
-    borderColor: colors.line,
-  },
-  categorySparkle: {
-    marginRight: 4,
-  },
-  categoryTagText: {
-    fontSize: 12,
-    fontWeight: "700",
-    letterSpacing: 0.3,
-    color: colors.signal,
-  },
-  cardHeadline: {
-    fontSize: 16,
-    fontWeight: "700",
-    marginBottom: 8,
-    color: colors.text,
-  },
-  bioText: {
-    fontSize: 14,
-    lineHeight: 20,
-    marginTop: 2,
-    marginBottom: 16,
-    color: colors.textSecondary,
-  },
-  statsShelf: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-around",
-    borderTopWidth: 1,
-    paddingTop: 12,
-    borderTopColor: colors.line,
-  },
-  statItem: {
-    alignItems: "center",
-    flex: 1,
-  },
-  statValue: {
-    fontSize: 16,
-    fontWeight: "800",
-    color: colors.text,
-  },
-  statLabel: {
-    fontSize: 12,
-    fontWeight: "600",
-    marginTop: 2,
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-    color: colors.muted,
-  },
-  statDivider: {
-    width: 1,
-    height: 24,
-    backgroundColor: colors.line,
-  },
-  scheduleItem: {
-    marginBottom: 12,
-  },
-  scheduleLabel: {
-    fontSize: 12,
-    fontWeight: "600",
-    textTransform: "uppercase",
-    letterSpacing: 0.4,
-    marginBottom: 2,
-    color: colors.muted,
-  },
-  scheduleValue: {
-    fontSize: 14,
-    lineHeight: 20,
-    fontWeight: "500",
-    color: colors.text,
-  },
-  scheduleValueSecondary: {
-    color: colors.textSecondary,
-  },
-  locationAddress: {
-    fontSize: 14,
-    fontWeight: "600",
-    marginBottom: 12,
-    color: colors.text,
-  },
-  directionsActionBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    backgroundColor: colors.text,
-  },
-  directionsActionBtnText: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: colors.bg,
-  },
-  badgesWrap: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  badgeChip: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 9999,
-    borderWidth: 1,
-    backgroundColor: colors.surfaceMuted,
-    borderColor: colors.line,
-  },
-  badgeChipText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: colors.text,
-  },
-  contactRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    marginBottom: 12,
-  },
-  contactRowText: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: colors.text,
-  },
-  contactRowTextMuted: {
-    color: colors.muted,
-  },
-  settingsShortcutBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: 12,
-    borderRadius: 16,
-    borderWidth: 1,
-    marginTop: 4,
-    backgroundColor: colors.surfaceMuted,
-    borderColor: colors.line,
-  },
-  settingsShortcutBtnText: {
-    fontSize: 14,
-    fontWeight: "700",
-    flex: 1,
-    marginLeft: 12,
-    color: colors.text,
-  },
-});
+      gap: 14,
+    },
+    infoCard: {
+      borderRadius: 16,
+      borderWidth: 1,
+      padding: 16,
+      backgroundColor: colors.surface,
+      borderColor: colors.line,
+    },
+    cardHeaderRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      marginBottom: 12,
+    },
+    sectionTitle: {
+      fontSize: 15,
+      fontWeight: "700",
+      color: colors.text,
+    },
+    spacer: {
+      flex: 1,
+    },
+    categoryTag: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 9999,
+      borderWidth: 1,
+      backgroundColor: colors.surfaceMuted,
+      borderColor: colors.line,
+    },
+    categorySparkle: {
+      marginRight: 4,
+    },
+    categoryTagText: {
+      fontSize: 12,
+      fontWeight: "700",
+      letterSpacing: 0.3,
+      color: colors.signal,
+    },
+    cardHeadline: {
+      fontSize: 16,
+      fontWeight: "700",
+      marginBottom: 8,
+      color: colors.text,
+    },
+    bioText: {
+      fontSize: 14,
+      lineHeight: 20,
+      marginTop: 2,
+      marginBottom: 16,
+      color: colors.textSecondary,
+    },
+    statsShelf: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-around",
+      borderTopWidth: 1,
+      paddingTop: 12,
+      borderTopColor: colors.line,
+    },
+    statItem: {
+      alignItems: "center",
+      flex: 1,
+    },
+    statValue: {
+      fontSize: 16,
+      fontWeight: "800",
+      color: colors.text,
+    },
+    statLabel: {
+      fontSize: 12,
+      fontWeight: "600",
+      marginTop: 2,
+      textTransform: "uppercase",
+      letterSpacing: 0.5,
+      color: colors.muted,
+    },
+    statDivider: {
+      width: 1,
+      height: 24,
+      backgroundColor: colors.line,
+    },
+    scheduleItem: {
+      marginBottom: 12,
+    },
+    scheduleLabel: {
+      fontSize: 12,
+      fontWeight: "600",
+      textTransform: "uppercase",
+      letterSpacing: 0.4,
+      marginBottom: 2,
+      color: colors.muted,
+    },
+    scheduleValue: {
+      fontSize: 14,
+      lineHeight: 20,
+      fontWeight: "500",
+      color: colors.text,
+    },
+    scheduleValueSecondary: {
+      color: colors.textSecondary,
+    },
+    locationAddress: {
+      fontSize: 14,
+      fontWeight: "600",
+      marginBottom: 12,
+      color: colors.text,
+    },
+    directionsActionBtn: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      borderRadius: 12,
+      backgroundColor: colors.text,
+    },
+    directionsActionBtnText: {
+      fontSize: 14,
+      fontWeight: "700",
+      color: colors.bg,
+    },
+    badgesWrap: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 8,
+    },
+    badgeChip: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 9999,
+      borderWidth: 1,
+      backgroundColor: colors.surfaceMuted,
+      borderColor: colors.line,
+    },
+    badgeChipText: {
+      fontSize: 12,
+      fontWeight: "600",
+      color: colors.text,
+    },
+    contactRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      marginBottom: 12,
+    },
+    contactRowText: {
+      fontSize: 14,
+      fontWeight: "500",
+      color: colors.text,
+    },
+    contactRowTextMuted: {
+      color: colors.muted,
+    },
+    settingsShortcutBtn: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      padding: 12,
+      borderRadius: 16,
+      borderWidth: 1,
+      marginTop: 4,
+      backgroundColor: colors.surfaceMuted,
+      borderColor: colors.line,
+    },
+    settingsShortcutBtnText: {
+      fontSize: 14,
+      fontWeight: "700",
+      flex: 1,
+      marginLeft: 12,
+      color: colors.text,
+    },
+  });
