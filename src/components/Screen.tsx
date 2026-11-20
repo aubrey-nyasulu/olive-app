@@ -120,7 +120,7 @@ export function Screen({
           >
             {/* Native / Web Blur Backdrop */}
             <BlurView
-              intensity={Platform.OS === "ios" ? 65 : 85}
+              intensity={Platform.OS === "ios" ? 120 : 200}
               tint={config.dark ? "dark" : "light"}
               style={StyleSheet.absoluteFill}
             />
@@ -176,10 +176,7 @@ export function Screen({
                 ) : title ? (
                   <Text
                     numberOfLines={1}
-                    style={[
-                      styles.title,
-                      back && styles.titleWithBack,
-                    ]}
+                    style={[styles.title, back && styles.titleWithBack]}
                   >
                     {title}
                   </Text>
