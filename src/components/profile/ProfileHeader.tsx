@@ -4,6 +4,7 @@ import {
   Pressable,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { BlurView } from "expo-blur";
@@ -38,6 +39,7 @@ export function ProfileHeader({
   const { styles, colors, isDark } = useThemeStyles(createStyles);
   const insets = useSafeAreaInsets();
   const insetsTop = insets.top;
+  const { width: screenWidth } = useWindowDimensions();
 
   const expandedHeight = insetsTop + COVER_EXPANDED_HEIGHT;
   const collapsedHeight = insetsTop + NAVBAR_HEIGHT;
@@ -116,16 +118,55 @@ export function ProfileHeader({
     extrapolate: "clamp",
   });
 
-  // Collapsed title & handle
-  const collapsedTitleOpacity = scrollY.interpolate({
-    inputRange: [SCROLL_DISTANCE * 0.6, SCROLL_DISTANCE],
-    outputRange: [0, 1],
+  // Floating Name & Identity horizontal position:
+  // Expanded: left: 16 (aligned with screen padding)
+  // Collapsed: left: 64 (12px to the right of collapsed 36px avatar at left: 16)
+  const nameLeft = scrollY.interpolate({
+    inputRange: [0, SCROLL_DISTANCE],
+    outputRange: [16, 64],
     extrapolate: "clamp",
   });
 
-  const collapsedTitleTranslateY = scrollY.interpolate({
-    inputRange: [SCROLL_DISTANCE * 0.6, SCROLL_DISTANCE],
-    outputRange: [8, 0],
+  // Floating Name & Identity vertical position:
+  // Expanded: sits directly below avatar clearance row (expandedHeight + 56)
+  // Collapsed: vertically centered in 56px navbar (insetsTop + (56 - 36) / 2 = insetsTop + 10)
+  const nameTop = scrollY.interpolate({
+    inputRange: [-100, 0, SCROLL_DISTANCE],
+    outputRange: [
+      expandedHeight + 100 + 56,
+      expandedHeight + 56,
+      insetsTop + (NAVBAR_HEIGHT - 36) / 2,
+    ],
+    extrapolate: "clamp",
+  });
+
+  // Scale: 22px display font smoothly scales to ~17px navbar title (0.78 scale)
+  const nameScale = scrollY.interpolate({
+    inputRange: [0, SCROLL_DISTANCE],
+    outputRange: [1, 0.78],
+    extrapolate: "clamp",
+  });
+
+  // Target right clearance in collapsed state: 124 if another user (follow button), 16 if me
+  const targetRight = !isMe ? 124 : 16;
+  const expandedMaxWidth = screenWidth - 32;
+  const collapsedMaxWidth = (screenWidth - targetRight - 64) / 0.78;
+  const nameMaxWidth = scrollY.interpolate({
+    inputRange: [0, SCROLL_DISTANCE],
+    outputRange: [expandedMaxWidth, collapsedMaxWidth],
+    extrapolate: "clamp",
+  });
+
+  // Neighborhood suffix in handle row fades out and collapses early as header collapses
+  const neighborhoodOpacity = scrollY.interpolate({
+    inputRange: [0, SCROLL_DISTANCE * 0.4],
+    outputRange: [1, 0],
+    extrapolate: "clamp",
+  });
+
+  const neighborhoodMaxWidth = scrollY.interpolate({
+    inputRange: [0, SCROLL_DISTANCE * 0.4],
+    outputRange: [200, 0],
     extrapolate: "clamp",
   });
 
@@ -189,44 +230,6 @@ export function ProfileHeader({
           />
         </Animated.View>
 
-        {/* Fixed Top Bar (Collapsed Title & Handle) */}
-        <View
-          style={[
-            styles.topBar,
-            { height: collapsedHeight, paddingTop: insetsTop },
-          ]}
-        >
-          <Animated.View
-            style={[
-              styles.collapsedTitleMeta,
-              !isMe
-                ? styles.collapsedTitleMetaOther
-                : styles.collapsedTitleMetaMe,
-              {
-                opacity: collapsedTitleOpacity,
-                transform: [{ translateY: collapsedTitleTranslateY }],
-              },
-            ]}
-            pointerEvents="none"
-          >
-            <View style={styles.collapsedTitleRow}>
-              <Text style={styles.collapsedName} numberOfLines={1}>
-                {profile.name}
-              </Text>
-              {profile.kind === "Business" && (
-                <Ionicons
-                  name="checkmark-circle"
-                  size={14}
-                  color={colors.signal}
-                  style={styles.collapsedVerified}
-                />
-              )}
-            </View>
-            <Text style={styles.collapsedHandle} numberOfLines={1}>
-              {profile.handle}
-            </Text>
-          </Animated.View>
-        </View>
       </Animated.View>
 
       {/* 2. FLOATING & SCALING AVATAR (Smoothly transitions vertically half-in/out to navbar center) */}
@@ -293,6 +296,51 @@ export function ProfileHeader({
           </Pressable>
         </Animated.View>
       )}
+
+      {/* 4. FLOATING NAME & IDENTITY (Seamlessly animates/translates into collapsing navbar) */}
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          styles.floatingNameWrap,
+          {
+            top: nameTop,
+            left: nameLeft,
+            maxWidth: nameMaxWidth,
+            transform: [{ scale: nameScale }],
+          },
+        ]}
+      >
+        <View style={styles.nameRow}>
+          <Text style={styles.profileName} numberOfLines={1}>
+            {profile.name}
+          </Text>
+          {profile.kind === "Business" && (
+            <Ionicons
+              name="checkmark-circle"
+              size={18}
+              color={colors.signal}
+              style={styles.verifiedIcon}
+            />
+          )}
+        </View>
+        <View style={styles.floatingHandleRow}>
+          <Text style={styles.profileHandle} numberOfLines={1}>
+            {profile.handle}
+          </Text>
+          <Animated.Text
+            style={[
+              styles.neighborhoodText,
+              {
+                opacity: neighborhoodOpacity,
+                maxWidth: neighborhoodMaxWidth,
+              },
+            ]}
+            numberOfLines={1}
+          >
+            {" "}· {profile.neighborhood}
+          </Animated.Text>
+        </View>
+      </Animated.View>
     </>
   );
 }
@@ -306,7 +354,7 @@ interface ProfileHeroMetaProps {
 }
 
 export function ProfileHeroMeta({ profile }: ProfileHeroMetaProps) {
-  const { styles, colors } = useThemeStyles(createStyles);
+  const { styles } = useThemeStyles(createStyles);
   const insets = useSafeAreaInsets();
   const expandedHeight = insets.top + COVER_EXPANDED_HEIGHT;
 
@@ -318,23 +366,8 @@ export function ProfileHeroMeta({ profile }: ProfileHeroMetaProps) {
       {/* Clearance Row for Floating Avatar bottom half & Follow Button */}
       <View style={styles.avatarClearanceRow} />
 
-      {/* Profile Identity Group */}
-      <View style={styles.metaGroup}>
-        <View style={styles.nameRow}>
-          <Text style={styles.profileName}>{profile.name}</Text>
-          {profile.kind === "Business" && (
-            <Ionicons
-              name="checkmark-circle"
-              size={18}
-              color={colors.signal}
-              style={styles.verifiedIcon}
-            />
-          )}
-        </View>
-        <Text style={styles.profileHandle}>
-          {profile.handle} · {profile.neighborhood}
-        </Text>
-      </View>
+      {/* Clearance Spacer matching the floating Name & Identity Group */}
+      <View style={styles.metaSpacer} />
     </View>
   );
 }
@@ -349,6 +382,7 @@ const createStyles = (colors: ColorPalette) =>
       zIndex: 30,
       overflow: "hidden",
       backgroundColor: colors.surfaceMuted,
+      elevation: 4,
     },
     coverImage: {
       position: "absolute",
@@ -388,50 +422,29 @@ const createStyles = (colors: ColorPalette) =>
       flex: 1,
       height: 1,
     },
-    topBar: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      paddingHorizontal: 16,
-      position: "absolute",
-      top: 0,
-      left: 0,
-      right: 0,
-      zIndex: 40,
-    },
     btnPressed: {
       opacity: 0.72,
     },
-    collapsedTitleMeta: {
+    floatingNameWrap: {
       position: "absolute",
-      left: 64,
-      justifyContent: "center",
+      zIndex: 37,
+      elevation: 8,
+      transformOrigin: "left top",
     },
-    collapsedTitleMetaOther: {
-      right: 124,
-    },
-    collapsedTitleMetaMe: {
-      right: 16,
-    },
-    collapsedTitleRow: {
+    floatingHandleRow: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 4,
+      marginTop: 2,
     },
-    collapsedName: {
-      fontSize: 16,
-      fontWeight: "700",
-      letterSpacing: -0.2,
-      color: colors.text,
-    },
-    collapsedVerified: {
-      marginLeft: 2,
-    },
-    collapsedHandle: {
-      fontSize: 12,
+    neighborhoodText: {
+      fontSize: 14,
       fontWeight: "500",
       color: colors.muted,
-      marginTop: 2,
+      overflow: "hidden",
+    },
+    metaSpacer: {
+      height: 48,
+      marginBottom: 16,
     },
     floatingAvatarWrap: {
       position: "absolute",
@@ -493,10 +506,6 @@ const createStyles = (colors: ColorPalette) =>
     avatarClearanceRow: {
       height: 48,
       marginBottom: 8,
-    },
-    metaGroup: {
-      paddingHorizontal: 16,
-      marginBottom: 16,
     },
     nameRow: {
       flexDirection: "row",
