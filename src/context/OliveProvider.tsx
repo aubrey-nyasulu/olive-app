@@ -36,6 +36,12 @@ export type ExpandedWindow =
   | { type: "notifications" }
   | null;
 
+export type ProfileTab =
+  | "posts"
+  | "reposted"
+  | "interacted"
+  | "about";
+
 type OliveContextType = {
   config: SettingsState;
   colors: ColorPalette;
@@ -64,15 +70,21 @@ type OliveContextType = {
   setIsSearching: (searching: boolean | ((prev: boolean) => boolean)) => void;
 
   // Profile screen tab state (synced with bottom floating dock & header)
-  profileTab: "posts" | "about";
+  profileTab: ProfileTab;
   setProfileTab: (
     tab:
-      | "posts"
-      | "about"
-      | "saved"
+      | ProfileTab
       | "settings"
-      | ((prev: "posts" | "about") => "posts" | "about")
+      | ((prev: ProfileTab) => ProfileTab)
   ) => void;
+
+  // Liked & Reposted state
+  likedIds: string[];
+  isLiked: (id: string) => boolean;
+  toggleLike: (id: string) => void;
+  repostedIds: string[];
+  isReposted: (id: string) => boolean;
+  toggleRepost: (id: string) => void;
 
   // Profile modal sheet state (Saved / Settings popup)
   profileModal: "saved" | "settings" | null;
@@ -124,7 +136,32 @@ export function OliveProvider({ children }: { children: ReactNode }) {
   const [isSearching, setIsSearching] = useState(false);
 
   // Profile screen tab state (defaults to "about" as first tab)
-  const [profileTab, setProfileTabState] = useState<"about" | "posts">("about");
+  const [profileTab, setProfileTabState] = useState<ProfileTab>("about");
+
+  // Liked & Reposted posts tracking
+  const [likedIds, setLikedIds] = useState<string[]>([
+    "park-live",
+    "forno",
+    "kuchawe-chambo",
+  ]);
+  const [repostedIds, setRepostedIds] = useState<string[]>([
+    "park-live",
+    "saturday-market",
+  ]);
+
+  const isLiked = (id: string) => likedIds.includes(id);
+  const toggleLike = (id: string) => {
+    setLikedIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const isReposted = (id: string) => repostedIds.includes(id);
+  const toggleRepost = (id: string) => {
+    setRepostedIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
 
   // Expanded floating nav window state
   const [expandedWindow, setExpandedWindow] = useState<ExpandedWindow>(null);
@@ -182,15 +219,11 @@ export function OliveProvider({ children }: { children: ReactNode }) {
 
   const setProfileTab = (
     tab:
-      | "posts"
-      | "about"
-      | "saved"
+      | ProfileTab
       | "settings"
-      | ((prev: "posts" | "about") => "posts" | "about")
+      | ((prev: ProfileTab) => ProfileTab)
   ) => {
-    if (tab === "saved") {
-      setExpandedWindow({ type: "profile_saved" });
-    } else if (tab === "settings") {
+    if (tab === "settings") {
       setExpandedWindow({ type: "profile_settings" });
     } else if (typeof tab === "function") {
       setProfileTabState(tab);
@@ -312,6 +345,12 @@ export function OliveProvider({ children }: { children: ReactNode }) {
         setIsSearching,
         profileTab,
         setProfileTab,
+        likedIds,
+        isLiked,
+        toggleLike,
+        repostedIds,
+        isReposted,
+        toggleRepost,
         profileModal,
         setProfileModal,
         expandedWindow,

@@ -17,12 +17,18 @@ export function PostCard({
   hideAuthor?: boolean;
 }) {
   const { styles, colors } = useThemeStyles(createStyles);
-  const { isSaved, toggleSave, closeSearch, openExpandedWindow, reviewsMap } =
-    useOlive();
-  const [isLiked, setIsLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(
-    () => Math.floor(Math.abs(post.lat * 100) % 35) + 8
-  );
+  const {
+    isSaved,
+    toggleSave,
+    closeSearch,
+    openExpandedWindow,
+    reviewsMap,
+    isLiked,
+    toggleLike,
+  } = useOlive();
+  const liked = isLiked ? isLiked(post.id) : false;
+  const baseLikes = Math.floor(Math.abs(post.lat * 100) % 35) + 8;
+  const likeCount = baseLikes + (liked ? 1 : 0);
   const [captionExpanded, setCaptionExpanded] = useState(false);
 
   const reviews = reviewsMap[post.id] ?? REVIEWS[post.id] ?? [];
@@ -43,10 +49,9 @@ export function PostCard({
   };
 
   const handleLike = () => {
-    setIsLiked((prev) => {
-      setLikeCount((c) => (prev ? c - 1 : c + 1));
-      return !prev;
-    });
+    if (toggleLike) {
+      toggleLike(post.id);
+    }
   };
 
   const handleShare = () => {
@@ -98,7 +103,7 @@ export function PostCard({
           {/* Like */}
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={isLiked ? "Unlike post" : "Like post"}
+            accessibilityLabel={liked ? "Unlike post" : "Like post"}
             onPress={handleLike}
             style={({ pressed }) => [
               styles.actionItem,
@@ -106,9 +111,9 @@ export function PostCard({
             ]}
           >
             <Ionicons
-              name={isLiked ? "heart" : "heart-outline"}
+              name={liked ? "heart" : "heart-outline"}
               size={22}
-              color={isLiked ? "#FF3B30" : colors.text}
+              color={liked ? "#FF3B30" : colors.text}
             />
             <Text style={styles.actionCount}>{likeCount}</Text>
           </Pressable>
