@@ -16,7 +16,8 @@ import type { UserProfile } from "../../profiles";
 
 export const COVER_EXPANDED_HEIGHT = 160;
 export const NAVBAR_HEIGHT = 56;
-export const SCROLL_DISTANCE = COVER_EXPANDED_HEIGHT - NAVBAR_HEIGHT; // 104
+export const HERO_COLLAPSE_DISTANCE = 224; // Full hero clearance (160 + 56 + 64) - 56
+export const SCROLL_DISTANCE = HERO_COLLAPSE_DISTANCE; // 224
 export const AVATAR_EXPANDED_SIZE = 80;
 export const AVATAR_COLLAPSED_SIZE = 36;
 export const FOLLOW_BTN_HEIGHT = 36;
@@ -229,7 +230,6 @@ export function ProfileHeader({
             style={styles.hairline}
           />
         </Animated.View>
-
       </Animated.View>
 
       {/* 2. FLOATING & SCALING AVATAR (Smoothly transitions vertically half-in/out to navbar center) */}
@@ -272,9 +272,7 @@ export function ProfileHeader({
             onPress={onToggleFollow}
             style={({ pressed }) => [
               styles.followBtn,
-              isFollowing
-                ? styles.followBtnActive
-                : styles.followBtnInactive,
+              isFollowing ? styles.followBtnActive : styles.followBtnInactive,
               pressed && styles.btnPressed,
             ]}
           >
@@ -337,7 +335,8 @@ export function ProfileHeader({
             ]}
             numberOfLines={1}
           >
-            {" "}· {profile.neighborhood}
+            {" "}
+            · {profile.neighborhood}
           </Animated.Text>
         </View>
       </Animated.View>

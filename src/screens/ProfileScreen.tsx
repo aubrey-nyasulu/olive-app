@@ -1,16 +1,23 @@
 import { useMemo, useRef, useState } from "react";
 import {
   Animated,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
   Pressable,
+  ScrollView,
   StyleSheet,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
 import { Screen } from "../components/Screen";
 import {
   ProfileHeader,
   ProfileHeroMeta,
+  COVER_EXPANDED_HEIGHT,
+  NAVBAR_HEIGHT,
+  SCROLL_DISTANCE,
 } from "../components/profile/ProfileHeader";
 import { ProfileAboutTab } from "../components/profile/ProfileAboutTab";
 import { ProfilePostsTab } from "../components/profile/ProfilePostsTab";
@@ -55,19 +62,82 @@ const TABS: TabItem[] = [
 
 export default function ProfileScreen() {
   const { styles, colors } = useThemeStyles(createStyles);
-  const {
-    profileTab,
-    setProfileTab,
-    likedIds,
-    repostedIds,
-    reviewsMap,
-  } = useOlive();
+  const insets = useSafeAreaInsets();
+  const insetsTop = insets.top;
+  const { profileTab, setProfileTab, likedIds, repostedIds, reviewsMap } =
+    useOlive();
   const { author, id } = useLocalSearchParams<{
     author?: string;
     id?: string;
   }>();
 
   const scrollY = useRef(new Animated.Value(0)).current;
+  const scrollRef = useRef<ScrollView>(null);
+  const dragStartY = useRef(0);
+
+  const TAB_INITIAL_TOP = insetsTop + COVER_EXPANDED_HEIGHT + 120; // insetsTop + 280
+  const TAB_STICKY_TOP = insetsTop + NAVBAR_HEIGHT; // insetsTop + 56
+  const TAB_STICKY_SCROLL = TAB_INITIAL_TOP - TAB_STICKY_TOP; // 224 (matches SCROLL_DISTANCE)
+
+  // Floating Tab Switcher:
+  // Interpolates 1:1 with scroll from TAB_INITIAL_TOP until reaching TAB_STICKY_TOP,
+  // where it stays clamped (sticky) right below the collapsed navbar.
+  const tabTop = scrollY.interpolate({
+    inputRange: [-100, 0, SCROLL_DISTANCE],
+    outputRange: [TAB_INITIAL_TOP + 100, TAB_INITIAL_TOP, TAB_STICKY_TOP],
+    extrapolateLeft: "extend",
+    extrapolateRight: "clamp",
+  });
+
+  // Hairline bottom border fades in as the tab bar reaches sticky dock
+  const tabBorderOpacity = scrollY.interpolate({
+    inputRange: [SCROLL_DISTANCE - 16, SCROLL_DISTANCE],
+    outputRange: [0, 1],
+    extrapolate: "clamp",
+  });
+
+  const snapTo = (targetY: number) => {
+    const sv = scrollRef.current;
+    if (!sv) return;
+    if (typeof (sv as any).scrollTo === "function") {
+      (sv as any).scrollTo({ y: targetY, animated: true });
+    } else if (typeof (sv as any).getNode === "function") {
+      (sv as any).getNode().scrollTo({ y: targetY, animated: true });
+    }
+  };
+
+  const onScrollBeginDrag = (
+    event: NativeSyntheticEvent<NativeScrollEvent>
+  ) => {
+    dragStartY.current = event.nativeEvent.contentOffset.y;
+  };
+
+  const onScrollEndDrag = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const currentY = event.nativeEvent.contentOffset.y;
+    const startY = dragStartY.current;
+    const delta = currentY - startY;
+    const velocityY = event.nativeEvent.velocity?.y ?? 0;
+
+    // Snapping applies when the scroll ends in the intermediate collapsible zone
+    if (currentY > 0 && currentY < SCROLL_DISTANCE) {
+      // Animate into final position according to scroll direction
+      const isCollapsing = velocityY > 0.1 || (delta > 0 && velocityY >= -0.1);
+      const targetPosition = isCollapsing ? SCROLL_DISTANCE : 0;
+      snapTo(targetPosition);
+    }
+  };
+
+  const onMomentumScrollEnd = (
+    event: NativeSyntheticEvent<NativeScrollEvent>
+  ) => {
+    const currentY = event.nativeEvent.contentOffset.y;
+    // If momentum stopped partway in the intermediate collapse zone, snap to nearest final position
+    if (currentY > 0 && currentY < SCROLL_DISTANCE) {
+      const targetPosition =
+        currentY < SCROLL_DISTANCE / 2 ? 0 : SCROLL_DISTANCE;
+      snapTo(targetPosition);
+    }
+  };
 
   const profile: UserProfile = getProfile(author || id);
   const isMe = profile.id === "chisomo" || profile.id === "amara";
@@ -104,9 +174,7 @@ export default function ProfileScreen() {
     }
     return POSTS.filter(
       (p) =>
-        p.id === "forno" ||
-        p.id === "kuchawe-chambo" ||
-        p.id === "park-live"
+        p.id === "forno" || p.id === "kuchawe-chambo" || p.id === "park-live"
     );
   }, [isMe, likedIds]);
 
@@ -191,6 +259,7 @@ export default function ProfileScreen() {
 
       {/* Scrollable Profile Body */}
       <Animated.ScrollView
+        ref={scrollRef}
         style={styles.scroll}
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
@@ -199,6 +268,9 @@ export default function ProfileScreen() {
           [{ nativeEvent: { contentOffset: { y: scrollY } } }],
           { useNativeDriver: false }
         )}
+        onScrollBeginDrag={onScrollBeginDrag}
+        onScrollEndDrag={onScrollEndDrag}
+        onMomentumScrollEnd={onMomentumScrollEnd}
       >
         {/* In-Flow Hero Meta (Cover spacer, avatar clearance row, Follow button, Name & Handle) */}
         <ProfileHeroMeta
@@ -211,33 +283,8 @@ export default function ProfileScreen() {
 
         {/* Profile Section Content */}
         <View style={styles.profileSection}>
-          {/* Original Segmented Tab Switcher with Added Icon-Only Buttons */}
-          <View style={styles.segmentedBar}>
-            {TABS.map((tab) => {
-              const isActive = profileTab === tab.id;
-              return (
-                <Pressable
-                  key={tab.id}
-                  accessibilityRole="tab"
-                  accessibilityState={{ selected: isActive }}
-                  accessibilityLabel={tab.label}
-                  onPress={() => setProfileTab(tab.id)}
-                  style={[
-                    styles.segmentBtn,
-                    isActive && styles.segmentBtnActive,
-                  ]}
-                >
-                  <View style={styles.iconBox}>
-                    <Ionicons
-                      name={tab.icon}
-                      size={18}
-                      color={isActive ? colors.signal : colors.muted}
-                    />
-                  </View>
-                </Pressable>
-              );
-            })}
-          </View>
+          {/* Spacer matching the floating & sticky Tab Switcher */}
+          <View style={styles.tabSpacer} />
 
           {/* Active Tab View */}
           {profileTab === "about" && (
@@ -253,10 +300,7 @@ export default function ProfileScreen() {
           )}
 
           {profileTab === "reposted" && (
-            <ProfileRepostsTab
-              posts={repostedPosts}
-              userName={profile.name}
-            />
+            <ProfileRepostsTab posts={repostedPosts} userName={profile.name} />
           )}
 
           {profileTab === "interacted" && (
@@ -269,6 +313,45 @@ export default function ProfileScreen() {
           )}
         </View>
       </Animated.ScrollView>
+
+      {/* Floating & Sticky Segmented Tab Switcher (Sticks right below collapsed navbar) */}
+      <Animated.View
+        pointerEvents="box-none"
+        style={[
+          styles.stickyTabWrapper,
+          {
+            top: tabTop,
+          },
+        ]}
+      >
+        <View style={styles.segmentedBar}>
+          {TABS.map((tab) => {
+            const isActive = profileTab === tab.id;
+            return (
+              <Pressable
+                key={tab.id}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: isActive }}
+                accessibilityLabel={tab.label}
+                onPress={() => setProfileTab(tab.id)}
+                style={[styles.segmentBtn, isActive && styles.segmentBtnActive]}
+              >
+                <View style={styles.iconBox}>
+                  <Ionicons
+                    name={tab.icon}
+                    size={18}
+                    color={isActive ? colors.signal : colors.muted}
+                  />
+                </View>
+              </Pressable>
+            );
+          })}
+        </View>
+        <Animated.View
+          style={[styles.tabBottomBorder, { opacity: tabBorderOpacity }]}
+          pointerEvents="none"
+        />
+      </Animated.View>
     </Screen>
   );
 }
@@ -286,12 +369,33 @@ const createStyles = (colors: ColorPalette) =>
     profileSection: {
       paddingHorizontal: 16,
     },
+    tabSpacer: {
+      height: 72,
+    },
+    stickyTabWrapper: {
+      position: "absolute",
+      left: 0,
+      right: 0,
+      zIndex: 25,
+      // elevation: 4,
+      backgroundColor: colors.bg,
+      paddingHorizontal: 16,
+      paddingTop: 8,
+      paddingBottom: 10,
+    },
+    tabBottomBorder: {
+      position: "absolute",
+      left: 0,
+      right: 0,
+      bottom: 0,
+      height: 1,
+      backgroundColor: colors.line,
+    },
     segmentedBar: {
       flexDirection: "row",
       borderRadius: 9999,
       borderWidth: 1,
       padding: 4,
-      marginBottom: 16,
       backgroundColor: colors.surfaceMuted,
       borderColor: colors.line,
     },
