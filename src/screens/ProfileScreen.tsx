@@ -74,6 +74,9 @@ export default function ProfileScreen() {
   const scrollY = useRef(new Animated.Value(0)).current;
   const scrollRef = useRef<ScrollView>(null);
   const dragStartY = useRef(0);
+  const lastScrollY = useRef(0);
+  const lastScrollTime = useRef(Date.now());
+  const recentVelocityY = useRef(0);
 
   const TAB_INITIAL_TOP = insetsTop + COVER_EXPANDED_HEIGHT + 120; // insetsTop + 280
   const TAB_STICKY_TOP = insetsTop + NAVBAR_HEIGHT; // insetsTop + 56
@@ -96,32 +99,82 @@ export default function ProfileScreen() {
     extrapolate: "clamp",
   });
 
+  // Tab content padding top when the header collapses to add some distance with the fading in border
+  const tabContentPadddingTop = scrollY.interpolate({
+    inputRange: [SCROLL_DISTANCE - 16, SCROLL_DISTANCE],
+    outputRange: [0, 16],
+    extrapolate: "clamp",
+  });
+
   const snapTo = (targetY: number) => {
-    const sv = scrollRef.current;
-    if (!sv) return;
-    if (typeof (sv as any).scrollTo === "function") {
-      (sv as any).scrollTo({ y: targetY, animated: true });
-    } else if (typeof (sv as any).getNode === "function") {
-      (sv as any).getNode().scrollTo({ y: targetY, animated: true });
+    requestAnimationFrame(() => {
+      const sv = scrollRef.current;
+      if (!sv) return;
+      if (typeof (sv as any).scrollTo === "function") {
+        (sv as any).scrollTo({ y: targetY, animated: true });
+      } else if (typeof (sv as any).getNode === "function") {
+        (sv as any).getNode().scrollTo({ y: targetY, animated: true });
+      }
+    });
+  };
+
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const currentY = event.nativeEvent.contentOffset.y;
+    const now = Date.now();
+    const dt = now - lastScrollTime.current;
+    if (dt > 8) {
+      // Positive = scrolling down content (collapsing header)
+      // Negative = scrolling up content (expanding header)
+      recentVelocityY.current = (currentY - lastScrollY.current) / dt;
+      lastScrollY.current = currentY;
+      lastScrollTime.current = now;
     }
   };
 
   const onScrollBeginDrag = (
     event: NativeSyntheticEvent<NativeScrollEvent>
   ) => {
-    dragStartY.current = event.nativeEvent.contentOffset.y;
+    const y = event.nativeEvent.contentOffset.y;
+    dragStartY.current = y;
+    lastScrollY.current = y;
+    lastScrollTime.current = Date.now();
+    recentVelocityY.current = 0;
   };
 
   const onScrollEndDrag = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const currentY = event.nativeEvent.contentOffset.y;
     const startY = dragStartY.current;
     const delta = currentY - startY;
-    const velocityY = event.nativeEvent.velocity?.y ?? 0;
 
     // Snapping applies when the scroll ends in the intermediate collapsible zone
     // Only cares about the scroll direction — never snaps back to original position
     if (currentY > 0 && currentY < SCROLL_DISTANCE) {
-      const isCollapsing = delta > 0 || velocityY > 0;
+      const now = Date.now();
+      const timeSinceLastScroll = now - lastScrollTime.current;
+      // If the finger was held stationary before release (>80ms), velocity is decayed
+      const v = timeSinceLastScroll > 80 ? 0 : recentVelocityY.current;
+
+      let isCollapsing: boolean;
+
+      // 1. Decisive flick intent (quick gesture)
+      if (v > 0.15) {
+        isCollapsing = true;
+      } else if (v < -0.15) {
+        isCollapsing = false;
+      }
+      // 2. Net drag displacement direction:
+      // delta > 0: user dragged upwards to collapse
+      // delta < 0: user dragged downwards to expand
+      else if (delta > 8) {
+        isCollapsing = true;
+      } else if (delta < -8) {
+        isCollapsing = false;
+      }
+      // 3. Fallback for tiny/subpixel touches: snap according to midpoint
+      else {
+        isCollapsing = currentY >= SCROLL_DISTANCE / 2;
+      }
+
       const targetPosition = isCollapsing ? SCROLL_DISTANCE : 0;
       snapTo(targetPosition);
     }
@@ -249,12 +302,18 @@ export default function ProfileScreen() {
       <Animated.ScrollView
         ref={scrollRef}
         style={styles.scroll}
-        contentContainerStyle={styles.contentContainer}
+        contentContainerStyle={[
+          styles.contentContainer,
+          { paddingTop: tabContentPadddingTop },
+        ]}
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}
         onScroll={Animated.event(
           [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-          { useNativeDriver: false }
+          {
+            useNativeDriver: false,
+            listener: handleScroll,
+          }
         )}
         onScrollBeginDrag={onScrollBeginDrag}
         onScrollEndDrag={onScrollEndDrag}
@@ -350,8 +409,7 @@ const createStyles = (colors: ColorPalette) =>
     },
     contentContainer: {
       paddingHorizontal: 0,
-      paddingTop: 0,
-      paddingBottom: 128, // Clearance for floating dock
+      paddingBottom: 400, // Clearance for floating dock
     },
     profileSection: {
       paddingHorizontal: 16,
