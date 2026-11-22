@@ -119,22 +119,10 @@ export default function ProfileScreen() {
     const velocityY = event.nativeEvent.velocity?.y ?? 0;
 
     // Snapping applies when the scroll ends in the intermediate collapsible zone
+    // Only cares about the scroll direction — never snaps back to original position
     if (currentY > 0 && currentY < SCROLL_DISTANCE) {
-      // Animate into final position according to scroll direction
-      const isCollapsing = velocityY > 0.1 || (delta > 0 && velocityY >= -0.1);
+      const isCollapsing = delta > 0 || velocityY > 0;
       const targetPosition = isCollapsing ? SCROLL_DISTANCE : 0;
-      snapTo(targetPosition);
-    }
-  };
-
-  const onMomentumScrollEnd = (
-    event: NativeSyntheticEvent<NativeScrollEvent>
-  ) => {
-    const currentY = event.nativeEvent.contentOffset.y;
-    // If momentum stopped partway in the intermediate collapse zone, snap to nearest final position
-    if (currentY > 0 && currentY < SCROLL_DISTANCE) {
-      const targetPosition =
-        currentY < SCROLL_DISTANCE / 2 ? 0 : SCROLL_DISTANCE;
       snapTo(targetPosition);
     }
   };
@@ -270,7 +258,6 @@ export default function ProfileScreen() {
         )}
         onScrollBeginDrag={onScrollBeginDrag}
         onScrollEndDrag={onScrollEndDrag}
-        onMomentumScrollEnd={onMomentumScrollEnd}
       >
         {/* In-Flow Hero Meta (Cover spacer, avatar clearance row, Follow button, Name & Handle) */}
         <ProfileHeroMeta
