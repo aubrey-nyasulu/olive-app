@@ -1,5 +1,5 @@
 import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Sparkles } from "lucide-react-native";
 import type { UserProfile } from "../../../profiles";
 import { useThemeStyles, type ColorPalette } from "../../../theme";
 
@@ -31,7 +31,7 @@ export function MessageView({ recipient }: MessageViewProps) {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.hintCard}>
-          <Ionicons name="sparkles" size={16} color={colors.signal} />
+          <Sparkles size={16} color={colors.signal} />
           <Text style={styles.hintText}>
             Ask about opening hours, table bookings, batch availability, or send a note to {recipient.name}.
           </Text>

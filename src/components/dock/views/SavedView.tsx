@@ -1,5 +1,5 @@
 import { Image, Pressable, ScrollView, Share, StyleSheet, Text, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Share2, Bookmark, Trash2 } from "lucide-react-native";
 import type { Post } from "../../../models";
 import { useThemeStyles, type ColorPalette } from "../../../theme";
 
@@ -34,7 +34,7 @@ export function SavedView({ savedPosts, onSelectPlace, onRemove }: SavedViewProp
             onPress={handleShare}
             style={styles.shareBtn}
           >
-            <Ionicons name="share-social-outline" size={14} color={colors.text} />
+            <Share2 size={14} color={colors.text} />
             <Text style={styles.shareText}>Share</Text>
           </Pressable>
         )}
@@ -47,7 +47,7 @@ export function SavedView({ savedPosts, onSelectPlace, onRemove }: SavedViewProp
       >
         {savedPosts.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Ionicons name="bookmark-outline" size={38} color={colors.muted} />
+            <Bookmark size={38} color={colors.muted} />
             <Text style={styles.emptyTitle}>
               Nothing saved yet
             </Text>
@@ -78,7 +78,7 @@ export function SavedView({ savedPosts, onSelectPlace, onRemove }: SavedViewProp
                 onPress={() => onRemove(post.id)}
                 style={styles.trashBtn}
               >
-                <Ionicons name="trash-outline" size={17} color={colors.muted} />
+                <Trash2 size={17} color={colors.muted} />
               </Pressable>
             </View>
           ))

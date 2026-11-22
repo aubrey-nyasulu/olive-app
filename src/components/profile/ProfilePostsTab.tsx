@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Calendar } from "lucide-react-native";
 import { useThemeStyles, type ColorPalette } from "../../theme";
 import { PostCard } from "../PostCard";
 import type { Post } from "../../models";
@@ -14,7 +14,7 @@ export function ProfilePostsTab({ posts, userName }: ProfilePostsTabProps) {
   if (posts.length === 0) {
     return (
       <View style={styles.emptyWrap}>
-        <Ionicons name="calendar-outline" size={44} color={colors.muted} />
+        <Calendar size={44} color={colors.muted} />
         <Text style={styles.emptyTitle}>No posts yet</Text>
         <Text style={styles.emptyText}>
           Posts by {userName} will appear here.

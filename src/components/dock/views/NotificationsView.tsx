@@ -6,7 +6,14 @@ import {
   Text,
   View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import type { LucideIcon } from "lucide-react-native";
+import {
+  Leaf,
+  MessageSquareMore,
+  Music,
+  Sparkles,
+  UserPlus,
+} from "lucide-react-native";
 import { useOlive } from "../../../context/OliveProvider";
 import { useThemeStyles, type ColorPalette } from "../../../theme";
 import { POSTS } from "../../../places";
@@ -16,7 +23,7 @@ interface NotificationItem {
   author: string;
   text: string;
   time: string;
-  icon: React.ComponentProps<typeof Ionicons>["name"];
+  icon: LucideIcon;
   unread: boolean;
   postId?: string;
 }
@@ -27,7 +34,7 @@ const INITIAL_NOTIFICATIONS: NotificationItem[] = [
     author: "Mabu Artisanal Bakes",
     text: "Fresh sourdough batch just pulled from the hearth in Area 10.",
     time: "20m ago",
-    icon: "sparkles",
+    icon: Sparkles,
     unread: true,
     postId: "forno",
   },
@@ -36,7 +43,7 @@ const INITIAL_NOTIFICATIONS: NotificationItem[] = [
     author: "Lingadzi River Sessions",
     text: "Twilight acoustic performance starts at 5:00 PM under the fig tree.",
     time: "1h ago",
-    icon: "musical-notes",
+    icon: Music,
     unread: true,
     postId: "park-live",
   },
@@ -45,7 +52,7 @@ const INITIAL_NOTIFICATIONS: NotificationItem[] = [
     author: "Kondwani Banda",
     text: "Mentioned you in a comment on the Area 43 coffee drop.",
     time: "3h ago",
-    icon: "chatbubble-ellipses",
+    icon: MessageSquareMore,
     unread: true,
     postId: "kondwani-coffee",
   },
@@ -54,7 +61,7 @@ const INITIAL_NOTIFICATIONS: NotificationItem[] = [
     author: "Tamanda Gondwe",
     text: "Fresh mountain honey jars available at Four Seasons.",
     time: "Yesterday",
-    icon: "leaf",
+    icon: Leaf,
     unread: false,
     postId: "saturday-market",
   },
@@ -63,7 +70,7 @@ const INITIAL_NOTIFICATIONS: NotificationItem[] = [
     author: "Dalitso Phiri",
     text: "Started following your neighborhood drops.",
     time: "2d ago",
-    icon: "person-add",
+    icon: UserPlus,
     unread: false,
   },
 ];
@@ -141,50 +148,52 @@ export function NotificationsView({
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
-        renderItem={({ item }) => (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={`${item.author}: ${item.text}`}
-            onPress={() => handlePressItem(item)}
-            style={({ pressed }) => [
-              styles.itemRow,
-              item.unread ? styles.itemRowUnread : styles.itemRowRead,
-              pressed && styles.pressed,
-            ]}
-          >
-            {/* Category / Event Icon */}
-            <View
-              style={[
-                styles.iconWrap,
-                item.unread ? styles.iconWrapUnread : styles.iconWrapRead,
+        renderItem={({ item }) => {
+          const Icon = item.icon;
+          return (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`${item.author}: ${item.text}`}
+              onPress={() => handlePressItem(item)}
+              style={({ pressed }) => [
+                styles.itemRow,
+                item.unread ? styles.itemRowUnread : styles.itemRowRead,
+                pressed && styles.pressed,
               ]}
             >
-              <Ionicons
-                name={item.icon}
-                size={18}
-                color={item.unread ? colors.signal : colors.muted}
-              />
-            </View>
+              {/* Category / Event Icon */}
+              <View
+                style={[
+                  styles.iconWrap,
+                  item.unread ? styles.iconWrapUnread : styles.iconWrapRead,
+                ]}
+              >
+                <Icon
+                  size={18}
+                  color={item.unread ? colors.signal : colors.muted}
+                />
+              </View>
 
-            {/* Notification Meta & Text */}
-            <View style={styles.metaCol}>
-              <View style={styles.authorRow}>
-                <Text numberOfLines={1} style={styles.authorName}>
-                  {item.author}
-                </Text>
-                <Text style={styles.timeText}>
-                  {item.time}
+              {/* Notification Meta & Text */}
+              <View style={styles.metaCol}>
+                <View style={styles.authorRow}>
+                  <Text numberOfLines={1} style={styles.authorName}>
+                    {item.author}
+                  </Text>
+                  <Text style={styles.timeText}>
+                    {item.time}
+                  </Text>
+                </View>
+                <Text numberOfLines={2} style={styles.itemText}>
+                  {item.text}
                 </Text>
               </View>
-              <Text numberOfLines={2} style={styles.itemText}>
-                {item.text}
-              </Text>
-            </View>
 
-            {/* Unread indicator dot */}
-            {item.unread && <View style={styles.unreadDot} />}
-          </Pressable>
-        )}
+              {/* Unread indicator dot */}
+              {item.unread && <View style={styles.unreadDot} />}
+            </Pressable>
+          );
+        }}
       />
     </View>
   );

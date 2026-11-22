@@ -9,7 +9,8 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
+import type { LucideIcon } from "lucide-react-native";
+import { LayoutGrid, Heart, Repeat2, MessageSquareMore, Info } from "lucide-react-native";
 import { useLocalSearchParams } from "expo-router";
 import { Screen } from "../components/Screen";
 import {
@@ -34,29 +35,29 @@ import { LinearGradient } from "expo-linear-gradient";
 
 interface TabItem {
   id: ProfileTab;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: LucideIcon;
   label: string;
 }
 
 const TABS: TabItem[] = [
   {
     id: "about",
-    icon: "information-circle-outline",
+    icon: Info,
     label: "About",
   },
   {
     id: "posts",
-    icon: "grid-outline",
+    icon: LayoutGrid,
     label: "Posts",
   },
   {
     id: "reposted",
-    icon: "repeat-outline",
+    icon: Repeat2,
     label: "Reposted",
   },
   {
     id: "interacted",
-    icon: "heart-outline",
+    icon: Heart,
     label: "Interactions (Liked & Comments)",
   },
 ];
@@ -384,11 +385,15 @@ export default function ProfileScreen() {
                 style={[styles.segmentBtn, isActive && styles.segmentBtnActive]}
               >
                 <View style={styles.iconBox}>
-                  <Ionicons
-                    name={tab.icon}
-                    size={18}
-                    color={isActive ? colors.signal : colors.muted}
-                  />
+                  {(() => {
+                    const TabIcon = tab.icon;
+                    return (
+                      <TabIcon
+                        size={18}
+                        color={isActive ? colors.signal : colors.muted}
+                      />
+                    );
+                  })()}
                 </View>
               </Pressable>
             );

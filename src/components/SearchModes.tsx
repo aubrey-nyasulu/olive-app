@@ -5,7 +5,7 @@ import {
   Text,
   View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { ChevronRight, Camera } from "lucide-react-native";
 import { CATEGORIES, POSTS } from "../places";
 import { useOlive } from "../context/OliveProvider";
 import { useThemeStyles, type ColorPalette } from "../theme";
@@ -59,8 +59,7 @@ export function TypeSearch({
                 </View>
                 <View style={styles.resultRight}>
                   <Text style={styles.resultDist}>{item.distanceKm} km</Text>
-                  <Ionicons
-                    name="chevron-forward"
+                  <ChevronRight
                     size={16}
                     color={colors.muted}
                   />
@@ -104,7 +103,7 @@ export function VisualSearch() {
   return (
     <View style={styles.visualContainer}>
       <View style={styles.cameraCircle}>
-        <Ionicons name="camera-outline" size={36} color={colors.signal} />
+        <Camera size={36} color={colors.signal} />
       </View>
       <Text style={styles.visualComingSoon}>Visual Finder</Text>
       <Text style={styles.visualSub}>

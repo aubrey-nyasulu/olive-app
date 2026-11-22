@@ -12,7 +12,16 @@ import {
   Text,
   View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import type { LucideIcon } from "lucide-react-native";
+import {
+  Bell,
+  Bookmark,
+  Flag,
+  Link,
+  MessageSquareMore,
+  Settings,
+  Share2,
+} from "lucide-react-native";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, usePathname } from "expo-router";
@@ -38,22 +47,36 @@ import { SearchOptionsView } from "./views/SearchOptionsView";
 import { UserMenuView } from "./views/UserMenuView";
 import { NotificationsView } from "./views/NotificationsView";
 
-const PROFILE_OPTIONS = [
-  { icon: "settings" as const, label: "Settings", id: "settings" as const },
-  { icon: "bookmark" as const, label: "Saved", id: "saved" as const },
-  { icon: "share-social" as const, label: "Share", id: "share" as const },
+interface DockOption {
+  icon: LucideIcon;
+  label: string;
+  id:
+    | "settings"
+    | "saved"
+    | "share"
+    | "message"
+    | "alerts"
+    | "share_user"
+    | "copy"
+    | "report";
+}
+
+const PROFILE_OPTIONS: DockOption[] = [
+  { icon: Settings, label: "Settings", id: "settings" },
+  { icon: Bookmark, label: "Saved", id: "saved" },
+  { icon: Share2, label: "Share", id: "share" },
 ];
 
-const OTHER_USER_OPTIONS = [
+const OTHER_USER_OPTIONS: DockOption[] = [
   {
-    icon: "chatbubble-ellipses" as const,
+    icon: MessageSquareMore,
     label: "Message",
-    id: "message" as const,
+    id: "message",
   },
-  { icon: "notifications" as const, label: "Alerts", id: "alerts" as const },
-  { icon: "share-social" as const, label: "Share", id: "share_user" as const },
-  { icon: "link" as const, label: "Copy Link", id: "copy" as const },
-  { icon: "flag" as const, label: "Report", id: "report" as const },
+  { icon: Bell, label: "Alerts", id: "alerts" },
+  { icon: Share2, label: "Share", id: "share_user" },
+  { icon: Link, label: "Copy Link", id: "copy" },
+  { icon: Flag, label: "Report", id: "report" },
 ];
 
 interface FloatingDockProps {
@@ -403,28 +426,28 @@ export function FloatingDock({
       {profileMenuOpen && onProfile && (
         <View style={styles.modesPopup}>
           {(isOtherUser ? OTHER_USER_OPTIONS : PROFILE_OPTIONS).map(
-            ({ icon, label, id: optId }) => (
+            (item) => (
               <Pressable
-                key={label}
+                key={item.label}
                 accessibilityRole="button"
-                accessibilityLabel={label}
+                accessibilityLabel={item.label}
                 onPress={() => {
                   setProfileMenuOpen(false);
-                  if (optId === "settings") {
+                  if (item.id === "settings") {
                     openExpandedWindow({ type: "profile_settings" });
-                  } else if (optId === "saved") {
+                  } else if (item.id === "saved") {
                     openExpandedWindow({ type: "profile_saved" });
-                  } else if (optId === "share") {
+                  } else if (item.id === "share") {
                     Share.share({
                       message: "Olive — Discover local places and events",
                     });
-                  } else if (optId === "message") {
+                  } else if (item.id === "message") {
                     setMessageDraft("");
                     openExpandedWindow({
                       type: "message",
                       recipient: currentProfile,
                     });
-                  } else if (optId === "alerts") {
+                  } else if (item.id === "alerts") {
                     const isAlerted = !alertsMap[currentProfile.id];
                     setAlertsMap((prev) => ({
                       ...prev,
@@ -435,18 +458,18 @@ export function FloatingDock({
                         ? `Alerts turned on for ${currentProfile.name}`
                         : `Alerts muted for ${currentProfile.name}`
                     );
-                  } else if (optId === "share_user") {
+                  } else if (item.id === "share_user") {
                     Share.share({
                       message: `Check out ${currentProfile.name} (${currentProfile.handle}) on Olive!`,
                     });
-                  } else if (optId === "copy") {
+                  } else if (item.id === "copy") {
                     showToast(
                       `Profile link copied: olive.app/${currentProfile.handle.replace(
                         "@",
                         ""
                       )}`
                     );
-                  } else if (optId === "report") {
+                  } else if (item.id === "report") {
                     openExpandedWindow({
                       type: "report",
                       targetUser: currentProfile,
@@ -458,9 +481,12 @@ export function FloatingDock({
                   { opacity: pressed ? 0.8 : 1 },
                 ]}
               >
-                <Text style={styles.modeLabel}>{label}</Text>
+                <Text style={styles.modeLabel}>{item.label}</Text>
                 <View style={styles.modeCircle}>
-                  <Ionicons name={icon} size={18} color={colors.bg} />
+                  {(() => {
+                    const ItemIcon = item.icon;
+                    return <ItemIcon size={18} color={colors.bg} />;
+                  })()}
                 </View>
               </Pressable>
             )

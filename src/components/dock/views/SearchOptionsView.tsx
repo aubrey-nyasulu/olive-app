@@ -1,26 +1,40 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import type { LucideIcon } from "lucide-react-native";
+import {
+  Camera,
+  ChevronRight,
+  Grid3x3,
+  Mic,
+  Radio,
+} from "lucide-react-native";
 import type { SearchMode } from "../../../models";
 import { useOlive } from "../../../context/OliveProvider";
 import { useThemeStyles, type ColorPalette } from "../../../theme";
 
-const SEARCH_OPTIONS = [
+interface SearchOption {
+  icon: LucideIcon;
+  label: string;
+  mode: SearchMode;
+  desc: string;
+}
+
+const SEARCH_OPTIONS: SearchOption[] = [
   {
-    icon: "mic" as const,
+    icon: Mic,
     label: "Voice",
-    mode: "voice" as const,
+    mode: "voice",
     desc: "Acoustic speech intake",
   },
   {
-    icon: "keypad" as const,
+    icon: Grid3x3,
     label: "Type",
-    mode: "type" as const,
+    mode: "type",
     desc: "Keywords, places & categories",
   },
   {
-    icon: "camera" as const,
+    icon: Camera,
     label: "Visual",
-    mode: "visual" as const,
+    mode: "visual",
     desc: "Point camera or scan surroundings",
   },
 ];
@@ -65,8 +79,7 @@ export function SearchOptionsView({
               isScanning ? styles.iconCircleActive : styles.iconCircleDefault,
             ]}
           >
-            <Ionicons
-              name={isScanning ? "radio" : "radio-outline"}
+            <Radio
               size={24}
               color={isScanning ? colors.signalForeground : colors.text}
             />
@@ -93,29 +106,32 @@ export function SearchOptionsView({
         </Pressable>
 
         {/* Search Modes */}
-        {SEARCH_OPTIONS.map(({ icon, label, mode, desc }) => (
-          <Pressable
-            key={label}
-            accessibilityRole="button"
-            onPress={() => onSelectSearchMode(mode)}
-            style={({ pressed }) => [
-              styles.card,
-              styles.cardDefault,
-              pressed && styles.pressed,
-            ]}
-          >
-            <View style={[styles.iconCircle, styles.iconCircleDefault]}>
-              <Ionicons name={icon} size={24} color={colors.text} />
-            </View>
-            <View style={styles.metaCol}>
-              <Text style={styles.label}>
-                {label} Search
-              </Text>
-              <Text style={styles.desc}>{desc}</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={17} color={colors.muted} />
-          </Pressable>
-        ))}
+        {SEARCH_OPTIONS.map(({ icon, label, mode, desc }) => {
+          const Icon = icon;
+          return (
+            <Pressable
+              key={label}
+              accessibilityRole="button"
+              onPress={() => onSelectSearchMode(mode)}
+              style={({ pressed }) => [
+                styles.card,
+                styles.cardDefault,
+                pressed && styles.pressed,
+              ]}
+            >
+              <View style={[styles.iconCircle, styles.iconCircleDefault]}>
+                <Icon size={24} color={colors.text} />
+              </View>
+              <View style={styles.metaCol}>
+                <Text style={styles.label}>
+                  {label} Search
+                </Text>
+                <Text style={styles.desc}>{desc}</Text>
+              </View>
+              <ChevronRight size={17} color={colors.muted} />
+            </Pressable>
+          );
+        })}
       </View>
     </View>
   );

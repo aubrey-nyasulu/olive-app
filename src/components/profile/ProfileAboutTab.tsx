@@ -1,5 +1,17 @@
 import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import {
+  ChevronRight,
+  Clock,
+  Compass,
+  Globe,
+  MapPin,
+  Navigation,
+  Phone,
+  ShieldCheck,
+  SlidersHorizontal,
+  Sparkles,
+} from "lucide-react-native";
+import { InstagramIcon } from "../icons/InstagramIcon";
 import { useOlive } from "../../context/OliveProvider";
 import { useThemeStyles, type ColorPalette } from "../../theme";
 import type { UserProfile } from "../../profiles";
@@ -69,7 +81,7 @@ export function ProfileAboutTab({
           <View style={styles.badgesWrap}>
             {profile.info.badges.map((badge) => (
               <View key={badge} style={styles.badgeChip}>
-                <Ionicons name="sparkles" size={11} color={colors.signal} />
+                <Sparkles size={11} color={colors.signal} />
                 <Text style={styles.badgeChipText}>{badge}</Text>
               </View>
             ))}
@@ -114,7 +126,7 @@ export function ProfileAboutTab({
       {/* 2. Practical Local Dossier (Essential Facts & Actions) */}
       <View style={styles.sectionCard}>
         <View style={styles.cardHeaderRow}>
-          <Ionicons name="compass-outline" size={16} color={colors.signal} />
+          <Compass size={16} color={colors.signal} />
           <Text style={styles.sectionTitle}>
             {isBusinessOrEvent ? "Visiting Details" : "Local Footprint"}
           </Text>
@@ -131,11 +143,7 @@ export function ProfileAboutTab({
             ]}
           >
             <View style={styles.dossierLeft}>
-              <Ionicons
-                name="location-outline"
-                size={16}
-                color={colors.signal}
-              />
+              <MapPin size={16} color={colors.signal} />
               <Text style={styles.dossierText} numberOfLines={2}>
                 {profile.info.location}
               </Text>
@@ -152,7 +160,7 @@ export function ProfileAboutTab({
                   pressed && styles.btnPressed,
                 ]}
               >
-                <Ionicons name="navigate" size={11} color="#FFFFFF" />
+                <Navigation size={11} color="#FFFFFF" />
                 <Text style={styles.guidancePillText}>{distanceKm} km</Text>
               </Pressable>
             )}
@@ -170,7 +178,7 @@ export function ProfileAboutTab({
             ]}
           >
             <View style={styles.dossierLeft}>
-              <Ionicons name="time-outline" size={16} color={colors.muted} />
+              <Clock size={16} color={colors.muted} />
               <Text style={styles.dossierText} numberOfLines={2}>
                 {profile.info.hoursOrSchedule}
               </Text>
@@ -191,7 +199,7 @@ export function ProfileAboutTab({
                   pressed && styles.btnPressed,
                 ]}
               >
-                <Ionicons name="call-outline" size={13} color={colors.signal} />
+                <Phone size={13} color={colors.signal} />
                 <Text style={styles.actionChipText}>Call</Text>
               </Pressable>
             )}
@@ -206,11 +214,7 @@ export function ProfileAboutTab({
                   pressed && styles.btnPressed,
                 ]}
               >
-                <Ionicons
-                  name="globe-outline"
-                  size={13}
-                  color={colors.signal}
-                />
+                <Globe size={13} color={colors.signal} />
                 <Text style={styles.actionChipText} numberOfLines={1}>
                   {cleanWebsiteLabel}
                 </Text>
@@ -219,11 +223,7 @@ export function ProfileAboutTab({
 
             {profile.info.social && (
               <View style={styles.actionChip}>
-                <Ionicons
-                  name="logo-instagram"
-                  size={13}
-                  color={colors.signal}
-                />
+                <InstagramIcon size={13} color={colors.signal} />
                 <Text style={styles.actionChipText}>
                   {profile.info.social}
                 </Text>
@@ -235,11 +235,7 @@ export function ProfileAboutTab({
         {/* Quiet Member Footnote */}
         {profile.info.memberSince && (
           <View style={styles.memberFooter}>
-            <Ionicons
-              name="shield-checkmark-outline"
-              size={13}
-              color={colors.muted}
-            />
+            <ShieldCheck size={13} color={colors.muted} />
             <Text style={styles.memberFooterText}>
               {profile.info.memberSince}
             </Text>
@@ -259,12 +255,12 @@ export function ProfileAboutTab({
           ]}
         >
           <View style={styles.settingsShortcutLeft}>
-            <Ionicons name="options-outline" size={18} color={colors.signal} />
+            <SlidersHorizontal size={18} color={colors.signal} />
             <Text style={styles.settingsShortcutBtnText}>
               App Search & Neighborhood Preferences
             </Text>
           </View>
-          <Ionicons name="chevron-forward" size={16} color={colors.muted} />
+          <ChevronRight size={16} color={colors.muted} />
         </Pressable>
       )}
     </View>

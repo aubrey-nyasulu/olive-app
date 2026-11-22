@@ -6,7 +6,14 @@ import {
   Text,
   View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import {
+  Bookmark,
+  ChevronRight,
+  Clock,
+  MapPin,
+  MessageSquareMore,
+  Navigation,
+} from "lucide-react-native";
 import type { Post } from "../../../models";
 import { relatedPosts, REVIEWS } from "../../../places";
 import { useOlive } from "../../../context/OliveProvider";
@@ -85,10 +92,10 @@ export function DetailsView({
               pressed && styles.pressed,
             ]}
           >
-            <Ionicons
-              name={saved ? "bookmark" : "bookmark-outline"}
+            <Bookmark
               size={18}
               color={saved ? colors.signal : colors.text}
+              fill={saved ? colors.signal : "none"}
             />
           </Pressable>
         </View>
@@ -108,7 +115,7 @@ export function DetailsView({
 
         {/* Address Location Capsule */}
         <View style={styles.placeAddressRow}>
-          <Ionicons name="location-sharp" size={16} color={colors.signal} />
+          <MapPin size={16} color={colors.signal} />
           <Text style={styles.placeAddressText} numberOfLines={2}>
             {post.place}
           </Text>
@@ -121,7 +128,7 @@ export function DetailsView({
           onPress={onNavigate}
           style={({ pressed }) => [styles.guideBtn, pressed && styles.pressed]}
         >
-          <Ionicons name="navigate" size={18} color={colors.signalForeground} />
+          <Navigation size={18} color={colors.signalForeground} />
           <Text style={styles.guideBtnText}>Guide me there</Text>
         </Pressable>
 
@@ -136,21 +143,21 @@ export function DetailsView({
         {/* Tactical Info Grid */}
         <View style={styles.infoGrid}>
           <View style={styles.gridRow}>
-            <Ionicons name="location-outline" size={16} color={colors.signal} />
+            <MapPin size={16} color={colors.signal} />
             <Text style={styles.gridLabel}>Area</Text>
             <Text style={styles.gridValue} numberOfLines={1}>
               {post.place}
             </Text>
           </View>
           <View style={styles.gridRow}>
-            <Ionicons name="time-outline" size={16} color={colors.signal} />
+            <Clock size={16} color={colors.signal} />
             <Text style={styles.gridLabel}>Hours</Text>
             <Text style={styles.gridValue} numberOfLines={1}>
               {post.when}
             </Text>
           </View>
           <View style={styles.gridRow}>
-            <Ionicons name="navigate-outline" size={16} color={colors.signal} />
+            <Navigation size={16} color={colors.signal} />
             <Text style={styles.gridLabel}>Distance</Text>
             <Text style={styles.gridValue} numberOfLines={1}>
               {post.distanceKm} km away
@@ -170,8 +177,7 @@ export function DetailsView({
             ]}
           >
             <View style={styles.reviewsTriggerLeft}>
-              <Ionicons
-                name="chatbubble-ellipses-outline"
+              <MessageSquareMore
                 size={18}
                 color={colors.signal}
               />
@@ -181,7 +187,7 @@ export function DetailsView({
             </View>
             <View style={styles.reviewsTriggerRight}>
               <Text style={styles.reviewsTriggerAction}>View & Add</Text>
-              <Ionicons name="chevron-forward" size={14} color={colors.muted} />
+              <ChevronRight size={14} color={colors.muted} />
             </View>
           </Pressable>
         )}
@@ -217,8 +223,7 @@ export function DetailsView({
                       <Text style={styles.nearbyDist}>
                         {other.distanceKm} km
                       </Text>
-                      <Ionicons
-                        name="chevron-forward"
+                      <ChevronRight
                         size={16}
                         color={colors.muted}
                       />

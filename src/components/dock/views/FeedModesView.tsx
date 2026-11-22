@@ -1,26 +1,34 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import type { LucideIcon } from "lucide-react-native";
+import { Building2, CheckCircle2, Layers, Users } from "lucide-react-native";
 import { useOlive, type FeedMode } from "../../../context/OliveProvider";
 import { useThemeStyles, type ColorPalette } from "../../../theme";
 
-const FEED_MODE_OPTIONS = [
+interface FeedModeOption {
+  icon: LucideIcon;
+  label: string;
+  desc: string;
+  mode: FeedMode;
+}
+
+const FEED_MODE_OPTIONS: FeedModeOption[] = [
   {
-    icon: "layers" as const,
+    icon: Layers,
     label: "Show Everything",
     desc: "All activity from both users & businesses",
-    mode: "all" as const,
+    mode: "all",
   },
   {
-    icon: "people" as const,
+    icon: Users,
     label: "Users Only",
     desc: "Guides, locals & community members",
-    mode: "people" as const,
+    mode: "people",
   },
   {
-    icon: "business" as const,
+    icon: Building2,
     label: "Businesses & Places",
     desc: "Bakeries, cafes, venues & session drops",
-    mode: "places" as const,
+    mode: "places",
   },
 ];
 
@@ -46,6 +54,7 @@ export function FeedModesView({ onSelectMode }: FeedModesViewProps) {
       <View style={styles.optionsWrap}>
         {FEED_MODE_OPTIONS.map(({ icon, label, desc, mode }) => {
           const isSelected = feedMode === mode;
+          const Icon = icon;
           return (
             <Pressable
               key={mode}
@@ -64,8 +73,7 @@ export function FeedModesView({ onSelectMode }: FeedModesViewProps) {
                   isSelected ? styles.iconCircleSelected : styles.iconCircleDefault,
                 ]}
               >
-                <Ionicons
-                  name={icon}
+                <Icon
                   size={20}
                   color={isSelected ? colors.signalForeground : colors.text}
                 />
@@ -84,8 +92,7 @@ export function FeedModesView({ onSelectMode }: FeedModesViewProps) {
                 </Text>
               </View>
               {isSelected && (
-                <Ionicons
-                  name="checkmark-circle"
+                <CheckCircle2
                   size={20}
                   color={colors.signal}
                 />

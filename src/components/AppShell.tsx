@@ -11,7 +11,7 @@ import {
   Text,
   View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { CheckCircle2 } from "lucide-react-native";
 import { useGlobalSearchParams, usePathname } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useOlive } from "../context/OliveProvider";
@@ -195,7 +195,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             },
           ]}
         >
-          <Ionicons name="checkmark-circle" size={16} color={colors.signal} />
+          <CheckCircle2 size={16} color={colors.signal} />
           <Text style={styles.floatingToastText}>
             {toastMessage}
           </Text>

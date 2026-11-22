@@ -1,6 +1,12 @@
 import { useState } from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import {
+  ChevronRight,
+  Heart,
+  MapPin,
+  MessageSquareMore,
+  Star,
+} from "lucide-react-native";
 import { useOlive } from "../../context/OliveProvider";
 import { useThemeStyles, type ColorPalette } from "../../theme";
 import { PostCard } from "../PostCard";
@@ -34,7 +40,7 @@ export function ProfileInteractionsTab({
   if (totalCount === 0) {
     return (
       <View style={styles.emptyWrap}>
-        <Ionicons name="heart-outline" size={44} color={colors.muted} />
+        <Heart size={44} color={colors.muted} />
         <Text style={styles.emptyTitle}>No interactions yet</Text>
         <Text style={styles.emptyText}>
           {isMe
@@ -80,10 +86,10 @@ export function ProfileInteractionsTab({
             filter === "liked" && styles.filterPillActive,
           ]}
         >
-          <Ionicons
-            name="heart"
+          <Heart
             size={12}
             color={filter === "liked" ? "#FF3B30" : colors.muted}
+            fill={filter === "liked" ? "#FF3B30" : "none"}
           />
           <Text
             style={[
@@ -104,8 +110,7 @@ export function ProfileInteractionsTab({
             filter === "comments" && styles.filterPillActive,
           ]}
         >
-          <Ionicons
-            name="chatbubble-ellipses"
+          <MessageSquareMore
             size={12}
             color={filter === "comments" ? colors.signal : colors.muted}
           />
@@ -125,8 +130,7 @@ export function ProfileInteractionsTab({
         <View style={styles.sectionWrap}>
           {filter === "all" && (
             <View style={styles.sectionHeader}>
-              <Ionicons
-                name="chatbubble-ellipses"
+              <MessageSquareMore
                 size={14}
                 color={colors.signal}
               />
@@ -154,8 +158,7 @@ export function ProfileInteractionsTab({
                     <Image source={post.image} style={styles.placeThumb} />
                   ) : (
                     <View style={styles.placeThumbPlaceholder}>
-                      <Ionicons
-                        name="location"
+                      <MapPin
                         size={16}
                         color={colors.signal}
                       />
@@ -169,8 +172,7 @@ export function ProfileInteractionsTab({
                       {post.author} · {post.place}
                     </Text>
                   </View>
-                  <Ionicons
-                    name="chevron-forward"
+                  <ChevronRight
                     size={16}
                     color={colors.muted}
                   />
@@ -181,12 +183,14 @@ export function ProfileInteractionsTab({
                   <View style={styles.bubbleHeaderRow}>
                     <View style={styles.starsRow}>
                       {[1, 2, 3, 4, 5].map((star) => (
-                        <Ionicons
+                        <Star
                           key={`star-${star}`}
-                          name={star <= review.stars ? "star" : "star-outline"}
                           size={12}
                           color={
                             star <= review.stars ? colors.signal : colors.muted
+                          }
+                          fill={
+                            star <= review.stars ? colors.signal : "none"
                           }
                         />
                       ))}
@@ -197,8 +201,7 @@ export function ProfileInteractionsTab({
                   <Text style={styles.reviewText}>"{review.text}"</Text>
 
                   <View style={styles.reviewFooter}>
-                    <Ionicons
-                      name="chatbubble-ellipses"
+                    <MessageSquareMore
                       size={12}
                       color={colors.muted}
                     />
@@ -218,7 +221,7 @@ export function ProfileInteractionsTab({
         <View style={styles.sectionWrap}>
           {filter === "all" && (
             <View style={styles.sectionHeader}>
-              <Ionicons name="heart" size={14} color="#FF3B30" />
+              <Heart size={14} color="#FF3B30" fill="#FF3B30" />
               <Text style={styles.sectionHeaderText}>
                 Liked Places ({likedPosts.length})
               </Text>
@@ -229,7 +232,7 @@ export function ProfileInteractionsTab({
             {likedPosts.map((post) => (
               <View key={`liked-post-${post.id}`} style={styles.likedPostWrap}>
                 <View style={styles.likedHeader}>
-                  <Ionicons name="heart" size={13} color="#FF3B30" />
+                  <Heart size={13} color="#FF3B30" fill="#FF3B30" />
                   <Text style={styles.likedHeaderText}>
                     {isMe
                       ? "You liked this place"

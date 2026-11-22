@@ -7,7 +7,7 @@ import {
   Text,
   View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { MapPin, Plus, Minus } from "lucide-react-native";
 import type { Post } from "../models";
 import { useThemeStyles, type ColorPalette } from "../theme";
 
@@ -115,7 +115,7 @@ export function PlaceMap({
 
       {/* Top Floating Badge: Category & Distance */}
       <View style={styles.overlayBadge}>
-        <Ionicons name="location" size={13} color={colors.signal} />
+        <MapPin size={13} color={colors.signal} />
         <Text style={styles.badgeText}>
           {post.distanceKm} km · {post.category}
         </Text>
@@ -132,7 +132,7 @@ export function PlaceMap({
               pressed && styles.controlBtnPressed,
             ]}
           >
-            <Ionicons name="add" size={18} color={colors.text} />
+            <Plus size={18} color={colors.text} />
           </Pressable>
           <Pressable
             accessibilityLabel="Zoom out"
@@ -142,7 +142,7 @@ export function PlaceMap({
               pressed && styles.controlBtnPressed,
             ]}
           >
-            <Ionicons name="remove" size={18} color={colors.text} />
+            <Minus size={18} color={colors.text} />
           </Pressable>
         </View>
       )}

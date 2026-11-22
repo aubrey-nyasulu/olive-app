@@ -6,7 +6,7 @@ import {
   Text,
   View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { X, Footprints, Bike, Car, CheckCircle2, ArrowRight } from "lucide-react-native";
 import { useOlive } from "../context/OliveProvider";
 import { useThemeStyles, type ColorPalette } from "../theme";
 import { PlaceMap } from "./PlaceMap";
@@ -30,8 +30,8 @@ export function GuidanceModal() {
   const isFinalStep = currentStepIndex === steps.length - 1;
   const progressPercent = ((currentStepIndex + 1) / steps.length) * 100;
 
-  const modeIcon =
-    mode === "walking" ? "walk" : mode === "cycling" ? "bicycle" : "car";
+  const ModeIcon =
+    mode === "walking" ? Footprints : mode === "cycling" ? Bike : Car;
 
   return (
     <Modal
@@ -58,7 +58,7 @@ export function GuidanceModal() {
                 pressed && styles.closeBtnPressed,
               ]}
             >
-              <Ionicons name="close" size={20} color={colors.text} />
+              <X size={20} color={colors.text} />
             </Pressable>
           </View>
 
@@ -70,7 +70,7 @@ export function GuidanceModal() {
             {/* Active Status Header */}
             <View style={styles.statusRow}>
               <View style={styles.modeBadge}>
-                <Ionicons name={modeIcon} size={16} color={colors.signal} />
+                <ModeIcon size={16} color={colors.signal} />
                 <Text style={styles.modeBadgeText}>
                   {mode.toUpperCase()} GUIDANCE
                 </Text>
@@ -119,11 +119,10 @@ export function GuidanceModal() {
                     : styles.stepIconWrapText,
                 ]}
               >
-                <Ionicons
-                  name={currentStep.iconName}
-                  size={28}
-                  color={colors.bg}
-                />
+                {(() => {
+                  const StepIcon = currentStep.iconName;
+                  return <StepIcon size={28} color={colors.bg} />;
+                })()}
               </View>
 
               <View style={styles.instructionTextWrap}>
@@ -196,11 +195,11 @@ export function GuidanceModal() {
                 pressed && styles.primaryBtnPressed,
               ]}
             >
-              <Ionicons
-                name={isFinalStep ? "checkmark-circle" : "arrow-forward"}
-                size={18}
-                color={colors.signalForeground}
-              />
+              {isFinalStep ? (
+                <CheckCircle2 size={18} color={colors.signalForeground} />
+              ) : (
+                <ArrowRight size={18} color={colors.signalForeground} />
+              )}
               <Text style={styles.primaryBtnText}>
                 {isFinalStep ? "Arrived at Destination" : "Next Direction"}
               </Text>

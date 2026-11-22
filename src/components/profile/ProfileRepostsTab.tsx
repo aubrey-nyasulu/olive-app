@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Repeat2 } from "lucide-react-native";
 import { useThemeStyles, type ColorPalette } from "../../theme";
 import { PostCard } from "../PostCard";
 import type { Post } from "../../models";
@@ -15,7 +15,7 @@ export function ProfileRepostsTab({ posts, userName }: ProfileRepostsTabProps) {
   if (posts.length === 0) {
     return (
       <View style={styles.emptyWrap}>
-        <Ionicons name="repeat-outline" size={44} color={colors.muted} />
+        <Repeat2 size={44} color={colors.muted} />
         <Text style={styles.emptyTitle}>No reposts yet</Text>
         <Text style={styles.emptyText}>
           Posts that {userName} reposts from the community will appear here.
@@ -29,7 +29,7 @@ export function ProfileRepostsTab({ posts, userName }: ProfileRepostsTabProps) {
       {posts.map((post) => (
         <View key={`repost-${post.id}`} style={styles.itemWrap}>
           <View style={styles.repostHeader}>
-            <Ionicons name="repeat" size={14} color={colors.signal} />
+            <Repeat2 size={14} color={colors.signal} />
             <Text style={styles.repostHeaderText}>{userName} reposted</Text>
           </View>
           <PostCard post={post} />

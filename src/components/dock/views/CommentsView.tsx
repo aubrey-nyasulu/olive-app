@@ -1,5 +1,5 @@
 import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { MessageSquareMore, Star } from "lucide-react-native";
 import type { Post, Review } from "../../../models";
 import { useThemeStyles, type ColorPalette } from "../../../theme";
 
@@ -38,8 +38,7 @@ export function CommentsView({ post, reviews }: CommentsViewProps) {
       >
         {reviews.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Ionicons
-              name="chatbubble-ellipses-outline"
+            <MessageSquareMore
               size={36}
               color={colors.muted}
             />
@@ -69,11 +68,11 @@ export function CommentsView({ post, reviews }: CommentsViewProps) {
                   </Text>
                   <View style={styles.starsRow}>
                     {Array.from({ length: rev.stars }).map((_, i) => (
-                      <Ionicons
+                      <Star
                         key={i}
-                        name="star"
                         size={11}
                         color={colors.signal}
+                        fill={colors.signal}
                       />
                     ))}
                   </View>

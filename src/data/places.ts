@@ -1,4 +1,5 @@
 import type { GuidanceStep, Post, Review, TravelMode } from "../models";
+import { ArrowUp, ArrowRight, ArrowLeft, MapPin, CheckCircle2 } from "lucide-react-native";
 
 const fuel = require("../../assets/images/place-fuel.jpg");
 const concert = require("../../assets/images/place-concert.jpg");
@@ -312,28 +313,28 @@ export function generateGuidanceSteps(post: Post): GuidanceStep[] {
       id: "step-1",
       instruction: "Head east toward the main avenue",
       distance: "120 m",
-      iconName: "arrow-up",
+      iconName: ArrowUp,
       landmark: "Pass the street corner",
     },
     {
       id: "step-2",
       instruction: `Turn right toward ${post.place.split(" ")[0]}`,
       distance: "350 m",
-      iconName: "arrow-forward",
+      iconName: ArrowRight,
       landmark: "Continue straight along the shaded pavement",
     },
     {
       id: "step-3",
       instruction: "Keep straight through the small roundabout",
       distance: `${Math.max(0.3, post.distanceKm - 0.5).toFixed(1)} km`,
-      iconName: "arrow-up",
+      iconName: ArrowUp,
       landmark: "Look for landmark signals on your right",
     },
     {
       id: "step-4",
       instruction: `Arrive at ${post.author}`,
       distance: "50 m",
-      iconName: "pin",
+      iconName: MapPin,
       landmark: post.place,
     },
   ];

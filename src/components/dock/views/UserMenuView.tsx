@@ -7,7 +7,7 @@ import {
   Text,
   View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { MessageSquareMore, ChevronRight, Bell, Bookmark, Settings } from "lucide-react-native";
 import { router } from "expo-router";
 import { useOlive } from "../../../context/OliveProvider";
 import { useThemeStyles, type ColorPalette } from "../../../theme";
@@ -95,8 +95,7 @@ export function UserMenuView({ onClose }: UserMenuViewProps) {
           ]}
         >
           <View style={styles.iconCircle}>
-            <Ionicons
-              name="chatbubble-ellipses-outline"
+            <MessageSquareMore
               size={24}
               color={colors.badgeText}
             />
@@ -114,7 +113,7 @@ export function UserMenuView({ onClose }: UserMenuViewProps) {
               Direct chats with bakeries, venues & guides
             </Text>
           </View>
-          <Ionicons name="chevron-forward" size={16} color={colors.muted} />
+          <ChevronRight size={16} color={colors.muted} />
         </Pressable>
 
         {/* Notifications */}
@@ -128,8 +127,7 @@ export function UserMenuView({ onClose }: UserMenuViewProps) {
           ]}
         >
           <View style={styles.iconCircle}>
-            <Ionicons
-              name="notifications-outline"
+            <Bell
               size={24}
               color={colors.badgeText}
             />
@@ -147,7 +145,7 @@ export function UserMenuView({ onClose }: UserMenuViewProps) {
               Live drops, venue alerts & mentions
             </Text>
           </View>
-          <Ionicons name="chevron-forward" size={16} color={colors.muted} />
+          <ChevronRight size={16} color={colors.muted} />
         </Pressable>
 
         {/* Saved Places */}
@@ -161,8 +159,7 @@ export function UserMenuView({ onClose }: UserMenuViewProps) {
           ]}
         >
           <View style={styles.iconCircle}>
-            <Ionicons
-              name="bookmark-outline"
+            <Bookmark
               size={24}
               color={colors.badgeText}
             />
@@ -175,7 +172,7 @@ export function UserMenuView({ onClose }: UserMenuViewProps) {
               Bookmarks, favorite cafes & venues
             </Text>
           </View>
-          <Ionicons name="chevron-forward" size={16} color={colors.muted} />
+          <ChevronRight size={16} color={colors.muted} />
         </Pressable>
 
         {/* App Settings */}
@@ -189,8 +186,7 @@ export function UserMenuView({ onClose }: UserMenuViewProps) {
           ]}
         >
           <View style={styles.iconCircle}>
-            <Ionicons
-              name="settings-outline"
+            <Settings
               size={24}
               color={colors.badgeText}
             />
@@ -203,7 +199,7 @@ export function UserMenuView({ onClose }: UserMenuViewProps) {
               Discovery radius, categories & dark theme
             </Text>
           </View>
-          <Ionicons name="chevron-forward" size={16} color={colors.muted} />
+          <ChevronRight size={16} color={colors.muted} />
         </Pressable>
       </View>
     </ScrollView>

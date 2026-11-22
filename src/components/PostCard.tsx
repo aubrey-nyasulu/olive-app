@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Image, Pressable, Share, StyleSheet, Text, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Heart, MessageCircle, Flower2, Bookmark, MapPin, ChevronRight } from "lucide-react-native";
 import { router } from "expo-router";
 import type { Post } from "../models";
 import { relatedPosts, REVIEWS } from "../places";
@@ -110,10 +110,10 @@ export function PostCard({
               pressed && styles.pressed,
             ]}
           >
-            <Ionicons
-              name={liked ? "heart" : "heart-outline"}
+            <Heart
               size={22}
               color={liked ? "#FF3B30" : colors.text}
+              fill={liked ? "#FF3B30" : "none"}
             />
             <Text style={styles.actionCount}>{likeCount}</Text>
           </Pressable>
@@ -128,7 +128,7 @@ export function PostCard({
               pressed && styles.pressed,
             ]}
           >
-            <Ionicons name="chatbubble-outline" size={20} color={colors.text} />
+            <MessageCircle size={20} color={colors.text} />
             {reviews.length > 0 && (
               <Text style={styles.actionCount}>{reviews.length}</Text>
             )}
@@ -144,7 +144,7 @@ export function PostCard({
               pressed && styles.pressed,
             ]}
           >
-            <Ionicons name="flower-outline" size={20} color={colors.text} />
+            <Flower2 size={20} color={colors.text} />
           </Pressable>
         </View>
 
@@ -158,10 +158,10 @@ export function PostCard({
             pressed && styles.pressed,
           ]}
         >
-          <Ionicons
-            name={saved ? "bookmark" : "bookmark-outline"}
+          <Bookmark
             size={20}
             color={saved ? colors.signal : colors.text}
+            fill={saved ? colors.signal : "none"}
           />
         </Pressable>
       </View>
@@ -200,7 +200,7 @@ export function PostCard({
             onPress={openPlace}
             style={styles.venueCapsule}
           >
-            <Ionicons name="location-sharp" size={12} color={colors.signal} />
+            <MapPin size={12} color={colors.signal} />
             <Text numberOfLines={1} style={styles.venueCapsuleText}>
               {post.place}
             </Text>
@@ -213,7 +213,7 @@ export function PostCard({
             style={styles.detailsChip}
           >
             <Text style={styles.detailsChipText}>Details</Text>
-            <Ionicons name="chevron-forward" size={11} color={colors.muted} />
+            <ChevronRight size={11} color={colors.muted} />
           </Pressable>
         </View>
 

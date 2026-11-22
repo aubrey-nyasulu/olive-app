@@ -1,5 +1,5 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { ChevronRight } from "lucide-react-native";
 import type { UserProfile } from "../../../profiles";
 import { useThemeStyles, type ColorPalette } from "../../../theme";
 
@@ -44,7 +44,7 @@ export function ReportView({ targetUser, onSubmitReport }: ReportViewProps) {
             <Text style={styles.reasonText}>
               {reason}
             </Text>
-            <Ionicons name="chevron-forward" size={16} color={colors.muted} />
+            <ChevronRight size={16} color={colors.muted} />
           </Pressable>
         ))}
       </ScrollView>

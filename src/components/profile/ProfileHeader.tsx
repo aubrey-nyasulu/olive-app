@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
+import { CheckCircle2, UserPlus } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useThemeStyles, type ColorPalette } from "../../theme";
 import type { UserProfile } from "../../profiles";
@@ -276,11 +276,11 @@ export function ProfileHeader({
               pressed && styles.btnPressed,
             ]}
           >
-            <Ionicons
-              name={isFollowing ? "checkmark-circle" : "person-add"}
-              size={16}
-              color={isFollowing ? colors.text : "#FFFFFF"}
-            />
+            {isFollowing ? (
+              <CheckCircle2 size={16} color={colors.text} />
+            ) : (
+              <UserPlus size={16} color="#FFFFFF" />
+            )}
             <Text
               style={[
                 styles.followBtnText,
@@ -313,8 +313,7 @@ export function ProfileHeader({
             {profile.name}
           </Text>
           {profile.kind === "Business" && (
-            <Ionicons
-              name="checkmark-circle"
+            <CheckCircle2
               size={18}
               color={colors.signal}
               style={styles.verifiedIcon}

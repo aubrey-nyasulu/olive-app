@@ -9,7 +9,7 @@ import {
   View,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
+import { Plus, X, ChevronRight } from "lucide-react-native";
 import { router } from "expo-router";
 import { useThemeStyles, type ColorPalette } from "../theme";
 import { STORIES, type StoryItem } from "../stories";
@@ -103,7 +103,7 @@ export function StoriesBar() {
                       <Image source={story.avatar} style={styles.avatarImg} />
                     </View>
                     <View style={styles.addBadge}>
-                      <Ionicons name="add" size={16} color="#FFFFFF" />
+                      <Plus size={16} color="#FFFFFF" />
                     </View>
                   </View>
                 ) : hasUnread ? (
@@ -230,7 +230,7 @@ export function StoriesBar() {
                   onPress={handleClose}
                   style={styles.closeBtn}
                 >
-                  <Ionicons name="close" size={18} color={colors.text} />
+                  <X size={18} color={colors.text} />
                 </Pressable>
               </View>
 
@@ -285,7 +285,7 @@ export function StoriesBar() {
                   <Text style={styles.viewVenueText}>
                     {activeStory.isOwner ? "View My Profile" : "View Venue"}
                   </Text>
-                  <Ionicons name="chevron-forward" size={14} color="#FFFFFF" />
+                  <ChevronRight size={14} color="#FFFFFF" />
                 </Pressable>
 
                 {/* Quick Reaction Emojis */}

@@ -7,7 +7,7 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Search, ArrowLeft, X, ChevronUp, Mic, MicOff, ArrowRight, ArrowUp, Send } from "lucide-react-native";
 import type { ExpandedWindow } from "../../context/OliveProvider";
 import { useOlive } from "../../context/OliveProvider";
 import { useThemeStyles, type ColorPalette } from "../../theme";
@@ -377,7 +377,7 @@ export function DockActionBar({
         ]}
         pointerEvents="none"
       >
-        <Ionicons name="search" size={20} color={colors.text} />
+        <Search size={20} color={colors.text} />
       </Animated.View>
 
       {/* Icon Layer 2: Back Arrow (Profile) */}
@@ -391,7 +391,7 @@ export function DockActionBar({
         ]}
         pointerEvents="none"
       >
-        <Ionicons name="arrow-back" size={20} color={colors.text} />
+        <ArrowLeft size={20} color={colors.text} />
       </Animated.View>
 
       {/* Icon Layer 3: Close (Search / Panel Open) */}
@@ -408,7 +408,7 @@ export function DockActionBar({
         ]}
         pointerEvents="none"
       >
-        <Ionicons name="close" size={20} color={colors.signalForeground} />
+        <X size={20} color={colors.signalForeground} />
       </Animated.View>
     </Pressable>
   );
@@ -494,7 +494,7 @@ export function DockActionBar({
             ]}
             pointerEvents="none"
           >
-            <Ionicons name="chevron-up" size={22} color={colors.text} />
+            <ChevronUp size={22} color={colors.text} />
           </Animated.View>
 
           {/* Close Icon (when menu open) */}
@@ -511,7 +511,7 @@ export function DockActionBar({
             ]}
             pointerEvents="none"
           >
-            <Ionicons name="close" size={20} color={colors.signalForeground} />
+            <X size={20} color={colors.signalForeground} />
           </Animated.View>
         </Pressable>
       </Animated.View>
@@ -530,23 +530,15 @@ export function DockActionBar({
             ]}
           >
             {activeMode === "voice" ? (
-              <Ionicons
-                name={isListening ? "mic" : "mic-outline"}
-                size={20}
-                color={colors.signalForeground}
-              />
+              isListening ? (
+                <Mic size={20} color={colors.signalForeground} />
+              ) : (
+                <MicOff size={20} color={colors.signalForeground} />
+              )
             ) : activeMode === "type" ? (
-              <Ionicons
-                name="arrow-forward"
-                size={20}
-                color={colors.signalForeground}
-              />
+              <ArrowRight size={20} color={colors.signalForeground} />
             ) : (
-              <Ionicons
-                name="close"
-                size={20}
-                color={colors.signalForeground}
-              />
+              <X size={20} color={colors.signalForeground} />
             )}
           </Pressable>
         </Animated.View>
@@ -644,7 +636,7 @@ export function DockActionBar({
                   pressed && styles.pressed,
                 ]}
               >
-                <Ionicons name="close" size={20} color={colors.text} />
+                <X size={20} color={colors.text} />
               </Pressable>
             </Animated.View>
           </>
@@ -813,15 +805,25 @@ export function DockActionBar({
                   pressed && styles.pressed,
                 ]}
               >
-                <Ionicons
-                  name={isComments ? "arrow-up" : "send"}
-                  size={isComments ? 20 : 18}
-                  color={
-                    (isComments ? commentDraft.trim() : messageDraft.trim())
-                      ? colors.signalForeground
-                      : colors.muted
-                  }
-                />
+                {isComments ? (
+                  <ArrowUp
+                    size={20}
+                    color={
+                      commentDraft.trim()
+                        ? colors.signalForeground
+                        : colors.muted
+                    }
+                  />
+                ) : (
+                  <Send
+                    size={18}
+                    color={
+                      messageDraft.trim()
+                        ? colors.signalForeground
+                        : colors.muted
+                    }
+                  />
+                )}
               </Pressable>
             </Animated.View>
           </>
@@ -869,7 +871,7 @@ export function DockActionBar({
                   pressed && styles.pressed,
                 ]}
               >
-                <Ionicons name="close" size={20} color={colors.text} />
+                <X size={20} color={colors.text} />
               </Pressable>
             </Animated.View>
           </>

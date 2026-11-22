@@ -11,8 +11,10 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
+import type { LucideIcon } from "lucide-react-native";
+import { Users, Building2, SlidersHorizontal } from "lucide-react-native";
 import { router, useFocusEffect } from "expo-router";
+import { ArrowLeft } from "lucide-react-native";
 import { useOlive } from "../context/OliveProvider";
 import { useThemeStyles, useColors, type ColorPalette } from "../theme";
 
@@ -20,13 +22,13 @@ export const getHeaderHeight = (insetsTop: number) =>
   insetsTop + (Platform.OS === "android" ? 56 : 52);
 
 export function IconButton({
-  name,
+  icon: Icon,
   label,
   onPress,
   color,
   size = 20,
 }: {
-  name: React.ComponentProps<typeof Ionicons>["name"];
+  icon: LucideIcon;
   label: string;
   onPress: () => void;
   color?: string;
@@ -43,7 +45,7 @@ export function IconButton({
         pressed && styles.pressedIcon,
       ]}
     >
-      <Ionicons name={name} size={size} color={color || colors.text} />
+      <Icon size={size} color={color || colors.text} />
     </Pressable>
   );
 }
@@ -194,7 +196,7 @@ export function Screen({
               <View style={styles.headerLeft}>
                 {back && (
                   <IconButton
-                    name="arrow-back"
+                    icon={ArrowLeft}
                     label="Back"
                     onPress={handleBack}
                   />
@@ -244,17 +246,20 @@ export function Screen({
                       pressed && styles.pressedIcon,
                     ]}
                   >
-                    <Ionicons
-                      name={
+                    {(() => {
+                      const FilterIcon =
                         feedMode === "people"
-                          ? "people"
+                          ? Users
                           : feedMode === "places"
-                          ? "business"
-                          : "options-outline"
-                      }
-                      size={18}
-                      color={feedMode !== "all" ? colors.signal : colors.text}
-                    />
+                          ? Building2
+                          : SlidersHorizontal;
+                      return (
+                        <FilterIcon
+                          size={18}
+                          color={feedMode !== "all" ? colors.signal : colors.text}
+                        />
+                      );
+                    })()}
                     {feedMode !== "all" && <View style={styles.filterDot} />}
                   </Pressable>
                 )}

@@ -1,4 +1,5 @@
 import type { ImageSourcePropType } from "react-native";
+import type { LucideIcon } from "lucide-react-native";
 
 export type PostKind = "Business" | "Event" | "Person";
 
@@ -40,7 +41,7 @@ export type GuidanceStep = {
   id: string;
   instruction: string;
   distance: string;
-  iconName: "arrow-up" | "arrow-forward" | "arrow-back" | "pin" | "checkmark-circle";
+  iconName: LucideIcon;
   landmark: string;
 };
 
