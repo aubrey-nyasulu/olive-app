@@ -27,32 +27,56 @@ export function ProfileAboutTab({
         : profile.stats.statC.value
       : profile.stats.statC.value;
 
+  const isBusinessOrEvent = profile.kind !== "Person";
+  const distanceKm = profile.posts[0]?.distanceKm;
+
+  const handleCall = () => {
+    if (!profile.info.phone) return;
+    Linking.openURL(`tel:${profile.info.phone.replace(/\s+/g, "")}`).catch(() => {});
+  };
+
+  const handleOpenWebsite = () => {
+    if (!profile.info.website) return;
+    const url = profile.info.website.startsWith("http")
+      ? profile.info.website
+      : `https://${profile.info.website}`;
+    Linking.openURL(url).catch(() => {});
+  };
+
+  const cleanWebsiteLabel = profile.info.website
+    ? profile.info.website.replace(/^https?:\/\//, "").replace(/\/$/, "")
+    : undefined;
+
   return (
     <View style={styles.container}>
-      {/* 1. Overview & Bio Card */}
-      <View style={styles.infoCard}>
-        <View style={styles.cardHeaderRow}>
-          <Ionicons name="person" size={18} color={colors.signal} />
-          <Text style={styles.sectionTitle}>Overview & Bio</Text>
-          <View style={styles.spacer} />
-          <View style={styles.categoryTag}>
-            <Ionicons
-              name="sparkles"
-              size={12}
-              color={colors.signal}
-              style={styles.categorySparkle}
-            />
-            <Text style={styles.categoryTagText}>
-              {profile.kind === "Business" ? profile.category : "Local Guide"}
-            </Text>
-          </View>
-        </View>
+      {/* 1. Identity & Narrative Story Card */}
+      <View style={styles.sectionCard}>
+        {/* Subtle Category & Neighborhood Eyebrow */}
+        <Text style={styles.cardEyebrow} numberOfLines={1}>
+          {profile.category} · {profile.neighborhood}
+        </Text>
 
-        <Text style={styles.cardHeadline}>{profile.info.headline}</Text>
+        {/* Editorial Headline */}
+        {profile.info.headline ? (
+          <Text style={styles.cardHeadline}>{profile.info.headline}</Text>
+        ) : null}
 
+        {/* Narrative Bio */}
         <Text style={styles.bioText}>{profile.bio}</Text>
 
-        {/* Stats Shelf */}
+        {/* Curated Highlights / Badges Chips */}
+        {profile.info.badges && profile.info.badges.length > 0 && (
+          <View style={styles.badgesWrap}>
+            {profile.info.badges.map((badge) => (
+              <View key={badge} style={styles.badgeChip}>
+                <Ionicons name="sparkles" size={11} color={colors.signal} />
+                <Text style={styles.badgeChipText}>{badge}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {/* Integrated 3-Column Core Stats Shelf */}
         <View style={styles.statsShelf}>
           <Pressable
             accessibilityRole={isMe ? "button" : undefined}
@@ -62,7 +86,10 @@ export function ProfileAboutTab({
                 ? () => openExpandedWindow({ type: "profile_saved" })
                 : undefined
             }
-            style={styles.statItem}
+            style={({ pressed }) => [
+              styles.statItem,
+              isMe && pressed && styles.btnPressed,
+            ]}
           >
             <Text style={styles.statValue}>{profile.stats.statA.value}</Text>
             <Text style={styles.statLabel}>{profile.stats.statA.label}</Text>
@@ -84,122 +111,159 @@ export function ProfileAboutTab({
         </View>
       </View>
 
-      {/* 2. Calendar & Schedule Card */}
-      <View style={styles.infoCard}>
+      {/* 2. Practical Local Dossier (Essential Facts & Actions) */}
+      <View style={styles.sectionCard}>
         <View style={styles.cardHeaderRow}>
-          <Ionicons name="calendar" size={18} color={colors.signal} />
-          <Text style={styles.sectionTitle}>Calendar & Schedule</Text>
-        </View>
-
-        <View style={styles.scheduleItem}>
-          <Text style={styles.scheduleLabel}>Hours / Timing</Text>
-          <Text style={styles.scheduleValue}>
-            {profile.info.hoursOrSchedule}
+          <Ionicons name="compass-outline" size={16} color={colors.signal} />
+          <Text style={styles.sectionTitle}>
+            {isBusinessOrEvent ? "Visiting Details" : "Local Footprint"}
           </Text>
         </View>
 
-        <View style={styles.scheduleItem}>
-          <Text style={styles.scheduleLabel}>Drop Cadence</Text>
-          <Text style={[styles.scheduleValue, styles.scheduleValueSecondary]}>
-            {profile.info.calendarHabits}
-          </Text>
-        </View>
-      </View>
-
-      {/* 3. Location & Navigation Card */}
-      <View style={styles.infoCard}>
-        <View style={styles.cardHeaderRow}>
-          <Ionicons name="location" size={18} color={colors.signal} />
-          <Text style={styles.sectionTitle}>Location</Text>
-        </View>
-        <Text style={styles.locationAddress}>{profile.info.location}</Text>
-
-        {profile.posts[0] && (
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => startGuidance(profile.posts[0])}
-            style={styles.directionsActionBtn}
+        {/* Location Row with Inline Navigation Pill */}
+        {profile.info.location ? (
+          <View
+            style={[
+              styles.dossierRow,
+              !isBusinessOrEvent && !profile.info.phone && !profile.info.website
+                ? styles.dossierRowLast
+                : undefined,
+            ]}
           >
-            <Ionicons name="navigate" size={15} color={colors.bg} />
-            <Text style={styles.directionsActionBtnText}>
-              Start In-App Guidance ({profile.posts[0].distanceKm} km)
-            </Text>
-          </Pressable>
-        )}
-      </View>
-
-      {/* 4. Highlights & Amenities Card */}
-      <View style={styles.infoCard}>
-        <View style={styles.cardHeaderRow}>
-          <Ionicons name="sparkles" size={18} color={colors.signal} />
-          <Text style={styles.sectionTitle}>Highlights & Amenities</Text>
-        </View>
-        <View style={styles.badgesWrap}>
-          {profile.info.badges.map((badge) => (
-            <View key={badge} style={styles.badgeChip}>
-              <Ionicons name="sparkles" size={12} color={colors.signal} />
-              <Text style={styles.badgeChipText}>{badge}</Text>
+            <View style={styles.dossierLeft}>
+              <Ionicons
+                name="location-outline"
+                size={16}
+                color={colors.signal}
+              />
+              <Text style={styles.dossierText} numberOfLines={2}>
+                {profile.info.location}
+              </Text>
             </View>
-          ))}
-        </View>
-      </View>
 
-      {/* 5. Contact & Community Card */}
-      <View style={styles.infoCard}>
-        <View style={styles.cardHeaderRow}>
-          <Ionicons name="globe-outline" size={18} color={colors.signal} />
-          <Text style={styles.sectionTitle}>Contact & Community</Text>
-        </View>
+            {/* Compact In-App Guidance Pill Button */}
+            {profile.posts[0] && typeof distanceKm === "number" && (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`Get directions, ${distanceKm} km away`}
+                onPress={() => startGuidance(profile.posts[0])}
+                style={({ pressed }) => [
+                  styles.guidancePill,
+                  pressed && styles.btnPressed,
+                ]}
+              >
+                <Ionicons name="navigate" size={11} color="#FFFFFF" />
+                <Text style={styles.guidancePillText}>{distanceKm} km</Text>
+              </Pressable>
+            )}
+          </View>
+        ) : null}
 
-        {profile.info.phone && (
-          <Pressable
-            onPress={() => Linking.openURL(`tel:${profile.info.phone}`)}
-            style={styles.contactRow}
+        {/* Business/Event Operating Hours */}
+        {isBusinessOrEvent && profile.info.hoursOrSchedule ? (
+          <View
+            style={[
+              styles.dossierRow,
+              !profile.info.phone && !profile.info.website
+                ? styles.dossierRowLast
+                : undefined,
+            ]}
           >
-            <Ionicons name="call-outline" size={16} color={colors.signal} />
-            <Text style={styles.contactRowText}>{profile.info.phone}</Text>
-          </Pressable>
-        )}
+            <View style={styles.dossierLeft}>
+              <Ionicons name="time-outline" size={16} color={colors.muted} />
+              <Text style={styles.dossierText} numberOfLines={2}>
+                {profile.info.hoursOrSchedule}
+              </Text>
+            </View>
+          </View>
+        ) : null}
 
-        {profile.info.website && (
-          <View style={styles.contactRow}>
-            <Ionicons name="globe-outline" size={16} color={colors.signal} />
-            <Text style={styles.contactRowText}>{profile.info.website}</Text>
+        {/* Quick Connect & Community Action Chips */}
+        {(profile.info.phone || profile.info.website || profile.info.social) && (
+          <View style={styles.actionsRow}>
+            {profile.info.phone && (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`Call ${profile.name}`}
+                onPress={handleCall}
+                style={({ pressed }) => [
+                  styles.actionChip,
+                  pressed && styles.btnPressed,
+                ]}
+              >
+                <Ionicons name="call-outline" size={13} color={colors.signal} />
+                <Text style={styles.actionChipText}>Call</Text>
+              </Pressable>
+            )}
+
+            {cleanWebsiteLabel && (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`Visit website ${cleanWebsiteLabel}`}
+                onPress={handleOpenWebsite}
+                style={({ pressed }) => [
+                  styles.actionChip,
+                  pressed && styles.btnPressed,
+                ]}
+              >
+                <Ionicons
+                  name="globe-outline"
+                  size={13}
+                  color={colors.signal}
+                />
+                <Text style={styles.actionChipText} numberOfLines={1}>
+                  {cleanWebsiteLabel}
+                </Text>
+              </Pressable>
+            )}
+
+            {profile.info.social && (
+              <View style={styles.actionChip}>
+                <Ionicons
+                  name="logo-instagram"
+                  size={13}
+                  color={colors.signal}
+                />
+                <Text style={styles.actionChipText}>
+                  {profile.info.social}
+                </Text>
+              </View>
+            )}
           </View>
         )}
 
-        {profile.info.social && (
-          <View style={styles.contactRow}>
-            <Ionicons name="logo-instagram" size={16} color={colors.signal} />
-            <Text style={styles.contactRowText}>{profile.info.social}</Text>
-          </View>
-        )}
-
+        {/* Quiet Member Footnote */}
         {profile.info.memberSince && (
-          <View style={styles.contactRow}>
+          <View style={styles.memberFooter}>
             <Ionicons
               name="shield-checkmark-outline"
-              size={16}
+              size={13}
               color={colors.muted}
             />
-            <Text style={[styles.contactRowText, styles.contactRowTextMuted]}>
+            <Text style={styles.memberFooterText}>
               {profile.info.memberSince}
             </Text>
           </View>
         )}
       </View>
 
-      {/* If viewing own profile, shortcut to app settings in floating dock */}
+      {/* 3. Personal Settings & Search Preferences (Only if Me) */}
       {isMe && (
         <Pressable
           accessibilityRole="button"
+          accessibilityLabel="Configure app search and preferences"
           onPress={() => openExpandedWindow({ type: "profile_settings" })}
-          style={styles.settingsShortcutBtn}
+          style={({ pressed }) => [
+            styles.settingsShortcutBtn,
+            pressed && styles.btnPressed,
+          ]}
         >
-          <Ionicons name="options-outline" size={18} color={colors.signal} />
-          <Text style={styles.settingsShortcutBtnText}>
-            Configure App Search & Preferences
-          </Text>
+          <View style={styles.settingsShortcutLeft}>
+            <Ionicons name="options-outline" size={18} color={colors.signal} />
+            <Text style={styles.settingsShortcutBtnText}>
+              App Search & Neighborhood Preferences
+            </Text>
+          </View>
           <Ionicons name="chevron-forward" size={16} color={colors.muted} />
         </Pressable>
       )}
@@ -210,60 +274,57 @@ export function ProfileAboutTab({
 const createStyles = (colors: ColorPalette) =>
   StyleSheet.create({
     container: {
-      gap: 14,
+      gap: 16,
     },
-    infoCard: {
+    sectionCard: {
       borderRadius: 16,
       borderWidth: 1,
       padding: 16,
       backgroundColor: colors.surface,
       borderColor: colors.line,
     },
-    cardHeaderRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 8,
-      marginBottom: 12,
-    },
-    sectionTitle: {
-      fontSize: 15,
+    cardEyebrow: {
+      fontSize: 12,
       fontWeight: "700",
+      letterSpacing: 0.6,
+      textTransform: "uppercase",
+      color: colors.signal,
+      marginBottom: 6,
+    },
+    cardHeadline: {
+      fontSize: 18,
+      fontWeight: "700",
+      letterSpacing: -0.3,
       color: colors.text,
+      marginBottom: 8,
     },
-    spacer: {
-      flex: 1,
+    bioText: {
+      fontSize: 14,
+      lineHeight: 22,
+      color: colors.textSecondary,
+      marginBottom: 16,
     },
-    categoryTag: {
+    badgesWrap: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 8,
+      marginBottom: 16,
+    },
+    badgeChip: {
       flexDirection: "row",
       alignItems: "center",
-      paddingHorizontal: 8,
+      gap: 4,
+      paddingHorizontal: 10,
       paddingVertical: 4,
       borderRadius: 9999,
       borderWidth: 1,
       backgroundColor: colors.surfaceMuted,
       borderColor: colors.line,
     },
-    categorySparkle: {
-      marginRight: 4,
-    },
-    categoryTagText: {
+    badgeChipText: {
       fontSize: 12,
-      fontWeight: "700",
-      letterSpacing: 0.3,
-      color: colors.signal,
-    },
-    cardHeadline: {
-      fontSize: 16,
-      fontWeight: "700",
-      marginBottom: 8,
+      fontWeight: "600",
       color: colors.text,
-    },
-    bioText: {
-      fontSize: 14,
-      lineHeight: 20,
-      marginTop: 2,
-      marginBottom: 16,
-      color: colors.textSecondary,
     },
     statsShelf: {
       flexDirection: "row",
@@ -278,16 +339,17 @@ const createStyles = (colors: ColorPalette) =>
       flex: 1,
     },
     statValue: {
-      fontSize: 16,
+      fontSize: 18,
       fontWeight: "800",
+      letterSpacing: -0.3,
       color: colors.text,
     },
     statLabel: {
-      fontSize: 12,
-      fontWeight: "600",
+      fontSize: 10,
+      fontWeight: "700",
       marginTop: 2,
       textTransform: "uppercase",
-      letterSpacing: 0.5,
+      letterSpacing: 0.6,
       color: colors.muted,
     },
     statDivider: {
@@ -295,98 +357,116 @@ const createStyles = (colors: ColorPalette) =>
       height: 24,
       backgroundColor: colors.line,
     },
-    scheduleItem: {
-      marginBottom: 12,
-    },
-    scheduleLabel: {
-      fontSize: 12,
-      fontWeight: "600",
-      textTransform: "uppercase",
-      letterSpacing: 0.4,
-      marginBottom: 2,
-      color: colors.muted,
-    },
-    scheduleValue: {
-      fontSize: 14,
-      lineHeight: 20,
-      fontWeight: "500",
-      color: colors.text,
-    },
-    scheduleValueSecondary: {
-      color: colors.textSecondary,
-    },
-    locationAddress: {
-      fontSize: 14,
-      fontWeight: "600",
-      marginBottom: 12,
-      color: colors.text,
-    },
-    directionsActionBtn: {
+    cardHeaderRow: {
       flexDirection: "row",
       alignItems: "center",
-      justifyContent: "center",
       gap: 8,
-      paddingVertical: 12,
-      paddingHorizontal: 16,
-      borderRadius: 12,
-      backgroundColor: colors.text,
+      marginBottom: 12,
     },
-    directionsActionBtnText: {
-      fontSize: 14,
+    sectionTitle: {
+      fontSize: 12,
       fontWeight: "700",
-      color: colors.bg,
+      letterSpacing: 0.8,
+      textTransform: "uppercase",
+      color: colors.muted,
     },
-    badgesWrap: {
+    dossierRow: {
       flexDirection: "row",
-      flexWrap: "wrap",
-      gap: 8,
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingVertical: 10,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.line,
     },
-    badgeChip: {
+    dossierRowLast: {
+      borderBottomWidth: 0,
+      paddingBottom: 4,
+    },
+    dossierLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+      flex: 1,
+      marginRight: 8,
+    },
+    dossierText: {
+      fontSize: 14,
+      fontWeight: "500",
+      color: colors.text,
+      flexShrink: 1,
+    },
+    guidancePill: {
       flexDirection: "row",
       alignItems: "center",
       gap: 4,
-      paddingHorizontal: 8,
-      paddingVertical: 4,
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      borderRadius: 9999,
+      backgroundColor: colors.signal,
+    },
+    guidancePillText: {
+      fontSize: 12,
+      fontWeight: "700",
+      color: "#FFFFFF",
+    },
+    actionsRow: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 8,
+      marginTop: 12,
+    },
+    actionChip: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
       borderRadius: 9999,
       borderWidth: 1,
       backgroundColor: colors.surfaceMuted,
       borderColor: colors.line,
     },
-    badgeChipText: {
+    actionChipText: {
       fontSize: 12,
       fontWeight: "600",
       color: colors.text,
     },
-    contactRow: {
+    memberFooter: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 12,
-      marginBottom: 12,
+      gap: 6,
+      marginTop: 12,
+      paddingTop: 12,
+      borderTopWidth: 1,
+      borderTopColor: colors.line,
     },
-    contactRowText: {
-      fontSize: 14,
+    memberFooterText: {
+      fontSize: 12,
       fontWeight: "500",
-      color: colors.text,
-    },
-    contactRowTextMuted: {
       color: colors.muted,
     },
     settingsShortcutBtn: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      padding: 12,
+      padding: 14,
       borderRadius: 16,
       borderWidth: 1,
-      marginTop: 4,
-      backgroundColor: colors.surfaceMuted,
+      backgroundColor: colors.surface,
       borderColor: colors.line,
+    },
+    settingsShortcutLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+      flex: 1,
     },
     settingsShortcutBtnText: {
       fontSize: 14,
-      fontWeight: "700",
-      flex: 1,
-      marginLeft: 12,
+      fontWeight: "600",
       color: colors.text,
+    },
+    btnPressed: {
+      opacity: 0.72,
     },
   });
