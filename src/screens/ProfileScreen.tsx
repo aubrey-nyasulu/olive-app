@@ -30,6 +30,7 @@ import { useOlive, type ProfileTab } from "../context/OliveProvider";
 import { useThemeStyles, type ColorPalette } from "../theme";
 import { getProfile, type UserProfile } from "../profiles";
 import { POSTS, REVIEWS } from "../places";
+import { LinearGradient } from "expo-linear-gradient";
 
 interface TabItem {
   id: ProfileTab;
@@ -61,7 +62,7 @@ const TABS: TabItem[] = [
 ];
 
 export default function ProfileScreen() {
-  const { styles, colors } = useThemeStyles(createStyles);
+  const { styles, colors, isDark } = useThemeStyles(createStyles);
   const insets = useSafeAreaInsets();
   const insetsTop = insets.top;
   const { profileTab, setProfileTab, likedIds, repostedIds, reviewsMap } =
@@ -92,17 +93,17 @@ export default function ProfileScreen() {
     extrapolateRight: "clamp",
   });
 
-  // Hairline bottom border fades in as the tab bar reaches sticky dock
-  const tabBorderOpacity = scrollY.interpolate({
-    inputRange: [SCROLL_DISTANCE - 16, SCROLL_DISTANCE],
-    outputRange: [0, 1],
-    extrapolate: "clamp",
-  });
-
   // Tab content padding top when the header collapses to add some distance with the fading in border
   const tabContentPadddingTop = scrollY.interpolate({
     inputRange: [SCROLL_DISTANCE - 16, SCROLL_DISTANCE],
     outputRange: [0, 16],
+    extrapolate: "clamp",
+  });
+
+  // Hairline bottom border in collapsed state
+  const hairlineOpacity = scrollY.interpolate({
+    inputRange: [SCROLL_DISTANCE * 0.8, SCROLL_DISTANCE],
+    outputRange: [0, 1],
     extrapolate: "clamp",
   });
 
@@ -393,10 +394,25 @@ export default function ProfileScreen() {
             );
           })}
         </View>
+
         <Animated.View
-          style={[styles.tabBottomBorder, { opacity: tabBorderOpacity }]}
+          style={[styles.hairlineWrap, { opacity: hairlineOpacity }]}
           pointerEvents="none"
-        />
+        >
+          <LinearGradient
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            colors={[
+              "transparent",
+              colors.line,
+              isDark ? "#50372A" : "#E6CDBA",
+              colors.line,
+              "transparent",
+            ]}
+            locations={[0, 0.16, 0.5, 0.84, 1.0]}
+            style={styles.hairline}
+          />
+        </Animated.View>
       </Animated.View>
     </Screen>
   );
@@ -428,13 +444,16 @@ const createStyles = (colors: ColorPalette) =>
       paddingTop: 8,
       paddingBottom: 10,
     },
-    tabBottomBorder: {
+    hairlineWrap: {
       position: "absolute",
       left: 0,
       right: 0,
       bottom: 0,
       height: 1,
-      backgroundColor: colors.line,
+    },
+    hairline: {
+      flex: 1,
+      height: 1,
     },
     segmentedBar: {
       flexDirection: "row",

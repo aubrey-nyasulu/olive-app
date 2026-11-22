@@ -15,11 +15,11 @@ import { useThemeStyles, type ColorPalette } from "../../theme";
 import type { UserProfile } from "../../profiles";
 
 export const COVER_EXPANDED_HEIGHT = 160;
-export const NAVBAR_HEIGHT = 56;
+export const NAVBAR_HEIGHT = 64;
 export const HERO_COLLAPSE_DISTANCE = 224; // Full hero clearance (160 + 56 + 64) - 56
 export const SCROLL_DISTANCE = HERO_COLLAPSE_DISTANCE; // 224
 export const AVATAR_EXPANDED_SIZE = 80;
-export const AVATAR_COLLAPSED_SIZE = 36;
+export const AVATAR_COLLAPSED_SIZE = 48;
 export const FOLLOW_BTN_HEIGHT = 36;
 
 interface ProfileHeaderProps {
@@ -121,10 +121,10 @@ export function ProfileHeader({
 
   // Floating Name & Identity horizontal position:
   // Expanded: left: 16 (aligned with screen padding)
-  // Collapsed: left: 64 (12px to the right of collapsed 36px avatar at left: 16)
+  // Collapsed: left: 72 (12px to the right of collapsed 36px avatar at left: 16)
   const nameLeft = scrollY.interpolate({
     inputRange: [0, SCROLL_DISTANCE],
-    outputRange: [16, 64],
+    outputRange: [16, 72],
     extrapolate: "clamp",
   });
 
@@ -381,7 +381,7 @@ const createStyles = (colors: ColorPalette) =>
       zIndex: 30,
       overflow: "hidden",
       backgroundColor: colors.surfaceMuted,
-      elevation: 4,
+      // elevation: 4,
     },
     coverImage: {
       position: "absolute",
@@ -451,11 +451,11 @@ const createStyles = (colors: ColorPalette) =>
       zIndex: 35,
       borderColor: colors.bg,
       backgroundColor: colors.surface,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.16,
-      shadowRadius: 8,
-      elevation: 6,
+      // shadowColor: "#000",
+      // shadowOffset: { width: 0, height: 4 },
+      // shadowOpacity: 0.16,
+      // shadowRadius: 8,
+      // elevation: 6,
     },
     floatingAvatarImg: {
       width: "100%",
@@ -521,7 +521,6 @@ const createStyles = (colors: ColorPalette) =>
     },
     profileHandle: {
       fontSize: 14,
-      marginTop: 2,
       color: colors.muted,
     },
   });
