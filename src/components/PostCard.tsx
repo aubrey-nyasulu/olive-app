@@ -6,6 +6,7 @@ import {
   Modal,
   Platform,
   Pressable,
+  ScrollView,
   Share,
   StyleSheet,
   Text,
@@ -616,6 +617,492 @@ const menuStyles = (colors: ColorPalette) =>
     },
   });
 
+/* ── Community Reactors Directory ────────────────────────────────── */
+
+const COMMUNITY_REACTORS = [
+  { name: "Kondwani Banda", handle: "@kondwani", role: "Coffee & Architecture" },
+  { name: "Dalitso Phiri", handle: "@dalitso", role: "Local Food Explorer" },
+  { name: "Puma Energy", handle: "@pumaenergy", role: "Kenyatta Drive Bay" },
+  { name: "Chisomo Banda", handle: "@chisomo", role: "Music & Live Sessions" },
+  { name: "Tamanda Gondwe", handle: "@tamanda", role: "Market Gardener" },
+  { name: "Lingadzi Sessions", handle: "@lingadzi", role: "Acoustic Arts Community" },
+  { name: "Mabu Artisan Bakes", handle: "@mabubakes", role: "Artisan Baker" },
+  { name: "Alinafe Mwale", handle: "@alinafe", role: "Wildlife & Nature Guide" },
+  { name: "Tawonga Phiri", handle: "@tawonga", role: "Weekend Cyclist" },
+  { name: "Chifundo Banda", handle: "@chifundo", role: "Urban Planner" },
+  { name: "Lumbani Chirwa", handle: "@lumbani", role: "Area 10 Resident" },
+  { name: "Madalitso Nyirenda", handle: "@madalitso", role: "Culture & Heritage" },
+  { name: "Sekani Mhone", handle: "@sekani", role: "Specialty Roaster" },
+  { name: "Chimwemwe Tembo", handle: "@chimwemwe", role: "Visual Storyteller" },
+  { name: "Thokozani Kamanga", handle: "@thoko", role: "Craft Brewer" },
+];
+
+/* ── Reactions List Popup Modal (With Reaction Icon Tab Switcher) ── */
+
+function ReactionsListModal({
+  visible,
+  postId,
+  postAuthor,
+  onClose,
+  colors,
+}: {
+  visible: boolean;
+  postId: string;
+  postAuthor: string;
+  onClose: () => void;
+  colors: ColorPalette;
+}) {
+  const { reactionsMap, getUserReaction } = useOlive();
+  const reactions = reactionsMap[postId];
+  const userReaction = getUserReaction(postId);
+  const [selectedTab, setSelectedTab] = useState<"all" | ReactionType>("all");
+
+  const slideAnim = useRef(new Animated.Value(340)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const [animVisible, setAnimVisible] = useState(false);
+
+  useEffect(() => {
+    if (visible) {
+      setAnimVisible(true);
+      setSelectedTab("all");
+      Animated.parallel([
+        Animated.spring(slideAnim, {
+          toValue: 0,
+          friction: 9,
+          tension: 90,
+          useNativeDriver: true,
+        }),
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 180,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else if (animVisible) {
+      Animated.parallel([
+        Animated.timing(slideAnim, {
+          toValue: 340,
+          duration: 180,
+          useNativeDriver: true,
+        }),
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 140,
+          useNativeDriver: true,
+        }),
+      ]).start(() => setAnimVisible(false));
+    }
+  }, [visible]);
+
+  if (!visible && !animVisible) return null;
+  if (!reactions) return null;
+
+  // Active reaction types with counts > 0
+  const activeTabs = REACTION_DEFS.filter(
+    (def) => (reactions[def.type] ?? 0) > 0
+  );
+
+  const totalCount = Object.values(reactions).reduce((a, b) => a + b, 0);
+
+  // Generate deterministic reactor items matching the reaction counts
+  const availableCandidates = COMMUNITY_REACTORS.filter(
+    (c) => c.name !== postAuthor
+  );
+
+  // Seed based on postId
+  const seed = Math.abs(
+    postId.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0)
+  );
+
+  type ReactorItem = {
+    id: string;
+    name: string;
+    handle: string;
+    role: string;
+    reaction: ReactionType;
+    isCurrentUser?: boolean;
+  };
+
+  const allReactors: ReactorItem[] = [];
+
+  // 1. Add current user if they reacted
+  if (userReaction) {
+    allReactors.push({
+      id: "current-user",
+      name: "You",
+      handle: "@you",
+      role: "Your reaction",
+      reaction: userReaction,
+      isCurrentUser: true,
+    });
+  }
+
+  // 2. Add community members for each reaction type
+  let candidateOffset = seed;
+  activeTabs.forEach((def) => {
+    const rawCount = reactions[def.type] ?? 0;
+    const countNeeded =
+      userReaction === def.type ? Math.max(0, rawCount - 1) : rawCount;
+
+    for (let i = 0; i < countNeeded; i++) {
+      const candidate =
+        availableCandidates[
+          (candidateOffset + i) % availableCandidates.length
+        ];
+      allReactors.push({
+        id: `${candidate.name}-${def.type}-${i}`,
+        name: candidate.name,
+        handle: candidate.handle,
+        role: candidate.role,
+        reaction: def.type,
+      });
+      candidateOffset += 1;
+    }
+  });
+
+  // Filter reactors according to selected tab
+  const displayedReactors =
+    selectedTab === "all"
+      ? allReactors
+      : allReactors.filter((r) => r.reaction === selectedTab);
+
+  const rStyles = reactionsModalStyles(colors);
+
+  return (
+    <Modal
+      transparent
+      visible={visible || animVisible}
+      onRequestClose={onClose}
+      animationType="none"
+      statusBarTranslucent
+    >
+      <View style={rStyles.overlay}>
+        {/* Backdrop dismiss */}
+        <Animated.View
+          style={[
+            StyleSheet.absoluteFill,
+            { backgroundColor: colors.overlay, opacity: fadeAnim },
+          ]}
+        >
+          <Pressable
+            style={StyleSheet.absoluteFill}
+            onPress={onClose}
+            accessibilityLabel="Close reactions modal"
+          />
+        </Animated.View>
+
+        {/* Sliding Sheet */}
+        <Animated.View
+          style={[
+            rStyles.sheet,
+            { transform: [{ translateY: slideAnim }] },
+          ]}
+        >
+          {/* Drag Handle */}
+          <View style={rStyles.handle} />
+
+          {/* Header */}
+          <View style={rStyles.header}>
+            <Text style={rStyles.title}>Reactions</Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Close reactions modal"
+              onPress={onClose}
+              style={({ pressed }) => [
+                rStyles.closeButton,
+                pressed && { opacity: 0.6 },
+              ]}
+            >
+              <X size={16} color={colors.textSecondary} />
+            </Pressable>
+          </View>
+
+          {/* Tab Switcher */}
+          <View style={rStyles.tabsWrapper}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={rStyles.tabsContent}
+            >
+              {/* "All" Tab */}
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`All ${totalCount} reactions`}
+                onPress={() => setSelectedTab("all")}
+                style={[
+                  rStyles.tabPill,
+                  selectedTab === "all" && rStyles.tabPillActive,
+                ]}
+              >
+                <Text
+                  style={[
+                    rStyles.tabLabel,
+                    selectedTab === "all" && rStyles.tabLabelActive,
+                  ]}
+                >
+                  All
+                </Text>
+                <Text
+                  style={[
+                    rStyles.tabCount,
+                    selectedTab === "all" && rStyles.tabCountActive,
+                  ]}
+                >
+                  {totalCount}
+                </Text>
+              </Pressable>
+
+              {/* Reaction Type Tabs */}
+              {activeTabs.map((def) => {
+                const count = reactions[def.type] ?? 0;
+                const isSelected = selectedTab === def.type;
+                const Icon = def.Icon;
+                return (
+                  <Pressable
+                    key={def.type}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${def.label} ${count} reactions`}
+                    onPress={() => setSelectedTab(def.type)}
+                    style={[
+                      rStyles.tabPill,
+                      isSelected && rStyles.tabPillActive,
+                    ]}
+                  >
+                    <Icon size={15} color={def.activeColor} fill="none" />
+                    <Text
+                      style={[
+                        rStyles.tabCount,
+                        isSelected && rStyles.tabCountActive,
+                      ]}
+                    >
+                      {count}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          </View>
+
+          {/* People List */}
+          <ScrollView
+            style={rStyles.listScroll}
+            contentContainerStyle={rStyles.listContent}
+            showsVerticalScrollIndicator={false}
+          >
+            {displayedReactors.map((item) => {
+              const def = getReactionDef(item.reaction);
+              const ReactionIcon = def.Icon;
+              const initials = item.isCurrentUser
+                ? "You"
+                : item.name
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")
+                    .slice(0, 2);
+
+              return (
+                <View key={item.id} style={rStyles.personRow}>
+                  {/* Avatar with miniature reaction icon badge */}
+                  <View style={rStyles.avatarWrap}>
+                    <View style={rStyles.avatar}>
+                      <Text style={rStyles.avatarText}>{initials}</Text>
+                    </View>
+                    <View
+                      style={[
+                        rStyles.miniReactionBadge,
+                        { backgroundColor: colors.surface },
+                      ]}
+                    >
+                      <ReactionIcon
+                        size={11}
+                        color={def.activeColor}
+                        fill="none"
+                      />
+                    </View>
+                  </View>
+
+                  {/* Name and Handle */}
+                  <View style={rStyles.personMeta}>
+                    <Text numberOfLines={1} style={rStyles.personName}>
+                      {item.name}
+                    </Text>
+                    <Text numberOfLines={1} style={rStyles.personSub}>
+                      {item.handle} · {item.role}
+                    </Text>
+                  </View>
+                </View>
+              );
+            })}
+          </ScrollView>
+        </Animated.View>
+      </View>
+    </Modal>
+  );
+}
+
+const reactionsModalStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
+    overlay: {
+      flex: 1,
+      justifyContent: "flex-end",
+    },
+    sheet: {
+      backgroundColor: colors.surface,
+      borderTopLeftRadius: 28,
+      borderTopRightRadius: 28,
+      borderWidth: 1,
+      borderColor: colors.line,
+      paddingTop: 10,
+      paddingBottom: 28,
+      maxHeight: "72%",
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: -6 },
+      shadowOpacity: 0.16,
+      shadowRadius: 18,
+      elevation: 16,
+      maxWidth: 600,
+      width: "100%",
+      alignSelf: "center",
+    },
+    handle: {
+      width: 38,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: colors.line,
+      alignSelf: "center",
+      marginBottom: 8,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: 20,
+      paddingVertical: 10,
+    },
+    title: {
+      fontSize: 17,
+      fontWeight: "700",
+      color: colors.text,
+      letterSpacing: -0.2,
+    },
+    closeButton: {
+      width: 30,
+      height: 30,
+      borderRadius: 15,
+      backgroundColor: colors.surfaceMuted,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    tabsWrapper: {
+      borderBottomWidth: 1,
+      borderBottomColor: colors.line,
+      paddingBottom: 10,
+    },
+    tabsContent: {
+      paddingHorizontal: 20,
+      gap: 8,
+      alignItems: "center",
+    },
+    tabPill: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 5,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 9999,
+      backgroundColor: colors.surfaceMuted,
+      borderWidth: 1,
+      borderColor: "transparent",
+    },
+    tabPillActive: {
+      backgroundColor: colors.surface,
+      borderColor: colors.line,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.08,
+      shadowRadius: 3,
+      elevation: 2,
+    },
+    tabLabel: {
+      fontSize: 13,
+      fontWeight: "600",
+      color: colors.muted,
+    },
+    tabLabelActive: {
+      color: colors.text,
+      fontWeight: "700",
+    },
+    tabCount: {
+      fontSize: 12,
+      fontWeight: "600",
+      color: colors.muted,
+    },
+    tabCountActive: {
+      color: colors.text,
+      fontWeight: "700",
+    },
+    listScroll: {
+      flexGrow: 0,
+      maxHeight: 360,
+    },
+    listContent: {
+      paddingHorizontal: 20,
+      paddingVertical: 8,
+    },
+    personRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: 10,
+      gap: 12,
+    },
+    avatarWrap: {
+      position: "relative",
+      width: 40,
+      height: 40,
+    },
+    avatar: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: colors.surfaceMuted,
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 1,
+      borderColor: colors.line,
+    },
+    avatarText: {
+      fontSize: 13,
+      fontWeight: "700",
+      color: colors.text,
+    },
+    miniReactionBadge: {
+      position: "absolute",
+      bottom: -2,
+      right: -2,
+      width: 18,
+      height: 18,
+      borderRadius: 9,
+      borderWidth: 1.5,
+      borderColor: colors.surface,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.surface,
+    },
+    personMeta: {
+      flex: 1,
+    },
+    personName: {
+      fontSize: 15,
+      fontWeight: "600",
+      color: colors.text,
+    },
+    personSub: {
+      fontSize: 12,
+      color: colors.muted,
+      marginTop: 2,
+    },
+  });
+
 /* ── Animated Reaction Carousel (Cycles distinct types when > 3) ──── */
 
 function AnimatedReactionCarousel({
@@ -890,6 +1377,7 @@ export function PostCard({
   const userReaction = getUserReaction(post.id);
   const [pickerVisible, setPickerVisible] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
+  const [reactionsModalVisible, setReactionsModalVisible] = useState(false);
   const [anchorY, setAnchorY] = useState(300);
   const reactionButtonRef = useRef<View>(null);
   const longPressedRef = useRef(false);
@@ -1137,7 +1625,15 @@ export function PostCard({
 
       {/* Social Proof Row: Badges + Reaction Names Text */}
       {otherReactorsCount > 0 && (
-        <View style={styles.socialProofRow}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="View community reactions"
+          onPress={() => setReactionsModalVisible(true)}
+          style={({ pressed }) => [
+            styles.socialProofRow,
+            pressed && { opacity: 0.7 },
+          ]}
+        >
           <CommunityReactionBadges postId={post.id} colors={colors} />
           <Text style={styles.reactionSummaryText} numberOfLines={2}>
             <ReactionSummary
@@ -1148,7 +1644,7 @@ export function PostCard({
               colors={colors}
             />
           </Text>
-        </View>
+        </Pressable>
       )}
 
       {/* Editorial Post Content & Story Narrative */}
@@ -1221,6 +1717,15 @@ export function PostCard({
         onViewPlace={openPlace}
         onViewAuthor={openAuthorProfile}
         onClose={() => setMenuVisible(false)}
+        colors={colors}
+      />
+
+      {/* Reactions List Modal Sheet */}
+      <ReactionsListModal
+        visible={reactionsModalVisible}
+        postId={post.id}
+        postAuthor={post.author}
+        onClose={() => setReactionsModalVisible(false)}
         colors={colors}
       />
     </View>
