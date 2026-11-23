@@ -161,10 +161,11 @@ function ReactionPicker({
                 onPress={() => onSelect(def.type)}
                 style={({ pressed }) => [
                   pStyles.pickerItem,
+                  { backgroundColor: def.activeColor },
                   pressed && pStyles.pickerItemPressed,
                 ]}
               >
-                <def.Icon size={24} color={def.activeColor} fill="none" />
+                <def.Icon size={24} color={colors.text} fill="none" />
               </Pressable>
             </Animated.View>
           ))}
@@ -202,7 +203,7 @@ const pickerStyles = (colors: ColorPalette) =>
       width: 40,
       height: 40,
       borderRadius: 998,
-      backgroundColor: colors.bg,
+      // backgroundColor: colors.bg,
     },
     pickerItemPressed: {
       opacity: 0.65,
