@@ -30,7 +30,7 @@ import { useThemeStyles, type ColorPalette } from "../theme";
 
 export const POST_MEDIA_ASPECT_RATIO = 1;
 
-/* ── Reaction definitions ─────────────────────────────────────────── */
+/* ── Reaction definitions & Harmonious Palette ────────────────────── */
 
 const REACTION_DEFS: {
   type: ReactionType;
@@ -38,12 +38,18 @@ const REACTION_DEFS: {
   label: string;
   activeColor: string;
 }[] = [
-  { type: "heart", Icon: Heart, label: "Love", activeColor: "#FF3B30" },
-  { type: "flower", Icon: Flower2, label: "Flowers", activeColor: "#E91E8C" },
-  { type: "like", Icon: ThumbsUp, label: "Like", activeColor: "#3B82F6" },
-  { type: "laugh", Icon: Laugh, label: "Haha", activeColor: "#F59E0B" },
-  { type: "fire", Icon: Flame, label: "Fire", activeColor: "#EF4444" },
-  { type: "clap", Icon: Hand, label: "Clap", activeColor: "#10B981" },
+  // 1. Love (Deep Ruby Crimson — warm, passionate, avoids harsh digital red)
+  { type: "heart", Icon: Heart, label: "Love", activeColor: "#C83D4A" },
+  // 2. Flowers ("Giving someone their flowers" — soft peony blossom / antique rose)
+  { type: "flower", Icon: Flower2, label: "Flowers", activeColor: "#CE5A84" },
+  // 3. Fire (Ember Vermilion — spicy terracotta flame, aligns with Olive signal)
+  { type: "fire", Icon: Flame, label: "Fire", activeColor: "#E04F22" },
+  // 4. Haha (Warm Amber Gold — golden honey joy, sunny without neon glare)
+  { type: "laugh", Icon: Laugh, label: "Haha", activeColor: "#D9822B" },
+  // 5. Clap (Olive Laurel — earthy botanical sage green, anchors the Olive namesake)
+  { type: "clap", Icon: Hand, label: "Clap", activeColor: "#4F7E5E" },
+  // 6. Like (Aegean Slate Blue — deep mineral water blue, genuine and grounded)
+  { type: "like", Icon: ThumbsUp, label: "Like", activeColor: "#3B7097" },
 ];
 
 function getReactionDef(type: ReactionType) {
