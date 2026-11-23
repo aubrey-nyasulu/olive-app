@@ -741,7 +741,7 @@ export function PostCard({
             style={styles.captionText}
             numberOfLines={captionExpanded ? undefined : 2}
           >
-            <Text style={styles.captionAuthor}>{post.author} </Text>
+            {/* <Text style={styles.captionAuthor}>{post.author} </Text> */}
             {post.body}
           </Text>
           {post.body.length > 85 && !captionExpanded && (
@@ -868,7 +868,7 @@ const createStyles = (colors: ColorPalette) =>
       flexDirection: "row",
       alignItems: "center",
       gap: 8,
-      paddingTop: 4,
+      paddingTop: 8,
       paddingBottom: 2,
     },
     reactionSummaryText: {
@@ -903,7 +903,7 @@ const createStyles = (colors: ColorPalette) =>
       opacity: 0.65,
     },
     postBodySection: {
-      paddingTop: 8,
+      paddingTop: 4,
       gap: 4,
     },
     captionWrap: {
