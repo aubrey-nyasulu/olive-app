@@ -256,7 +256,9 @@ export function Screen({
                       return (
                         <FilterIcon
                           size={18}
-                          color={feedMode !== "all" ? colors.signal : colors.text}
+                          color={
+                            feedMode !== "all" ? colors.signal : colors.text
+                          }
                         />
                       );
                     })()}
