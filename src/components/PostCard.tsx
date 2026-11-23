@@ -224,31 +224,72 @@ function CommunityReactionBadges({
 
   if (!reactions) return null;
 
-  const activeTypes = REACTION_DEFS.filter((def) => reactions[def.type] > 0);
+  // Filter to reaction types that have at least 1 reaction, sorted by popularity
+  const activeTypes = REACTION_DEFS.filter(
+    (def) => (reactions[def.type] ?? 0) > 0
+  ).sort((a, b) => (reactions[b.type] ?? 0) - (reactions[a.type] ?? 0));
 
   if (activeTypes.length === 0) return null;
 
+  // Show at most 3 icons; if more exist, calculate the unshown types count
+  const visibleTypes = activeTypes.slice(0, 3);
+  const unshownCount = activeTypes.length - 3;
+
   return (
     <View style={{ flexDirection: "row", alignItems: "center" }}>
-      {activeTypes.map((def, i) => (
-        <View
-          key={def.type}
-          style={{
-            width: 26,
-            height: 26,
-            borderRadius: 13,
-            backgroundColor: colors.text,
-            borderWidth: 1.5,
-            borderColor: colors.surface,
-            alignItems: "center",
-            justifyContent: "center",
-            marginLeft: i > 0 ? -8 : 0,
-            zIndex: activeTypes.length - i,
-          }}
-        >
-          <def.Icon size={13} color={def.activeColor} fill="none" />
-        </View>
-      ))}
+      {visibleTypes.map((def, i) => {
+        const isThirdWithOverflow = i === 2 && unshownCount > 0;
+        return (
+          <View
+            key={def.type}
+            style={{
+              position: "relative",
+              width: 26,
+              height: 26,
+              borderRadius: 13,
+              backgroundColor: colors.text,
+              borderWidth: 1.5,
+              borderColor: colors.surface,
+              alignItems: "center",
+              justifyContent: "center",
+              marginLeft: i > 0 ? -8 : 0,
+              zIndex: visibleTypes.length - i,
+            }}
+          >
+            <def.Icon size={13} color={def.activeColor} fill="none" />
+            {isThirdWithOverflow && (
+              <View
+                style={{
+                  position: "absolute",
+                  top: -5,
+                  right: -6,
+                  minWidth: 15,
+                  height: 15,
+                  borderRadius: 8,
+                  paddingHorizontal: 3,
+                  backgroundColor: colors.signal,
+                  borderWidth: 1.5,
+                  borderColor: colors.surface,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  zIndex: 10,
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 8.5,
+                    fontWeight: "800",
+                    color: "#FFFFFF",
+                    lineHeight: 11,
+                  }}
+                >
+                  +{unshownCount}
+                </Text>
+              </View>
+            )}
+          </View>
+        );
+      })}
     </View>
   );
 }
