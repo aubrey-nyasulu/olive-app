@@ -8,9 +8,11 @@ import {
   Text,
   View,
 } from "react-native";
+import { StatusBar } from "expo-status-bar";
 import { LinearGradient } from "expo-linear-gradient";
 import { Plus, X, ChevronRight } from "lucide-react-native";
 import { router } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useThemeStyles, type ColorPalette } from "../theme";
 import { STORIES, type StoryItem } from "../stories";
 import { useOlive } from "../context/OliveProvider";
@@ -18,6 +20,7 @@ import { getPostById } from "../places";
 
 export function StoriesBar() {
   const { styles, colors } = useThemeStyles(createStyles);
+  const insets = useSafeAreaInsets();
   const { openExpandedWindow } = useOlive();
   const [activeStoryIndex, setActiveStoryIndex] = useState<number | null>(null);
   const [reactedStoryId, setReactedStoryId] = useState<string | null>(null);
@@ -166,14 +169,25 @@ export function StoriesBar() {
         <Modal
           visible={activeStoryIndex !== null}
           transparent
+          statusBarTranslucent
           animationType="fade"
           onRequestClose={handleClose}
         >
+          <StatusBar style="light" />
           <View style={styles.modalOverlay}>
             <Pressable style={styles.modalBackdrop} onPress={handleClose} />
 
-            <View style={styles.modalContainer}>
-              {/* Top Progress Segments (Timer indicators) */}
+            <View
+              style={[
+                styles.modalContainer,
+                {
+                  paddingTop: Math.max(8, insets.top + 8),
+                  paddingBottom: Math.max(8, insets.bottom + 8),
+                },
+              ]}
+            >
+              <View style={styles.modalInner}>
+                {/* Top Progress Segments (Timer indicators) */}
               <View style={styles.progressRow}>
                 {STORIES.map((s, idx) => (
                   <View key={s.id} style={styles.progressBarTrack}>
@@ -303,6 +317,7 @@ export function StoriesBar() {
                     </Pressable>
                   ))}
                 </View>
+              </View>
               </View>
             </View>
           </View>
@@ -434,17 +449,20 @@ const createStyles = (colors: ColorPalette) =>
 
     modalOverlay: {
       flex: 1,
-      backgroundColor: "rgba(0, 0, 0, 0.7)",
-      justifyContent: "flex-end",
-      paddingHorizontal: 8,
-      paddingBottom: 12,
+      backgroundColor: colors.overlay,
+      alignItems: "center",
+      justifyContent: "center",
     },
     modalBackdrop: {
       ...StyleSheet.absoluteFill,
     },
     modalContainer: {
       width: "100%",
-      height: "92%",
+      height: "100%",
+      paddingHorizontal: 8,
+    },
+    modalInner: {
+      flex: 1,
       borderRadius: 32,
       borderWidth: 2,
       overflow: "hidden",
