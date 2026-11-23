@@ -4,6 +4,7 @@ import {
   Easing,
   Image,
   Modal,
+  Platform,
   Pressable,
   Share,
   StyleSheet,
@@ -23,6 +24,11 @@ import {
   MapPin,
   ChevronRight,
   Repeat2,
+  MoreHorizontal,
+  Share2,
+  User,
+  Flag,
+  X,
 } from "lucide-react-native";
 import { router } from "expo-router";
 import type { Post, ReactionType } from "../models";
@@ -210,6 +216,403 @@ const pickerStyles = (colors: ColorPalette) =>
     pickerItemPressed: {
       opacity: 0.65,
       transform: [{ scale: 1.15 }],
+    },
+  });
+
+/* ── Post Options Menu (Editorial Bottom Sheet) ──────────────────── */
+
+function PostOptionsMenu({
+  visible,
+  post,
+  saved,
+  onToggleSave,
+  onShare,
+  onViewPlace,
+  onViewAuthor,
+  onClose,
+  colors,
+}: {
+  visible: boolean;
+  post: Post;
+  saved: boolean;
+  onToggleSave: () => void;
+  onShare: () => void;
+  onViewPlace: () => void;
+  onViewAuthor: () => void;
+  onClose: () => void;
+  colors: ColorPalette;
+}) {
+  const slideAnim = useRef(new Animated.Value(340)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const [animVisible, setAnimVisible] = useState(false);
+
+  useEffect(() => {
+    if (visible) {
+      setAnimVisible(true);
+      Animated.parallel([
+        Animated.spring(slideAnim, {
+          toValue: 0,
+          friction: 9,
+          tension: 90,
+          useNativeDriver: true,
+        }),
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 180,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else if (animVisible) {
+      Animated.parallel([
+        Animated.timing(slideAnim, {
+          toValue: 340,
+          duration: 180,
+          useNativeDriver: true,
+        }),
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 140,
+          useNativeDriver: true,
+        }),
+      ]).start(() => setAnimVisible(false));
+    }
+  }, [visible]);
+
+  if (!visible && !animVisible) return null;
+
+  const mStyles = menuStyles(colors);
+
+  const menuActions = [
+    {
+      id: "save",
+      icon: Bookmark,
+      label: saved ? "Saved in Collection" : "Save Place",
+      subLabel: saved
+        ? "Tap to remove from your bookmarks"
+        : "Bookmark this spot for later",
+      iconColor: saved ? colors.signal : colors.text,
+      iconBg: saved ? colors.signalLight : colors.surfaceMuted,
+      fillIcon: saved,
+      onPress: () => {
+        onToggleSave();
+        onClose();
+      },
+    },
+    {
+      id: "share",
+      icon: Share2,
+      label: "Share Post",
+      subLabel: "Send to friends or copy share link",
+      iconColor: colors.text,
+      iconBg: colors.surfaceMuted,
+      fillIcon: false,
+      onPress: () => {
+        onClose();
+        setTimeout(onShare, 200);
+      },
+    },
+    {
+      id: "place",
+      icon: MapPin,
+      label: "Explore Place Details",
+      subLabel: `${post.place} · ${post.distanceKm} km away`,
+      iconColor: colors.signal,
+      iconBg: colors.surfaceMuted,
+      fillIcon: false,
+      onPress: () => {
+        onClose();
+        setTimeout(onViewPlace, 200);
+      },
+    },
+    {
+      id: "author",
+      icon: User,
+      label: `About ${post.author}`,
+      subLabel: "View curator profile, guides & stories",
+      iconColor: colors.text,
+      iconBg: colors.surfaceMuted,
+      fillIcon: false,
+      onPress: () => {
+        onClose();
+        setTimeout(onViewAuthor, 200);
+      },
+    },
+    {
+      id: "report",
+      icon: Flag,
+      label: "Report Post",
+      subLabel: "Flag inappropriate content or inaccuracies",
+      iconColor: colors.error,
+      iconBg: `${colors.error}15`,
+      fillIcon: false,
+      onPress: () => {
+        onClose();
+      },
+    },
+  ];
+
+  return (
+    <Modal
+      transparent
+      visible={visible || animVisible}
+      onRequestClose={onClose}
+      animationType="none"
+      statusBarTranslucent
+    >
+      <View style={mStyles.overlay}>
+        {/* Backdrop dismiss */}
+        <Animated.View
+          style={[
+            StyleSheet.absoluteFill,
+            { backgroundColor: colors.overlay, opacity: fadeAnim },
+          ]}
+        >
+          <Pressable
+            style={StyleSheet.absoluteFill}
+            onPress={onClose}
+            accessibilityLabel="Close menu"
+          />
+        </Animated.View>
+
+        {/* Sliding Menu Sheet */}
+        <Animated.View
+          style={[
+            mStyles.sheet,
+            {
+              transform: [{ translateY: slideAnim }],
+            },
+          ]}
+        >
+          {/* Drag Handle */}
+          <View style={mStyles.handle} />
+
+          {/* Post Header Summary */}
+          <View style={mStyles.header}>
+            <View style={mStyles.thumbnailWrap}>
+              {post.image ? (
+                <Image source={post.image} style={mStyles.thumbnail} />
+              ) : (
+                <View style={mStyles.thumbnailFallback}>
+                  <MapPin size={18} color={colors.signal} />
+                </View>
+              )}
+            </View>
+            <View style={mStyles.headerMeta}>
+              <Text numberOfLines={1} style={mStyles.headerTitle}>
+                {post.place}
+              </Text>
+              <Text numberOfLines={1} style={mStyles.headerSubtitle}>
+                {post.author} · {post.category} · {post.kind}
+              </Text>
+            </View>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Dismiss options"
+              onPress={onClose}
+              style={({ pressed }) => [
+                mStyles.closeButton,
+                pressed && mStyles.pressed,
+              ]}
+            >
+              <X size={16} color={colors.textSecondary} />
+            </Pressable>
+          </View>
+
+          {/* Action List */}
+          <View style={mStyles.actionList}>
+            {menuActions.map((item) => {
+              const IconComponent = item.icon;
+              return (
+                <Pressable
+                  key={item.id}
+                  accessibilityRole="button"
+                  accessibilityLabel={item.label}
+                  onPress={item.onPress}
+                  style={({ pressed }) => [
+                    mStyles.actionRow,
+                    pressed && mStyles.actionRowPressed,
+                  ]}
+                >
+                  <View
+                    style={[
+                      mStyles.iconContainer,
+                      { backgroundColor: item.iconBg },
+                    ]}
+                  >
+                    <IconComponent
+                      size={18}
+                      color={item.iconColor}
+                      fill={item.fillIcon ? item.iconColor : "none"}
+                    />
+                  </View>
+                  <View style={mStyles.actionTextCol}>
+                    <Text
+                      style={[
+                        mStyles.actionLabel,
+                        item.id === "report" && { color: colors.error },
+                      ]}
+                    >
+                      {item.label}
+                    </Text>
+                    <Text numberOfLines={1} style={mStyles.actionSubLabel}>
+                      {item.subLabel}
+                    </Text>
+                  </View>
+                  <ChevronRight size={16} color={colors.muted} />
+                </Pressable>
+              );
+            })}
+          </View>
+
+          {/* Cancel Button */}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Cancel"
+            onPress={onClose}
+            style={({ pressed }) => [
+              mStyles.cancelButton,
+              pressed && mStyles.pressed,
+            ]}
+          >
+            <Text style={mStyles.cancelText}>Cancel</Text>
+          </Pressable>
+        </Animated.View>
+      </View>
+    </Modal>
+  );
+}
+
+const menuStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
+    overlay: {
+      flex: 1,
+      justifyContent: "flex-end",
+    },
+    sheet: {
+      backgroundColor: colors.surface,
+      borderTopLeftRadius: 28,
+      borderTopRightRadius: 28,
+      borderWidth: 1,
+      borderColor: colors.line,
+      paddingHorizontal: 20,
+      paddingTop: 10,
+      paddingBottom: 28,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: -6 },
+      shadowOpacity: 0.16,
+      shadowRadius: 18,
+      elevation: 16,
+      maxWidth: 600,
+      width: "100%",
+      alignSelf: "center",
+    },
+    handle: {
+      width: 38,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: colors.line,
+      alignSelf: "center",
+      marginBottom: 12,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingBottom: 14,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.line,
+      gap: 12,
+    },
+    thumbnailWrap: {
+      width: 44,
+      height: 44,
+      borderRadius: 12,
+      overflow: "hidden",
+      backgroundColor: colors.surfaceMuted,
+    },
+    thumbnail: {
+      width: "100%",
+      height: "100%",
+      resizeMode: "cover",
+    },
+    thumbnailFallback: {
+      width: "100%",
+      height: "100%",
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.surfaceMuted,
+    },
+    headerMeta: {
+      flex: 1,
+    },
+    headerTitle: {
+      fontSize: 16,
+      fontWeight: "700",
+      color: colors.text,
+      letterSpacing: -0.2,
+    },
+    headerSubtitle: {
+      fontSize: 12,
+      color: colors.muted,
+      marginTop: 2,
+    },
+    closeButton: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: colors.surfaceMuted,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    actionList: {
+      paddingVertical: 8,
+      gap: 2,
+    },
+    actionRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: 10,
+      paddingHorizontal: 8,
+      borderRadius: 14,
+    },
+    actionRowPressed: {
+      backgroundColor: colors.surfaceMuted,
+    },
+    iconContainer: {
+      width: 38,
+      height: 38,
+      borderRadius: 19,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    actionTextCol: {
+      flex: 1,
+      marginLeft: 12,
+    },
+    actionLabel: {
+      fontSize: 15,
+      fontWeight: "600",
+      color: colors.text,
+    },
+    actionSubLabel: {
+      fontSize: 12,
+      color: colors.muted,
+      marginTop: 1,
+    },
+    cancelButton: {
+      marginTop: 6,
+      height: 46,
+      borderRadius: 23,
+      backgroundColor: colors.surfaceMuted,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    cancelText: {
+      fontSize: 15,
+      fontWeight: "700",
+      color: colors.text,
+    },
+    pressed: {
+      opacity: 0.65,
     },
   });
 
@@ -486,6 +889,7 @@ export function PostCard({
 
   const userReaction = getUserReaction(post.id);
   const [pickerVisible, setPickerVisible] = useState(false);
+  const [menuVisible, setMenuVisible] = useState(false);
   const [anchorY, setAnchorY] = useState(300);
   const reactionButtonRef = useRef<View>(null);
   const longPressedRef = useRef(false);
@@ -576,6 +980,10 @@ export function PostCard({
     });
   };
 
+  const handleMoreOptions = () => {
+    setMenuVisible(true);
+  };
+
   /* ── Determine which icon to show for the reaction button ────── */
   const currentReactionDef = userReaction
     ? getReactionDef(userReaction)
@@ -606,6 +1014,19 @@ export function PostCard({
                 {post.kind} · {post.category} · {post.distanceKm} km
               </Text>
             </View>
+          </Pressable>
+
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="More options"
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            onPress={handleMoreOptions}
+            style={({ pressed }) => [
+              styles.moreButton,
+              pressed && styles.pressed,
+            ]}
+          >
+            <MoreHorizontal size={20} color={colors.textSecondary} />
           </Pressable>
         </View>
       )}
@@ -789,6 +1210,19 @@ export function PostCard({
           </Pressable>
         )}
       </View>
+
+      {/* Post Options Menu Modal Sheet */}
+      <PostOptionsMenu
+        visible={menuVisible}
+        post={post}
+        saved={saved}
+        onToggleSave={() => toggleSave(post.id)}
+        onShare={handleShare}
+        onViewPlace={openPlace}
+        onViewAuthor={openAuthorProfile}
+        onClose={() => setMenuVisible(false)}
+        colors={colors}
+      />
     </View>
   );
 }
@@ -805,6 +1239,13 @@ const createStyles = (colors: ColorPalette) =>
       alignItems: "center",
       justifyContent: "space-between",
       paddingBottom: 8,
+    },
+    moreButton: {
+      padding: 6,
+      marginRight: -4,
+      borderRadius: 9999,
+      alignItems: "center",
+      justifyContent: "center",
     },
     authorGroup: {
       flexDirection: "row",
