@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Animated,
+  Easing,
   Image,
   Modal,
   Pressable,
@@ -18,6 +19,7 @@ import {
   Laugh,
   Flame,
   Hand,
+  Bookmark,
   MapPin,
   ChevronRight,
   Repeat2,
@@ -211,6 +213,132 @@ const pickerStyles = (colors: ColorPalette) =>
     },
   });
 
+/* ── Animated Reaction Carousel (Cycles distinct types when > 3) ──── */
+
+function AnimatedReactionCarousel({
+  activeTypes,
+  colors,
+}: {
+  activeTypes: typeof REACTION_DEFS;
+  colors: ColorPalette;
+}) {
+  const translateX = useRef(new Animated.Value(0)).current;
+  const currentStep = useRef(0);
+  const isMounted = useRef(true);
+
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
+  const activeKey = activeTypes.map((t) => t.type).join(",");
+  const N = activeTypes.length;
+
+  useEffect(() => {
+    if (N <= 3) return;
+
+    currentStep.current = 0;
+    translateX.setValue(0);
+
+    let timeoutId: ReturnType<typeof setTimeout>;
+
+    const step = () => {
+      timeoutId = setTimeout(() => {
+        if (!isMounted.current) return;
+
+        const nextStep = currentStep.current + 1;
+        const targetValue = -nextStep * 18;
+
+        Animated.timing(translateX, {
+          toValue: targetValue,
+          duration: 450,
+          easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+          useNativeDriver: true,
+        }).start(({ finished }) => {
+          if (!finished || !isMounted.current) return;
+
+          if (nextStep >= N) {
+            // Completed a full cycle: reset instantly to 0 with zero visual change
+            // because items [N, N+1, N+2] are identical to items [0, 1, 2]
+            translateX.setValue(0);
+            currentStep.current = 0;
+          } else {
+            currentStep.current = nextStep;
+          }
+
+          // Schedule next step in the loop
+          step();
+        });
+      }, 2500);
+    };
+
+    step();
+
+    return () => {
+      clearTimeout(timeoutId);
+      translateX.stopAnimation();
+    };
+  }, [activeKey, N]);
+
+  // Repeat the first 3 items so the loop finishes seamlessly at -18 * N
+  const items = [...activeTypes, ...activeTypes.slice(0, 3)];
+
+  return (
+    <View
+      style={{
+        width: 62,
+        height: 26,
+        overflow: "hidden",
+      }}
+    >
+      <Animated.View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          transform: [{ translateX }],
+        }}
+      >
+        {items.map((def, i) => {
+          const base = -i * 18;
+          // Opacity interpolation:
+          // - fades out when sliding past slot 0 to the left (base - 18 to base)
+          // - fully visible in slots 0, 1, 2 (base to base + 36)
+          // - fades in when sliding into slot 2 from the right (base + 36 to base + 54)
+          // - invisible (opacity 0) outside the active window
+          const opacity = translateX.interpolate({
+            inputRange: [base - 18, base, base + 36, base + 54],
+            outputRange: [0, 1, 1, 0],
+            extrapolate: "clamp",
+          });
+
+          return (
+            <Animated.View
+              key={`${def.type}-${i}`}
+              style={{
+                width: 26,
+                height: 26,
+                borderRadius: 13,
+                backgroundColor: "#E6CDBA50",
+                borderWidth: 1.5,
+                borderColor: colors.surface,
+                alignItems: "center",
+                justifyContent: "center",
+                marginLeft: i > 0 ? -8 : 0,
+                zIndex: items.length - i,
+                opacity,
+              }}
+            >
+              <def.Icon size={13} color={def.activeColor} fill="none" />
+            </Animated.View>
+          );
+        })}
+      </Animated.View>
+    </View>
+  );
+}
+
 /* ── Community Reaction Badges (Group 2) ──────────────────────────── */
 
 function CommunityReactionBadges({
@@ -232,66 +360,105 @@ function CommunityReactionBadges({
 
   if (activeTypes.length === 0) return null;
 
-  // Show at most 3 icons; if more exist, calculate the unshown types count
-  const visibleTypes = activeTypes.slice(0, 3);
-  const unshownCount = activeTypes.length - 3;
+  // If more than 3 distinct reaction types, cycle them with carousel animation
+  if (activeTypes.length > 3) {
+    return (
+      <AnimatedReactionCarousel activeTypes={activeTypes} colors={colors} />
+    );
+  }
 
+  // 1 to 3 distinct types: static display with no overflow badge
   return (
     <View style={{ flexDirection: "row", alignItems: "center" }}>
-      {visibleTypes.map((def, i) => {
-        const isThirdWithOverflow = i === 2 && unshownCount > 0;
-        return (
-          <View
-            key={def.type}
-            style={{
-              position: "relative",
-              width: 26,
-              height: 26,
-              borderRadius: 13,
-              backgroundColor: colors.text,
-              borderWidth: 1.5,
-              borderColor: colors.surface,
-              alignItems: "center",
-              justifyContent: "center",
-              marginLeft: i > 0 ? -8 : 0,
-              zIndex: visibleTypes.length - i,
-            }}
-          >
-            <def.Icon size={13} color={def.activeColor} fill="none" />
-            {isThirdWithOverflow && (
-              <View
-                style={{
-                  position: "absolute",
-                  top: -5,
-                  right: -6,
-                  minWidth: 15,
-                  height: 15,
-                  borderRadius: 8,
-                  paddingHorizontal: 3,
-                  backgroundColor: colors.signal,
-                  borderWidth: 1.5,
-                  borderColor: colors.surface,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  zIndex: 10,
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: 8.5,
-                    fontWeight: "800",
-                    color: "#FFFFFF",
-                    lineHeight: 11,
-                  }}
-                >
-                  +{unshownCount}
-                </Text>
-              </View>
-            )}
-          </View>
-        );
-      })}
+      {activeTypes.map((def, i) => (
+        <View
+          key={def.type}
+          style={{
+            width: 26,
+            height: 26,
+            borderRadius: 13,
+            backgroundColor: "#E6CDBA50",
+            borderWidth: 1.5,
+            borderColor: colors.surface,
+            alignItems: "center",
+            justifyContent: "center",
+            marginLeft: i > 0 ? -8 : 0,
+            zIndex: activeTypes.length - i,
+          }}
+        >
+          <def.Icon size={13} color={def.activeColor} fill="none" />
+        </View>
+      ))}
     </View>
+  );
+}
+
+/* ── Reaction Summary Text ("User and 44 others reacted") ─────────── */
+
+function ReactionSummary({
+  postId,
+  postAuthor,
+  otherReactorsCount,
+  hasUserReacted,
+  colors,
+}: {
+  postId: string;
+  postAuthor: string;
+  otherReactorsCount: number;
+  hasUserReacted: boolean;
+  colors: ColorPalette;
+}) {
+  if (otherReactorsCount <= 0) return null;
+
+  const candidateNames = [
+    "Kondwani Banda",
+    "Dalitso Phiri",
+    "Puma Energy",
+    "Chisomo Banda",
+    "Tamanda Gondwe",
+    "Lingadzi Sessions",
+    "Mabu Artisan Bakes",
+  ].filter((name) => name !== postAuthor);
+
+  const hash = Math.abs(
+    postId.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0)
+  );
+  const leadUser = candidateNames[hash % candidateNames.length];
+
+  const bold = { fontWeight: "700" as const, color: colors.text };
+  const remainingOthers = otherReactorsCount - 1;
+  const othersText =
+    remainingOthers === 1 ? "1 other" : `${remainingOthers} others`;
+
+  if (hasUserReacted) {
+    if (otherReactorsCount === 1) {
+      return (
+        <Text>
+          <Text style={bold}>{leadUser}</Text> also reacted
+        </Text>
+      );
+    }
+    return (
+      <Text>
+        <Text style={bold}>{leadUser}</Text> and{" "}
+        <Text style={bold}>{othersText}</Text> also reacted
+      </Text>
+    );
+  }
+
+  // Current user has not reacted
+  if (otherReactorsCount === 1) {
+    return (
+      <Text>
+        <Text style={bold}>{leadUser}</Text> reacted
+      </Text>
+    );
+  }
+  return (
+    <Text>
+      <Text style={bold}>{leadUser}</Text> and{" "}
+      <Text style={bold}>{othersText}</Text> reacted
+    </Text>
   );
 }
 
@@ -333,6 +500,11 @@ export function PostCard({
   const totalReactionCount = postReactions
     ? Object.values(postReactions).reduce((a, b) => a + b, 0)
     : 0;
+
+  // Number of community members who reacted (excluding current user)
+  const otherReactorsCount = userReaction
+    ? Math.max(0, totalReactionCount - 1)
+    : totalReactionCount;
 
   // Compute reshare count (deterministic seed from post data)
   const reshareCount = Math.floor(Math.abs(post.lng * 10) % 12);
@@ -524,19 +696,42 @@ export function PostCard({
           </Pressable>
         </View>
 
-        {/* Group 2: Community Reaction Badges (icons only, no count) */}
-        <CommunityReactionBadges postId={post.id} colors={colors} />
+        {/* Group 2: Save / Bookmark Button */}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={saved ? "Remove bookmark" : "Save place"}
+          onPress={() => toggleSave(post.id)}
+          style={({ pressed }) => [
+            styles.actionItem,
+            pressed && styles.pressed,
+          ]}
+        >
+          <Bookmark
+            size={20}
+            color={saved ? colors.signal : colors.text}
+            fill={saved ? colors.signal : "none"}
+          />
+        </Pressable>
       </View>
+
+      {/* Social Proof Row: Badges + Reaction Names Text */}
+      {otherReactorsCount > 0 && (
+        <View style={styles.socialProofRow}>
+          <CommunityReactionBadges postId={post.id} colors={colors} />
+          <Text style={styles.reactionSummaryText} numberOfLines={2}>
+            <ReactionSummary
+              postId={post.id}
+              postAuthor={post.author}
+              otherReactorsCount={otherReactorsCount}
+              hasUserReacted={!!userReaction}
+              colors={colors}
+            />
+          </Text>
+        </View>
+      )}
 
       {/* Editorial Post Content & Story Narrative */}
       <View style={styles.postBodySection}>
-        {/* Drop Headline */}
-        <Pressable onPress={openPlace} style={styles.titleWrap}>
-          <Text style={styles.postTitle} numberOfLines={2}>
-            {post.title}
-          </Text>
-        </Pressable>
-
         {/* Narrative Caption */}
         <Pressable
           onPress={() => setCaptionExpanded((prev) => !prev)}
@@ -669,6 +864,20 @@ const createStyles = (colors: ColorPalette) =>
       paddingTop: 8,
       paddingBottom: 4,
     },
+    socialProofRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      paddingTop: 4,
+      paddingBottom: 2,
+    },
+    reactionSummaryText: {
+      fontSize: 13,
+      color: colors.textSecondary,
+      fontWeight: "500",
+      flex: 1,
+      lineHeight: 18,
+    },
     actionsGroup: {
       flexDirection: "row",
       alignItems: "center",
@@ -696,15 +905,6 @@ const createStyles = (colors: ColorPalette) =>
     postBodySection: {
       paddingTop: 8,
       gap: 4,
-    },
-    titleWrap: {
-      paddingVertical: 2,
-    },
-    postTitle: {
-      fontSize: 16,
-      fontWeight: "700",
-      lineHeight: 20,
-      color: colors.text,
     },
     captionWrap: {
       paddingVertical: 2,
