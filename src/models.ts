@@ -25,6 +25,10 @@ export type Review = {
   text: string;
 };
 
+export type ReactionType = "heart" | "flower" | "like" | "laugh" | "fire" | "clap";
+
+export type PostReactions = Record<ReactionType, number>;
+
 export type SearchMode = "type" | "voice" | "visual";
 
 export type TravelMode = "walking" | "cycling" | "driving";

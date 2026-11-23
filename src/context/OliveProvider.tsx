@@ -7,7 +7,7 @@ import {
   type ReactNode,
 } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
-import type { GuidanceSession, Post, Review, SearchMode, SettingsState } from "../models";
+import type { GuidanceSession, Post, PostReactions, ReactionType, Review, SearchMode, SettingsState } from "../models";
 import {
   DEFAULT_SAVED_IDS,
   DEFAULT_SETTINGS,
@@ -86,6 +86,12 @@ type OliveContextType = {
   isReposted: (id: string) => boolean;
   toggleRepost: (id: string) => void;
 
+  // Reactions state (multi-reaction system)
+  reactionsMap: Record<string, PostReactions>;
+  getUserReaction: (postId: string) => ReactionType | null;
+  setReaction: (postId: string, reaction: ReactionType) => void;
+  removeReaction: (postId: string) => void;
+
   // Profile modal sheet state (Saved / Settings popup)
   profileModal: "saved" | "settings" | null;
   setProfileModal: (
@@ -161,6 +167,72 @@ export function OliveProvider({ children }: { children: ReactNode }) {
     setRepostedIds((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     );
+  };
+
+  // Reactions state (multi-reaction system)
+  // userReactions tracks which reaction the current user chose per post
+  const [userReactions, setUserReactions] = useState<Record<string, ReactionType>>({
+    "park-live": "heart",
+    "forno": "heart",
+    "kuchawe-chambo": "flower",
+  });
+  // reactionsMap tracks the aggregate count of each reaction type per post
+  const [reactionsMap, setReactionsMap] = useState<Record<string, PostReactions>>({
+    "park-live": { heart: 5, flower: 3, like: 2, laugh: 1, fire: 0, clap: 0 },
+    "forno": { heart: 8, flower: 1, like: 0, laugh: 2, fire: 1, clap: 0 },
+    "kuchawe-chambo": { heart: 3, flower: 6, like: 1, laugh: 0, fire: 2, clap: 1 },
+    "saturday-market": { heart: 4, flower: 2, like: 3, laugh: 1, fire: 0, clap: 0 },
+  });
+
+  const getUserReaction = (postId: string): ReactionType | null => {
+    return userReactions[postId] ?? null;
+  };
+
+  const setReaction = (postId: string, reaction: ReactionType) => {
+    const previousReaction = userReactions[postId];
+    // Update user's reaction
+    setUserReactions((prev) => ({ ...prev, [postId]: reaction }));
+    // Update aggregate counts
+    setReactionsMap((prev) => {
+      const current = prev[postId] ?? { heart: 0, flower: 0, like: 0, laugh: 0, fire: 0, clap: 0 };
+      const updated = { ...current };
+      // Remove previous reaction if any
+      if (previousReaction && updated[previousReaction] > 0) {
+        updated[previousReaction] -= 1;
+      }
+      // Add new reaction
+      updated[reaction] = (updated[reaction] ?? 0) + 1;
+      return { ...prev, [postId]: updated };
+    });
+    // Also keep likedIds in sync for backward compatibility
+    if (reaction === "heart") {
+      setLikedIds((prev) => (prev.includes(postId) ? prev : [...prev, postId]));
+    } else {
+      setLikedIds((prev) => prev.filter((item) => item !== postId));
+    }
+  };
+
+  const removeReaction = (postId: string) => {
+    const previousReaction = userReactions[postId];
+    if (!previousReaction) return;
+    // Remove user's reaction
+    setUserReactions((prev) => {
+      const next = { ...prev };
+      delete next[postId];
+      return next;
+    });
+    // Update aggregate counts
+    setReactionsMap((prev) => {
+      const current = prev[postId];
+      if (!current) return prev;
+      const updated = { ...current };
+      if (updated[previousReaction] > 0) {
+        updated[previousReaction] -= 1;
+      }
+      return { ...prev, [postId]: updated };
+    });
+    // Remove from likedIds for backward compat
+    setLikedIds((prev) => prev.filter((item) => item !== postId));
   };
 
   // Expanded floating nav window state
@@ -351,6 +423,10 @@ export function OliveProvider({ children }: { children: ReactNode }) {
         repostedIds,
         isReposted,
         toggleRepost,
+        reactionsMap,
+        getUserReaction,
+        setReaction,
+        removeReaction,
         profileModal,
         setProfileModal,
         expandedWindow,
