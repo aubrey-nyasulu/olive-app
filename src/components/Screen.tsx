@@ -11,72 +11,27 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
-import type { LucideIcon } from "lucide-react-native";
-import { Users, Building2, SlidersHorizontal } from "lucide-react-native";
 import { router, useFocusEffect } from "expo-router";
-import { ArrowLeft } from "lucide-react-native";
 import { useOlive } from "../context/OliveProvider";
-import { useThemeStyles, useColors, type ColorPalette } from "../theme";
+import { useThemeStyles, type ColorPalette } from "../theme";
 
 export const getHeaderHeight = (insetsTop: number) =>
   insetsTop + (Platform.OS === "android" ? 56 : 52);
 
-export function IconButton({
-  icon: Icon,
-  label,
-  onPress,
-  color,
-  size = 20,
-}: {
-  icon: LucideIcon;
-  label: string;
-  onPress: () => void;
-  color?: string;
-  size?: number;
-}) {
-  const { styles, colors } = useThemeStyles(createStyles);
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.iconButton,
-        pressed && styles.pressedIcon,
-      ]}
-    >
-      <Icon size={size} color={color || colors.text} />
-    </Pressable>
-  );
-}
-
 export function Screen({
   title,
   home,
-  back,
-  actions,
   children,
   staticContent,
 }: {
   title?: string;
   home?: boolean;
-  back?: boolean;
-  actions?: ReactNode;
   children: ReactNode;
   staticContent?: boolean;
 }) {
   const insets = useSafeAreaInsets();
   const { styles, colors } = useThemeStyles(createStyles);
-  const {
-    config,
-    closeSearch,
-    searchOpen,
-    activeMode,
-    feedMode,
-    expandedWindow,
-    openExpandedWindow,
-    closeExpandedWindow,
-  } = useOlive();
+  const { config, closeSearch, searchOpen, activeMode } = useOlive();
 
   const panelOpen = activeMode !== null;
   const dimmed = searchOpen || panelOpen;
@@ -93,16 +48,7 @@ export function Screen({
     }).start();
   }, [dimmed, headerOpacity]);
 
-  const handleBack = () => {
-    closeSearch();
-    if (router.canGoBack()) {
-      router.back();
-    } else {
-      router.replace("/");
-    }
-  };
-
-  const showHeader = home || back || title;
+  const showHeader = home || title;
 
   const isInitialMount = useRef(true);
   const transitionAnim = useRef(new Animated.Value(home ? 1 : 0)).current;
@@ -194,13 +140,6 @@ export function Screen({
             {/* Header Content Row */}
             <View style={styles.headerRow}>
               <View style={styles.headerLeft}>
-                {back && (
-                  <IconButton
-                    icon={ArrowLeft}
-                    label="Back"
-                    onPress={handleBack}
-                  />
-                )}
                 {home ? (
                   <Pressable
                     accessibilityRole="link"
@@ -215,56 +154,10 @@ export function Screen({
                     </Text>
                   </Pressable>
                 ) : title ? (
-                  <Text
-                    numberOfLines={1}
-                    style={[styles.title, back && styles.titleWithBack]}
-                  >
+                  <Text numberOfLines={1} style={styles.title}>
                     {title}
                   </Text>
                 ) : null}
-              </View>
-
-              <View style={styles.headerRight}>
-                {actions}
-                {home && (
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel="Filter feed content"
-                    onPress={() => {
-                      closeSearch();
-                      if (expandedWindow?.type === "feed_modes") {
-                        closeExpandedWindow();
-                      } else {
-                        openExpandedWindow({ type: "feed_modes" });
-                      }
-                    }}
-                    style={({ pressed }) => [
-                      styles.filterButton,
-                      feedMode !== "all"
-                        ? styles.filterButtonActive
-                        : styles.filterButtonDefault,
-                      pressed && styles.pressedIcon,
-                    ]}
-                  >
-                    {(() => {
-                      const FilterIcon =
-                        feedMode === "people"
-                          ? Users
-                          : feedMode === "places"
-                          ? Building2
-                          : SlidersHorizontal;
-                      return (
-                        <FilterIcon
-                          size={18}
-                          color={
-                            feedMode !== "all" ? colors.signal : colors.text
-                          }
-                        />
-                      );
-                    })()}
-                    {feedMode !== "all" && <View style={styles.filterDot} />}
-                  </Pressable>
-                )}
               </View>
             </View>
           </Animated.View>
@@ -340,11 +233,6 @@ const createStyles = (colors: ColorPalette) =>
       gap: 12,
       flex: 1,
     },
-    headerRight: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 12,
-    },
     logoText: {
       fontSize: 22,
       fontWeight: "800",
@@ -360,49 +248,6 @@ const createStyles = (colors: ColorPalette) =>
       fontWeight: "700",
       letterSpacing: -0.4,
       color: colors.text,
-    },
-    titleWithBack: {
-      fontSize: 18,
-      fontWeight: "600",
-    },
-    iconButton: {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
-      borderWidth: 1,
-      alignItems: "center",
-      justifyContent: "center",
-      backgroundColor: colors.surfaceMuted,
-      borderColor: colors.line,
-    },
-    pressedIcon: {
-      opacity: 0.65,
-    },
-    filterButton: {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
-      borderWidth: 1,
-      alignItems: "center",
-      justifyContent: "center",
-      position: "relative",
-    },
-    filterButtonDefault: {
-      backgroundColor: colors.surfaceMuted,
-      borderColor: colors.line,
-    },
-    filterButtonActive: {
-      backgroundColor: colors.signalLight,
-      borderColor: colors.signal,
-    },
-    filterDot: {
-      position: "absolute",
-      top: 4,
-      right: 4,
-      width: 8,
-      height: 8,
-      borderRadius: 4,
-      backgroundColor: colors.signal,
     },
     content: {
       flex: 1,
