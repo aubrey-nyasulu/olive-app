@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useMemo } from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import {
   ChevronRight,
+  Footprints,
   Heart,
   MapPin,
   MessageSquareMore,
@@ -16,6 +17,7 @@ export interface UserInteraction {
   post: Post;
   review: Review;
   timeAgo: string;
+  minutesAgo?: number;
 }
 
 interface ProfileInteractionsTabProps {
@@ -23,6 +25,40 @@ interface ProfileInteractionsTabProps {
   interactions: UserInteraction[];
   userName: string;
   isMe: boolean;
+}
+
+type TimelineEntry =
+  | {
+      kind: "review";
+      key: string;
+      minutesAgo: number;
+      interaction: UserInteraction;
+    }
+  | {
+      kind: "liked";
+      key: string;
+      minutesAgo: number;
+      timeAgo: string;
+      post: Post;
+    };
+
+const LIKED_SCHEDULES = [
+  { timeAgo: "5h ago", minutesAgo: 300 },
+  { timeAgo: "2d ago", minutesAgo: 2880 },
+  { timeAgo: "4d ago", minutesAgo: 5760 },
+  { timeAgo: "6d ago", minutesAgo: 8640 },
+];
+
+function parseMinutesFallback(timeAgo: string): number {
+  const match = timeAgo.match(/^(\d+)\s*([mhdw])/i);
+  if (!match) return 4320;
+  const amount = Number(match[1]);
+  const unit = match[2].toLowerCase();
+  if (unit === "m") return amount;
+  if (unit === "h") return amount * 60;
+  if (unit === "d") return amount * 1440;
+  if (unit === "w") return amount * 10080;
+  return 4320;
 }
 
 export function ProfileInteractionsTab({
@@ -33,218 +69,131 @@ export function ProfileInteractionsTab({
 }: ProfileInteractionsTabProps) {
   const { styles, colors } = useThemeStyles(createStyles);
   const { openExpandedWindow } = useOlive();
-  const [filter, setFilter] = useState<"all" | "liked" | "comments">("all");
 
-  const totalCount = likedPosts.length + interactions.length;
+  const timeline = useMemo<TimelineEntry[]>(() => {
+    const entries: TimelineEntry[] = [
+      ...interactions.map((item, idx) => ({
+        kind: "review" as const,
+        key: `review-${item.post.id}-${idx}`,
+        minutesAgo: item.minutesAgo ?? parseMinutesFallback(item.timeAgo),
+        interaction: item,
+      })),
+      ...likedPosts.map((post, idx) => {
+        const schedule =
+          LIKED_SCHEDULES[idx] ?? {
+            timeAgo: `${idx + 3}d ago`,
+            minutesAgo: (idx + 3) * 1440,
+          };
+        return {
+          kind: "liked" as const,
+          key: `liked-${post.id}`,
+          minutesAgo: schedule.minutesAgo,
+          timeAgo: schedule.timeAgo,
+          post,
+        };
+      }),
+    ];
 
-  if (totalCount === 0) {
+    entries.sort((a, b) => a.minutesAgo - b.minutesAgo);
+    return entries;
+  }, [interactions, likedPosts]);
+
+  if (timeline.length === 0) {
     return (
       <View style={styles.emptyWrap}>
-        <Heart size={44} color={colors.muted} />
-        <Text style={styles.emptyTitle}>No interactions yet</Text>
+        <Footprints size={44} color={colors.muted} />
+        <Text style={styles.emptyTitle}>No footprints yet</Text>
         <Text style={styles.emptyText}>
           {isMe
-            ? "Places you like and reviews you post will appear together here."
-            : `Places that ${userName} liked and reviewed will appear here.`}
+            ? "Places you like and reviews you post will appear in chronological order here."
+            : `Places that ${userName} liked and reviewed will appear in chronological order here.`}
         </Text>
       </View>
     );
   }
 
-  const showLiked = filter === "all" || filter === "liked";
-  const showComments = filter === "all" || filter === "comments";
-
   return (
     <View style={styles.container}>
-      {/* Sub-Filter Pills (All, Liked, Comments) */}
-      <View style={styles.filterRow}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={`Show all ${totalCount} interactions`}
-          onPress={() => setFilter("all")}
-          style={[
-            styles.filterPill,
-            filter === "all" && styles.filterPillActive,
-          ]}
-        >
-          <Text
-            style={[
-              styles.filterText,
-              filter === "all" && styles.filterTextActive,
-            ]}
-          >
-            All ({totalCount})
-          </Text>
-        </Pressable>
-
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={`Show ${likedPosts.length} liked places`}
-          onPress={() => setFilter("liked")}
-          style={[
-            styles.filterPill,
-            filter === "liked" && styles.filterPillActive,
-          ]}
-        >
-          <Heart
-            size={12}
-            color={filter === "liked" ? "#FF3B30" : colors.muted}
-            fill={filter === "liked" ? "#FF3B30" : "none"}
-          />
-          <Text
-            style={[
-              styles.filterText,
-              filter === "liked" && styles.filterTextActive,
-            ]}
-          >
-            Liked ({likedPosts.length})
-          </Text>
-        </Pressable>
-
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={`Show ${interactions.length} comments`}
-          onPress={() => setFilter("comments")}
-          style={[
-            styles.filterPill,
-            filter === "comments" && styles.filterPillActive,
-          ]}
-        >
-          <MessageSquareMore
-            size={12}
-            color={filter === "comments" ? colors.signal : colors.muted}
-          />
-          <Text
-            style={[
-              styles.filterText,
-              filter === "comments" && styles.filterTextActive,
-            ]}
-          >
-            Comments ({interactions.length})
-          </Text>
-        </Pressable>
-      </View>
-
-      {/* 1. Comments Section */}
-      {showComments && interactions.length > 0 && (
-        <View style={styles.sectionWrap}>
-          {filter === "all" && (
-            <View style={styles.sectionHeader}>
-              <MessageSquareMore
-                size={14}
-                color={colors.signal}
-              />
-              <Text style={styles.sectionHeaderText}>
-                Comments & Reviews ({interactions.length})
-              </Text>
-            </View>
-          )}
-
-          <View style={styles.list}>
-            {interactions.map(({ post, review, timeAgo }, idx) => (
-              <Pressable
-                key={`interaction-${post.id}-${idx}`}
-                accessibilityRole="button"
-                accessibilityLabel={`Interaction on ${post.title}`}
-                onPress={() => openExpandedWindow({ type: "details", post })}
-                style={({ pressed }) => [
-                  styles.card,
-                  pressed && styles.cardPressed,
-                ]}
-              >
-                {/* Target Place Row */}
-                <View style={styles.targetPostRow}>
-                  {post.image ? (
-                    <Image source={post.image} style={styles.placeThumb} />
-                  ) : (
-                    <View style={styles.placeThumbPlaceholder}>
-                      <MapPin
-                        size={16}
-                        color={colors.signal}
-                      />
-                    </View>
-                  )}
-                  <View style={styles.placeMeta}>
-                    <Text numberOfLines={1} style={styles.placeTitle}>
-                      {post.title}
-                    </Text>
-                    <Text numberOfLines={1} style={styles.placeSub}>
-                      {post.author} · {post.place}
-                    </Text>
+      {timeline.map((entry) => {
+        if (entry.kind === "review") {
+          const { post, review, timeAgo } = entry.interaction;
+          return (
+            <Pressable
+              key={entry.key}
+              accessibilityRole="button"
+              accessibilityLabel={`Interaction on ${post.title}`}
+              onPress={() => openExpandedWindow({ type: "details", post })}
+              style={({ pressed }) => [
+                styles.card,
+                pressed && styles.cardPressed,
+              ]}
+            >
+              <View style={styles.targetPostRow}>
+                {post.image ? (
+                  <Image source={post.image} style={styles.placeThumb} />
+                ) : (
+                  <View style={styles.placeThumbPlaceholder}>
+                    <MapPin size={16} color={colors.signal} />
                   </View>
-                  <ChevronRight
-                    size={16}
-                    color={colors.muted}
-                  />
-                </View>
-
-                {/* Speech Bubble */}
-                <View style={styles.commentBubble}>
-                  <View style={styles.bubbleHeaderRow}>
-                    <View style={styles.starsRow}>
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <Star
-                          key={`star-${star}`}
-                          size={12}
-                          color={
-                            star <= review.stars ? colors.signal : colors.muted
-                          }
-                          fill={
-                            star <= review.stars ? colors.signal : "none"
-                          }
-                        />
-                      ))}
-                    </View>
-                    <Text style={styles.timeAgo}>{timeAgo}</Text>
-                  </View>
-
-                  <Text style={styles.reviewText}>"{review.text}"</Text>
-
-                  <View style={styles.reviewFooter}>
-                    <MessageSquareMore
-                      size={12}
-                      color={colors.muted}
-                    />
-                    <Text style={styles.authorBadge}>
-                      {isMe ? "You reviewed" : `${userName} reviewed`}
-                    </Text>
-                  </View>
-                </View>
-              </Pressable>
-            ))}
-          </View>
-        </View>
-      )}
-
-      {/* 2. Liked Posts Section */}
-      {showLiked && likedPosts.length > 0 && (
-        <View style={styles.sectionWrap}>
-          {filter === "all" && (
-            <View style={styles.sectionHeader}>
-              <Heart size={14} color="#FF3B30" fill="#FF3B30" />
-              <Text style={styles.sectionHeaderText}>
-                Liked Places ({likedPosts.length})
-              </Text>
-            </View>
-          )}
-
-          <View style={styles.list}>
-            {likedPosts.map((post) => (
-              <View key={`liked-post-${post.id}`} style={styles.likedPostWrap}>
-                <View style={styles.likedHeader}>
-                  <Heart size={13} color="#FF3B30" fill="#FF3B30" />
-                  <Text style={styles.likedHeaderText}>
-                    {isMe
-                      ? "You liked this place"
-                      : `${userName} liked this place`}
+                )}
+                <View style={styles.placeMeta}>
+                  <Text numberOfLines={1} style={styles.placeTitle}>
+                    {post.title}
+                  </Text>
+                  <Text numberOfLines={1} style={styles.placeSub}>
+                    {post.author} · {post.place}
                   </Text>
                 </View>
-                <PostCard post={post} />
+                <ChevronRight size={16} color={colors.muted} />
               </View>
-            ))}
+
+              <View style={styles.commentBubble}>
+                <View style={styles.bubbleHeaderRow}>
+                  <View style={styles.starsRow}>
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star
+                        key={`star-${star}`}
+                        size={12}
+                        color={
+                          star <= review.stars ? colors.signal : colors.muted
+                        }
+                        fill={star <= review.stars ? colors.signal : "none"}
+                      />
+                    ))}
+                  </View>
+                  <Text style={styles.timeAgo}>{timeAgo}</Text>
+                </View>
+
+                <Text style={styles.reviewText}>"{review.text}"</Text>
+
+                <View style={styles.reviewFooter}>
+                  <MessageSquareMore size={12} color={colors.muted} />
+                  <Text style={styles.authorBadge}>
+                    {isMe ? "You reviewed" : `${userName} reviewed`}
+                  </Text>
+                </View>
+              </View>
+            </Pressable>
+          );
+        }
+
+        return (
+          <View key={entry.key} style={styles.likedPostWrap}>
+            <View style={styles.likedHeader}>
+              <View style={styles.likedHeaderLeft}>
+                <Heart size={13} color="#FF3B30" fill="#FF3B30" />
+                <Text style={styles.likedHeaderText}>
+                  {isMe
+                    ? "You liked this place"
+                    : `${userName} liked this place`}
+                </Text>
+              </View>
+              <Text style={styles.timeAgo}>{entry.timeAgo}</Text>
+            </View>
+            <PostCard post={entry.post} />
           </View>
-        </View>
-      )}
+        );
+      })}
     </View>
   );
 }
@@ -252,60 +201,7 @@ export function ProfileInteractionsTab({
 const createStyles = (colors: ColorPalette) =>
   StyleSheet.create({
     container: {
-      gap: 16,
-    },
-    filterRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 8,
-      marginBottom: 4,
-    },
-    filterPill: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 6,
-      paddingHorizontal: 12,
-      paddingVertical: 6,
-      borderRadius: 9999,
-      backgroundColor: colors.surfaceMuted,
-      borderWidth: 1,
-      borderColor: colors.line,
-    },
-    filterPillActive: {
-      backgroundColor: colors.surface,
-      borderColor: colors.signal,
-      shadowColor: colors.text,
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.08,
-      shadowRadius: 2,
-      elevation: 1,
-    },
-    filterText: {
-      fontSize: 12,
-      fontWeight: "500",
-      color: colors.muted,
-    },
-    filterTextActive: {
-      fontWeight: "700",
-      color: colors.text,
-    },
-    sectionWrap: {
-      gap: 8,
-    },
-    sectionHeader: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 6,
-      paddingHorizontal: 4,
-      marginTop: 4,
-    },
-    sectionHeaderText: {
-      fontSize: 14,
-      fontWeight: "700",
-      color: colors.text,
-    },
-    list: {
-      gap: 12,
+      gap: 14,
     },
     card: {
       borderRadius: 16,
@@ -396,12 +292,17 @@ const createStyles = (colors: ColorPalette) =>
     likedHeader: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 6,
+      justifyContent: "space-between",
       paddingHorizontal: 16,
       paddingVertical: 8,
       backgroundColor: colors.surfaceMuted,
       borderRadius: 8,
       marginBottom: 4,
+    },
+    likedHeaderLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
     },
     likedHeaderText: {
       fontSize: 12,

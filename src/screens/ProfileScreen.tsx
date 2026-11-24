@@ -249,6 +249,12 @@ export default function ProfileScreen() {
 
   // User interactions (reviews / comments)
   const userInteractions = useMemo<UserInteraction[]>(() => {
+    const reviewSchedules = [
+      { timeAgo: "2h ago", minutesAgo: 120 },
+      { timeAgo: "1d ago", minutesAgo: 1440 },
+      { timeAgo: "3d ago", minutesAgo: 4320 },
+      { timeAgo: "5d ago", minutesAgo: 7200 },
+    ];
     const list: UserInteraction[] = [];
     POSTS.forEach((post) => {
       const reviews = reviewsMap[post.id] ?? REVIEWS[post.id] ?? [];
@@ -263,10 +269,14 @@ export default function ProfileScreen() {
               byNorm === "blessings" ||
               byNorm === "kondwani"));
         if (isAuthor) {
+          const schedule =
+            reviewSchedules[list.length] ??
+            { timeAgo: `${list.length + 2}d ago`, minutesAgo: (list.length + 2) * 1440 };
           list.push({
             post,
             review: r,
-            timeAgo: "2d ago",
+            timeAgo: schedule.timeAgo,
+            minutesAgo: schedule.minutesAgo,
           });
         }
       });
@@ -282,7 +292,8 @@ export default function ProfileScreen() {
             stars: 5,
             text: "Morning batch fresh until 11:00. The almond croissants and honey glaze are simply exceptional.",
           },
-          timeAgo: "3d ago",
+          timeAgo: "1d ago",
+          minutesAgo: 1440,
         });
       }
       const p2 = POSTS.find((p) => p.id === "park-live");
@@ -295,6 +306,7 @@ export default function ProfileScreen() {
             text: "Magical atmosphere under the woodland canopy.",
           },
           timeAgo: "1w ago",
+          minutesAgo: 10080,
         });
       }
     }
