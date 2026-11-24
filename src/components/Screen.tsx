@@ -191,6 +191,7 @@ const createStyles = (colors: ColorPalette) =>
       position: "relative",
     },
     fixedHeader: {
+      display: "none",
       position: "absolute",
       top: 0,
       left: 0,

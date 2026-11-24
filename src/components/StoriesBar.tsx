@@ -76,7 +76,7 @@ export function StoriesBar() {
   };
 
   return (
-    <View style={styles.sectionContainer}>
+    <>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -131,7 +131,7 @@ export function StoriesBar() {
                 )}
 
                 {/* Optional status pill badge (e.g. LIVE / HOT / NEW) */}
-                {story.badge && (
+                {/* {story.badge && (
                   <View
                     style={[
                       styles.statusPillBadge,
@@ -144,7 +144,7 @@ export function StoriesBar() {
                   >
                     <Text style={styles.statusPillText}>{story.badge}</Text>
                   </View>
-                )}
+                )} */}
               </View>
 
               {/* Display name */}
@@ -188,155 +188,150 @@ export function StoriesBar() {
             >
               <View style={styles.modalInner}>
                 {/* Top Progress Segments (Timer indicators) */}
-              <View style={styles.progressRow}>
-                {STORIES.map((s, idx) => (
-                  <View key={s.id} style={styles.progressBarTrack}>
-                    <View
-                      style={[
-                        styles.progressBarFill,
-                        idx <= (activeStoryIndex ?? 0)
-                          ? styles.progressBarActive
-                          : styles.progressBarInactive,
-                      ]}
-                    />
-                  </View>
-                ))}
-              </View>
-
-              {/* Story Header */}
-              <View style={styles.storyHeader}>
-                <Pressable
-                  onPress={handleNavigateToPlace}
-                  style={styles.storyAuthorRow}
-                >
-                  <View style={styles.headerAvatarWrap}>
-                    <Image
-                      source={activeStory.avatar}
-                      style={styles.headerAvatar}
-                    />
-                  </View>
-                  <View style={styles.headerMeta}>
-                    <View style={styles.authorTitleRow}>
-                      <Text style={styles.headerAuthorName} numberOfLines={1}>
-                        {activeStory.authorName}
-                      </Text>
-                      {activeStory.badge && (
-                        <View
-                          style={[
-                            styles.headerBadgePill,
-                            activeStory.badge === "LIVE"
-                              ? styles.statusBadgeLive
-                              : styles.statusBadgeHot,
-                          ]}
-                        >
-                          <Text style={styles.headerBadgeText}>
-                            {activeStory.badge}
-                          </Text>
-                        </View>
-                      )}
+                <View style={styles.progressRow}>
+                  {STORIES.map((s, idx) => (
+                    <View key={s.id} style={styles.progressBarTrack}>
+                      <View
+                        style={[
+                          styles.progressBarFill,
+                          idx <= (activeStoryIndex ?? 0)
+                            ? styles.progressBarActive
+                            : styles.progressBarInactive,
+                        ]}
+                      />
                     </View>
-                  </View>
-                </Pressable>
-
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel="Close story"
-                  onPress={handleClose}
-                  style={styles.closeBtn}
-                >
-                  <X size={18} color={colors.text} />
-                </Pressable>
-              </View>
-
-              {/* Story Content Card with navigation tap areas */}
-              <View style={styles.storyMediaCard}>
-                <Image
-                  source={activeStory.storyImage}
-                  style={styles.storyImage}
-                  resizeMode="cover"
-                />
-
-                {/* Left/Right Tap Zones for Story Navigation */}
-                <Pressable style={styles.tapPrevZone} onPress={handlePrev} />
-                <Pressable style={styles.tapNextZone} onPress={handleNext} />
-
-                {/* Bottom Story Gradient Scrim & Caption */}
-                <LinearGradient
-                  colors={["transparent", "rgba(0,0,0,0.85)"]}
-                  style={styles.storyOverlayGradient}
-                >
-                  <View style={styles.storyCaptionBox}>
-                    <Text style={styles.storyTitleText}>
-                      {activeStory.title}
-                    </Text>
-                    <Text style={styles.storyCaptionText}>
-                      {activeStory.caption}
-                    </Text>
-                  </View>
-                </LinearGradient>
-              </View>
-
-              {/* Reaction Toast Feedback */}
-              {reactedStoryId && (
-                <View style={styles.reactionToast}>
-                  <Text style={styles.reactionToastText}>
-                    Sent {reactedStoryId} to {activeStory.displayName}
-                  </Text>
-                </View>
-              )}
-
-              {/* Bottom Quick-Action & Reaction Row */}
-              <View style={styles.storyBottomBar}>
-                {/* View Venue / Drop Button */}
-                <Pressable
-                  accessibilityRole="button"
-                  onPress={handleNavigateToPlace}
-                  style={({ pressed }) => [
-                    styles.viewVenueBtn,
-                    pressed && styles.pressed,
-                  ]}
-                >
-                  <Text style={styles.viewVenueText}>
-                    {activeStory.isOwner ? "View My Profile" : "View Venue"}
-                  </Text>
-                  <ChevronRight size={14} color="#FFFFFF" />
-                </Pressable>
-
-                {/* Quick Reaction Emojis */}
-                <View style={styles.reactionsGroup}>
-                  {["❤️", "🔥", "👏", "😋"].map((emoji) => (
-                    <Pressable
-                      key={emoji}
-                      onPress={() => handleReaction(emoji)}
-                      style={({ pressed }) => [
-                        styles.reactionBtn,
-                        pressed && styles.reactionBtnPressed,
-                      ]}
-                    >
-                      <Text style={styles.reactionEmoji}>{emoji}</Text>
-                    </Pressable>
                   ))}
                 </View>
-              </View>
+
+                {/* Story Header */}
+                <View style={styles.storyHeader}>
+                  <Pressable
+                    onPress={handleNavigateToPlace}
+                    style={styles.storyAuthorRow}
+                  >
+                    <View style={styles.headerAvatarWrap}>
+                      <Image
+                        source={activeStory.avatar}
+                        style={styles.headerAvatar}
+                      />
+                    </View>
+                    <View style={styles.headerMeta}>
+                      <View style={styles.authorTitleRow}>
+                        <Text style={styles.headerAuthorName} numberOfLines={1}>
+                          {activeStory.authorName}
+                        </Text>
+                        {activeStory.badge && (
+                          <View
+                            style={[
+                              styles.headerBadgePill,
+                              activeStory.badge === "LIVE"
+                                ? styles.statusBadgeLive
+                                : styles.statusBadgeHot,
+                            ]}
+                          >
+                            <Text style={styles.headerBadgeText}>
+                              {activeStory.badge}
+                            </Text>
+                          </View>
+                        )}
+                      </View>
+                    </View>
+                  </Pressable>
+
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel="Close story"
+                    onPress={handleClose}
+                    style={styles.closeBtn}
+                  >
+                    <X size={18} color={colors.text} />
+                  </Pressable>
+                </View>
+
+                {/* Story Content Card with navigation tap areas */}
+                <View style={styles.storyMediaCard}>
+                  <Image
+                    source={activeStory.storyImage}
+                    style={styles.storyImage}
+                    resizeMode="cover"
+                  />
+
+                  {/* Left/Right Tap Zones for Story Navigation */}
+                  <Pressable style={styles.tapPrevZone} onPress={handlePrev} />
+                  <Pressable style={styles.tapNextZone} onPress={handleNext} />
+
+                  {/* Bottom Story Gradient Scrim & Caption */}
+                  <LinearGradient
+                    colors={["transparent", "rgba(0,0,0,0.85)"]}
+                    style={styles.storyOverlayGradient}
+                  >
+                    <View style={styles.storyCaptionBox}>
+                      <Text style={styles.storyTitleText}>
+                        {activeStory.title}
+                      </Text>
+                      <Text style={styles.storyCaptionText}>
+                        {activeStory.caption}
+                      </Text>
+                    </View>
+                  </LinearGradient>
+                </View>
+
+                {/* Reaction Toast Feedback */}
+                {reactedStoryId && (
+                  <View style={styles.reactionToast}>
+                    <Text style={styles.reactionToastText}>
+                      Sent {reactedStoryId} to {activeStory.displayName}
+                    </Text>
+                  </View>
+                )}
+
+                {/* Bottom Quick-Action & Reaction Row */}
+                <View style={styles.storyBottomBar}>
+                  {/* View Venue / Drop Button */}
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={handleNavigateToPlace}
+                    style={({ pressed }) => [
+                      styles.viewVenueBtn,
+                      pressed && styles.pressed,
+                    ]}
+                  >
+                    <Text style={styles.viewVenueText}>
+                      {activeStory.isOwner ? "View My Profile" : "View Venue"}
+                    </Text>
+                    <ChevronRight size={14} color="#FFFFFF" />
+                  </Pressable>
+
+                  {/* Quick Reaction Emojis */}
+                  <View style={styles.reactionsGroup}>
+                    {["❤️", "🔥", "👏", "😋"].map((emoji) => (
+                      <Pressable
+                        key={emoji}
+                        onPress={() => handleReaction(emoji)}
+                        style={({ pressed }) => [
+                          styles.reactionBtn,
+                          pressed && styles.reactionBtnPressed,
+                        ]}
+                      >
+                        <Text style={styles.reactionEmoji}>{emoji}</Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                </View>
               </View>
             </View>
           </View>
         </Modal>
       )}
-    </View>
+    </>
   );
 }
 
 const createStyles = (colors: ColorPalette) =>
   StyleSheet.create({
-    sectionContainer: {
-      marginHorizontal: -16,
-      marginBottom: 16,
-      marginTop: 4,
-    },
     scrollContent: {
       paddingHorizontal: 16,
-      gap: 14,
+      gap: 8,
     },
     storyItem: {
       alignItems: "center",
@@ -371,8 +366,8 @@ const createStyles = (colors: ColorPalette) =>
       justifyContent: "center",
     },
     innerRingSpacer: {
-      width: 80,
-      height: 106,
+      width: 60,
+      height: 80,
       borderRadius: 32,
       padding: 2,
       alignItems: "center",

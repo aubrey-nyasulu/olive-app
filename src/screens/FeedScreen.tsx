@@ -7,6 +7,7 @@ import { StoriesBar } from "../components/StoriesBar";
 import { useOlive } from "../context/OliveProvider";
 import { useThemeStyles, type ColorPalette } from "../theme";
 import { POSTS } from "../places";
+import { MarginBottom } from "lucide-react-native";
 
 export default function FeedScreen() {
   const { styles } = useThemeStyles(createStyles);
@@ -60,9 +61,14 @@ export default function FeedScreen() {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => <PostCard post={item} />}
         ListHeaderComponent={<StoriesBar />}
+        ListHeaderComponentStyle={{
+          marginHorizontal: -16,
+          marginBottom: 24,
+          marginTop: 4,
+        }}
         contentContainerStyle={[
           styles.listContent,
-          { paddingTop: headerHeight + 16 },
+          { paddingTop: insets.top + 4 },
         ]}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
