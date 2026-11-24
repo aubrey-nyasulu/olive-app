@@ -39,8 +39,7 @@ export type ExpandedWindow =
 export type ProfileTab =
   | "posts"
   | "reposted"
-  | "interacted"
-  | "about";
+  | "interacted";
 
 type OliveContextType = {
   config: SettingsState;
@@ -141,8 +140,8 @@ export function OliveProvider({ children }: { children: ReactNode }) {
   const [typeQuery, setTypeQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
 
-  // Profile screen tab state (defaults to "about" as first tab)
-  const [profileTab, setProfileTabState] = useState<ProfileTab>("about");
+  // Profile screen tab state (defaults to "posts" as first tab)
+  const [profileTab, setProfileTabState] = useState<ProfileTab>("posts");
 
   // Liked & Reposted posts tracking
   const [likedIds, setLikedIds] = useState<string[]>([

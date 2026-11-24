@@ -40,6 +40,10 @@ export type UserProfile = {
   bio: string;
   stats: {
     postsCount: number;
+    followers: string | number;
+    following: string | number;
+    rating: number;
+    reviewsCount: number;
     statA: { label: string; value: string | number };
     statB: { label: string; value: string | number };
     statC: { label: string; value: string | number };
@@ -61,6 +65,10 @@ export const PROFILES: Record<string, UserProfile> = {
     bio: "Exploring quiet shaded lanes, artisanal coffee roasters, and live acoustic sessions by the park. Cyclist & neighborhood archivist.",
     stats: {
       postsCount: 3,
+      followers: 412,
+      following: 168,
+      rating: 4.9,
+      reviewsCount: 38,
       statA: { label: "Saved", value: 6 },
       statB: { label: "Following", value: 168 },
       statC: { label: "Followers", value: 412 },
@@ -101,6 +109,10 @@ export const PROFILES: Record<string, UserProfile> = {
     bio: "Artisanal bakery and specialty café in Area 10. Slow-fermented sourdough loaves, cardamom morning buns, and warm almond croissants baked fresh twice daily.",
     stats: {
       postsCount: 2,
+      followers: "1.4k",
+      following: 42,
+      rating: 4.9,
+      reviewsCount: 128,
       statA: { label: "Rating", value: "4.9 ★" },
       statB: { label: "Batches", value: "2 / day" },
       statC: { label: "Followers", value: "1.4k" },
@@ -148,6 +160,10 @@ export const PROFILES: Record<string, UserProfile> = {
     bio: "Sunset acoustic sessions and open-air performances under the sanctuary forest canopy. Acoustic folk, soul, and indie strings. Free entry.",
     stats: {
       postsCount: 2,
+      followers: "3.2k",
+      following: 84,
+      rating: 5.0,
+      reviewsCount: 96,
       statA: { label: "Sessions", value: 32 },
       statB: { label: "Rating", value: "5.0 ★" },
       statC: { label: "Followers", value: "3.2k" },
@@ -194,6 +210,10 @@ export const PROFILES: Record<string, UserProfile> = {
     bio: "Hosting Saturday garden markets, botanical craft stalls, and seed-saving corners at Four Seasons. Passionate about agroecology and local food heritage.",
     stats: {
       postsCount: 2,
+      followers: 580,
+      following: 112,
+      rating: 4.9,
+      reviewsCount: 74,
       statA: { label: "Markets", value: 24 },
       statB: { label: "Trust", value: "100%" },
       statC: { label: "Followers", value: 580 },
@@ -238,6 +258,10 @@ export const PROFILES: Record<string, UserProfile> = {
     bio: "24/7 service station with clean fuels, tyre service, automated wash, and a 24hr Quick-Shop for snacks and fresh barista coffee on Kenyatta Drive.",
     stats: {
       postsCount: 1,
+      followers: 860,
+      following: 18,
+      rating: 4.8,
+      reviewsCount: 142,
       statA: { label: "Rating", value: "4.8 ★" },
       statB: { label: "Status", value: "24 / 7" },
       statC: { label: "Reviews", value: 142 },
@@ -274,6 +298,10 @@ export const PROFILES: Record<string, UserProfile> = {
     bio: "Trusted community dispensary on Kamuzu Procession Rd. Night-duty shifts, certified prescription fulfillment, rapid diagnostic tests, and health care.",
     stats: {
       postsCount: 1,
+      followers: 340,
+      following: 12,
+      rating: 4.8,
+      reviewsCount: 64,
       statA: { label: "Rating", value: "4.8 ★" },
       statB: { label: "Shift", value: "On-Duty" },
       statC: { label: "Reviews", value: 64 },
@@ -309,6 +337,10 @@ export const PROFILES: Record<string, UserProfile> = {
     bio: "Authentic charcoal braai specializing in fresh lake catch, seasoned cuts, spiced relish, and chilled drinks on our garden terrace.",
     stats: {
       postsCount: 1,
+      followers: 920,
+      following: 36,
+      rating: 4.9,
+      reviewsCount: 92,
       statA: { label: "Rating", value: "4.9 ★" },
       statB: { label: "Daily Catch", value: "Fresh" },
       statC: { label: "Reviews", value: 92 },
@@ -346,6 +378,10 @@ export const PROFILES: Record<string, UserProfile> = {
     bio: "Weekend road cyclist and specialty coffee pursuer. Documenting the finest single-origin roasts and morning bakeries around town.",
     stats: {
       postsCount: 1,
+      followers: 230,
+      following: 94,
+      rating: 4.8,
+      reviewsCount: 29,
       statA: { label: "Saved", value: 12 },
       statB: { label: "Following", value: 94 },
       statC: { label: "Followers", value: 230 },
@@ -375,6 +411,10 @@ export const PROFILES: Record<string, UserProfile> = {
     bio: "Conservation storyteller & nature photographer. Documenting birdlife along the river trails and organizing community photo walks.",
     stats: {
       postsCount: 1,
+      followers: 480,
+      following: 134,
+      rating: 4.9,
+      reviewsCount: 54,
       statA: { label: "Walks", value: 18 },
       statB: { label: "Photos", value: "340" },
       statC: { label: "Followers", value: 480 },

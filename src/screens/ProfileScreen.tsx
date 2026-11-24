@@ -6,21 +6,22 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { LucideIcon } from "lucide-react-native";
-import { LayoutGrid, Heart, Repeat2, MessageSquareMore, Info } from "lucide-react-native";
+import { LayoutGrid, Heart, Repeat2 } from "lucide-react-native";
 import { useLocalSearchParams } from "expo-router";
 import { Screen } from "../components/Screen";
 import {
   ProfileHeader,
   ProfileHeroMeta,
   COVER_EXPANDED_HEIGHT,
+  HERO_META_HEIGHT,
   NAVBAR_HEIGHT,
-  SCROLL_DISTANCE,
+  type FollowButtonLayout,
 } from "../components/profile/ProfileHeader";
-import { ProfileAboutTab } from "../components/profile/ProfileAboutTab";
 import { ProfilePostsTab } from "../components/profile/ProfilePostsTab";
 import { ProfileRepostsTab } from "../components/profile/ProfileRepostsTab";
 import {
@@ -40,11 +41,6 @@ interface TabItem {
 }
 
 const TABS: TabItem[] = [
-  {
-    id: "about",
-    icon: Info,
-    label: "About",
-  },
   {
     id: "posts",
     icon: LayoutGrid,
@@ -80,30 +76,35 @@ export default function ProfileScreen() {
   const lastScrollTime = useRef(Date.now());
   const recentVelocityY = useRef(0);
 
-  const TAB_INITIAL_TOP = insetsTop + COVER_EXPANDED_HEIGHT + 120; // insetsTop + 280
-  const TAB_STICKY_TOP = insetsTop + NAVBAR_HEIGHT; // insetsTop + 56
-  const TAB_STICKY_SCROLL = TAB_INITIAL_TOP - TAB_STICKY_TOP; // 224 (matches SCROLL_DISTANCE)
+  const { width: windowWidth } = useWindowDimensions();
+  const profile: UserProfile = getProfile(author || id);
+  const isMe = profile.id === "chisomo" || profile.id === "amara";
+
+  const [heroMetaHeight, setHeroMetaHeight] = useState(HERO_META_HEIGHT);
+  const [tabBarHeight, setTabBarHeight] = useState(72);
+  const [followLayout, setFollowLayout] = useState<FollowButtonLayout>(() => ({
+    topOffset: 180,
+    left: 16,
+    width: Math.max(96, (Math.min(windowWidth, 600) - 42) / 2),
+  }));
+
+  const TAB_INITIAL_TOP = insetsTop + COVER_EXPANDED_HEIGHT + heroMetaHeight;
+  const TAB_STICKY_TOP = insetsTop + NAVBAR_HEIGHT;
+  const tabStickyScroll = Math.max(1, TAB_INITIAL_TOP - TAB_STICKY_TOP);
 
   // Floating Tab Switcher:
   // Interpolates 1:1 with scroll from TAB_INITIAL_TOP until reaching TAB_STICKY_TOP,
   // where it stays clamped (sticky) right below the collapsed navbar.
   const tabTop = scrollY.interpolate({
-    inputRange: [-100, 0, SCROLL_DISTANCE],
+    inputRange: [-100, 0, tabStickyScroll],
     outputRange: [TAB_INITIAL_TOP + 100, TAB_INITIAL_TOP, TAB_STICKY_TOP],
     extrapolateLeft: "extend",
     extrapolateRight: "clamp",
   });
 
-  // Tab content padding top when the header collapses to add some distance with the fading in border
-  const tabContentPadddingTop = scrollY.interpolate({
-    inputRange: [SCROLL_DISTANCE - 16, SCROLL_DISTANCE],
-    outputRange: [0, 16],
-    extrapolate: "clamp",
-  });
-
   // Hairline bottom border in collapsed state
   const hairlineOpacity = scrollY.interpolate({
-    inputRange: [SCROLL_DISTANCE * 0.8, SCROLL_DISTANCE],
+    inputRange: [tabStickyScroll * 0.8, tabStickyScroll],
     outputRange: [0, 1],
     extrapolate: "clamp",
   });
@@ -150,7 +151,7 @@ export default function ProfileScreen() {
 
     // Snapping applies when the scroll ends in the intermediate collapsible zone
     // Only cares about the scroll direction — never snaps back to original position
-    if (currentY > 0 && currentY < SCROLL_DISTANCE) {
+    if (currentY > 0 && currentY < tabStickyScroll) {
       const now = Date.now();
       const timeSinceLastScroll = now - lastScrollTime.current;
       // If the finger was held stationary before release (>80ms), velocity is decayed
@@ -174,16 +175,13 @@ export default function ProfileScreen() {
       }
       // 3. Fallback for tiny/subpixel touches: snap according to midpoint
       else {
-        isCollapsing = currentY >= SCROLL_DISTANCE / 2;
+        isCollapsing = currentY >= tabStickyScroll / 2;
       }
 
-      const targetPosition = isCollapsing ? SCROLL_DISTANCE : 0;
+      const targetPosition = isCollapsing ? tabStickyScroll : 0;
       snapTo(targetPosition);
     }
   };
-
-  const profile: UserProfile = getProfile(author || id);
-  const isMe = profile.id === "chisomo" || profile.id === "amara";
 
   // Filter posts created by the profile owner
   const ownerPosts = useMemo(() => {
@@ -298,16 +296,15 @@ export default function ProfileScreen() {
         isFollowing={isFollowing}
         onToggleFollow={toggleFollow}
         scrollY={scrollY}
+        collapseDistance={tabStickyScroll}
+        followLayout={followLayout}
       />
 
       {/* Scrollable Profile Body */}
       <Animated.ScrollView
         ref={scrollRef}
         style={styles.scroll}
-        contentContainerStyle={[
-          styles.contentContainer,
-          { paddingTop: tabContentPadddingTop },
-        ]}
+        contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}
         onScroll={Animated.event(
@@ -320,29 +317,33 @@ export default function ProfileScreen() {
         onScrollBeginDrag={onScrollBeginDrag}
         onScrollEndDrag={onScrollEndDrag}
       >
-        {/* In-Flow Hero Meta (Cover spacer, avatar clearance row, Follow button, Name & Handle) */}
+        {/* In-Flow Hero Meta */}
         <ProfileHeroMeta
           profile={profile}
           isMe={isMe}
           isFollowing={isFollowing}
-          onToggleFollow={toggleFollow}
           scrollY={scrollY}
+          collapseDistance={tabStickyScroll}
+          onMetaHeightChange={(h) => {
+            setHeroMetaHeight((prev) => (Math.abs(prev - h) > 0.5 ? h : prev));
+          }}
+          onFollowLayoutChange={(next) => {
+            setFollowLayout((prev) =>
+              Math.abs(prev.topOffset - next.topOffset) > 0.5 ||
+              Math.abs(prev.left - next.left) > 0.5 ||
+              Math.abs(prev.width - next.width) > 0.5
+                ? next
+                : prev
+            );
+          }}
         />
 
         {/* Profile Section Content */}
         <View style={styles.profileSection}>
           {/* Spacer matching the floating & sticky Tab Switcher */}
-          <View style={styles.tabSpacer} />
+          <View style={{ height: tabBarHeight + 8 }} />
 
           {/* Active Tab View */}
-          {profileTab === "about" && (
-            <ProfileAboutTab
-              profile={profile}
-              isMe={isMe}
-              isFollowing={isFollowing}
-            />
-          )}
-
           {profileTab === "posts" && (
             <ProfilePostsTab posts={ownerPosts} userName={profile.name} />
           )}
@@ -365,6 +366,10 @@ export default function ProfileScreen() {
       {/* Floating & Sticky Segmented Tab Switcher (Sticks right below collapsed navbar) */}
       <Animated.View
         pointerEvents="box-none"
+        onLayout={(e) => {
+          const h = e.nativeEvent.layout.height;
+          setTabBarHeight((prev) => (Math.abs(prev - h) > 0.5 ? h : prev));
+        }}
         style={[
           styles.stickyTabWrapper,
           {
@@ -375,6 +380,7 @@ export default function ProfileScreen() {
         <View style={styles.segmentedBar}>
           {TABS.map((tab) => {
             const isActive = profileTab === tab.id;
+            const TabIcon = tab.icon;
             return (
               <Pressable
                 key={tab.id}
@@ -385,15 +391,10 @@ export default function ProfileScreen() {
                 style={[styles.segmentBtn, isActive && styles.segmentBtnActive]}
               >
                 <View style={styles.iconBox}>
-                  {(() => {
-                    const TabIcon = tab.icon;
-                    return (
-                      <TabIcon
-                        size={18}
-                        color={isActive ? colors.signal : colors.muted}
-                      />
-                    );
-                  })()}
+                  <TabIcon
+                    size={18}
+                    color={isActive ? colors.signal : colors.muted}
+                  />
                 </View>
               </Pressable>
             );
@@ -435,15 +436,11 @@ const createStyles = (colors: ColorPalette) =>
     profileSection: {
       paddingHorizontal: 16,
     },
-    tabSpacer: {
-      height: 72,
-    },
     stickyTabWrapper: {
       position: "absolute",
       left: 0,
       right: 0,
       zIndex: 25,
-      // elevation: 4,
       backgroundColor: colors.bg,
       paddingHorizontal: 16,
       paddingTop: 8,
