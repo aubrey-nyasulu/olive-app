@@ -1,8 +1,9 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Animated,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -11,7 +12,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { LucideIcon } from "lucide-react-native";
-import { LayoutGrid, Heart, Repeat2 } from "lucide-react-native";
+import { Footprints, GalleryVertical, Repeat2 } from "lucide-react-native";
 import { useLocalSearchParams } from "expo-router";
 import { Screen } from "../components/Screen";
 import {
@@ -43,7 +44,7 @@ interface TabItem {
 const TABS: TabItem[] = [
   {
     id: "posts",
-    icon: LayoutGrid,
+    icon: GalleryVertical,
     label: "Posts",
   },
   {
@@ -53,7 +54,7 @@ const TABS: TabItem[] = [
   },
   {
     id: "interacted",
-    icon: Heart,
+    icon: Footprints,
     label: "Interactions (Liked & Comments)",
   },
 ];
@@ -82,11 +83,38 @@ export default function ProfileScreen() {
 
   const [heroMetaHeight, setHeroMetaHeight] = useState(HERO_META_HEIGHT);
   const [tabBarHeight, setTabBarHeight] = useState(72);
+  const [barInnerWidth, setBarInnerWidth] = useState(
+    Math.max(120, Math.min(windowWidth, 600) - 42)
+  );
   const [followLayout, setFollowLayout] = useState<FollowButtonLayout>(() => ({
     topOffset: 180,
     left: 16,
     width: Math.max(96, (Math.min(windowWidth, 600) - 42) / 2),
   }));
+
+  const activeTabIndex = Math.max(
+    0,
+    TABS.findIndex((t) => t.id === profileTab)
+  );
+  const pillAnim = useRef(new Animated.Value(activeTabIndex)).current;
+  const isFirstTabRender = useRef(true);
+
+  useEffect(() => {
+    if (isFirstTabRender.current) {
+      isFirstTabRender.current = false;
+      pillAnim.setValue(activeTabIndex);
+      return;
+    }
+    Animated.spring(pillAnim, {
+      toValue: activeTabIndex,
+      useNativeDriver: true,
+      tension: 120,
+      friction: 14,
+    }).start();
+  }, [activeTabIndex, pillAnim]);
+
+  const tabSlotWidth = barInnerWidth / TABS.length;
+  const pillTranslateX = Animated.multiply(pillAnim, tabSlotWidth);
 
   const TAB_INITIAL_TOP = insetsTop + COVER_EXPANDED_HEIGHT + heroMetaHeight;
   const TAB_STICKY_TOP = insetsTop + NAVBAR_HEIGHT;
@@ -378,27 +406,48 @@ export default function ProfileScreen() {
         ]}
       >
         <View style={styles.segmentedBar}>
-          {TABS.map((tab) => {
-            const isActive = profileTab === tab.id;
-            const TabIcon = tab.icon;
-            return (
-              <Pressable
-                key={tab.id}
-                accessibilityRole="tab"
-                accessibilityState={{ selected: isActive }}
-                accessibilityLabel={tab.label}
-                onPress={() => setProfileTab(tab.id)}
-                style={[styles.segmentBtn, isActive && styles.segmentBtnActive]}
-              >
-                <View style={styles.iconBox}>
-                  <TabIcon
-                    size={18}
-                    color={isActive ? colors.signal : colors.muted}
-                  />
-                </View>
-              </Pressable>
-            );
-          })}
+          <View
+            style={styles.segmentedInner}
+            onLayout={(e) => {
+              const w = e.nativeEvent.layout.width;
+              if (w > 0 && Math.abs(w - barInnerWidth) > 0.5) {
+                setBarInnerWidth(w);
+              }
+            }}
+          >
+            <Animated.View
+              pointerEvents="none"
+              style={[
+                styles.activePillIndicator,
+                {
+                  width: tabSlotWidth,
+                  transform: [{ translateX: pillTranslateX }],
+                },
+              ]}
+            />
+
+            {TABS.map((tab) => {
+              const isActive = profileTab === tab.id;
+              const TabIcon = tab.icon;
+              return (
+                <Pressable
+                  key={tab.id}
+                  accessibilityRole="tab"
+                  accessibilityState={{ selected: isActive }}
+                  accessibilityLabel={tab.label}
+                  onPress={() => setProfileTab(tab.id)}
+                  style={styles.segmentBtn}
+                >
+                  <View style={styles.iconBox}>
+                    <TabIcon
+                      size={18}
+                      color={isActive ? colors.signal : colors.muted}
+                    />
+                  </View>
+                </Pressable>
+              );
+            })}
+          </View>
         </View>
 
         <Animated.View
@@ -458,27 +507,38 @@ const createStyles = (colors: ColorPalette) =>
       height: 1,
     },
     segmentedBar: {
-      flexDirection: "row",
       borderRadius: 9999,
       borderWidth: 1,
       padding: 4,
       backgroundColor: colors.surfaceMuted,
       borderColor: colors.line,
     },
-    segmentBtn: {
-      flex: 1,
-      alignItems: "center",
-      justifyContent: "center",
-      paddingVertical: 10,
-      borderRadius: 9999,
+    segmentedInner: {
+      flexDirection: "row",
+      position: "relative",
+      width: "100%",
     },
-    segmentBtnActive: {
+    activePillIndicator: {
+      position: "absolute",
+      top: 0,
+      bottom: 0,
+      left: 0,
+      borderRadius: 9999,
       backgroundColor: colors.surface,
       shadowColor: colors.text,
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.08,
       shadowRadius: 4,
       elevation: 2,
+    },
+    segmentBtn: {
+      flex: 1,
+      zIndex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: 10,
+      borderRadius: 9999,
+      ...(Platform.OS === "web" ? ({ outlineStyle: "none" } as any) : {}),
     },
     iconBox: {
       width: 24,

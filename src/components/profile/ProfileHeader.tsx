@@ -603,14 +603,16 @@ const createStyles = (colors: ColorPalette) =>
       justifyContent: "center",
       paddingHorizontal: 14,
       borderRadius: FOLLOW_BTN_HEIGHT / 2,
+      borderWidth: 1,
+      ...(Platform.OS === "web" ? ({ outlineStyle: "none" } as any) : {}),
     },
     followBtnActive: {
-      borderWidth: 1,
       backgroundColor: colors.surfaceMuted,
       borderColor: colors.line,
     },
     followBtnInactive: {
       backgroundColor: colors.signal,
+      borderColor: colors.signal,
     },
     followBtnText: {
       fontSize: 13,
@@ -689,6 +691,7 @@ const createStyles = (colors: ColorPalette) =>
       borderWidth: 1,
       backgroundColor: colors.surfaceMuted,
       borderColor: colors.line,
+      ...(Platform.OS === "web" ? ({ outlineStyle: "none" } as any) : {}),
     },
     heroMessageBtnText: {
       fontSize: 13,
