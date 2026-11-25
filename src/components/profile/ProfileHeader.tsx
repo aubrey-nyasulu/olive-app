@@ -52,6 +52,10 @@ export function ProfileHeader({
   const [containerWidth, setContainerWidth] = useState(
     Math.min(windowWidth, 600)
   );
+  const [nameHeight, setNameHeight] = useState(27);
+  const [followBtnWidth, setFollowBtnWidth] = useState(
+    isFollowing ? 98 : 78
+  );
 
   const expandedHeight = insetsTop + COVER_EXPANDED_HEIGHT;
   const collapsedHeight = insetsTop + NAVBAR_HEIGHT;
@@ -160,12 +164,13 @@ export function ProfileHeader({
     extrapolate: "clamp",
   });
 
+  const collapsedNameHeight = nameHeight * 0.78;
   const nameTop = scrollY.interpolate({
     inputRange: [-100, 0, distance],
     outputRange: [
       expandedHeight + 100 + 56,
       expandedHeight + 56,
-      insetsTop + (NAVBAR_HEIGHT - 36) / 2,
+      insetsTop + (NAVBAR_HEIGHT - collapsedNameHeight) / 2,
     ],
     extrapolateLeft: "extend",
     extrapolateRight: "clamp",
@@ -177,9 +182,12 @@ export function ProfileHeader({
     extrapolate: "clamp",
   });
 
-  const targetRight = !isMe ? 124 : 16;
+  const targetRight = !isMe ? 16 + followBtnWidth + 10 : 16;
   const expandedMaxWidth = containerWidth - 32;
-  const collapsedMaxWidth = (containerWidth - targetRight - 64) / 0.78;
+  const collapsedMaxWidth = Math.max(
+    40,
+    (containerWidth - targetRight - 72) / 0.78
+  );
   const nameMaxWidth = scrollY.interpolate({
     inputRange: [0, distance],
     outputRange: [expandedMaxWidth, collapsedMaxWidth],
@@ -293,6 +301,12 @@ export function ProfileHeader({
           ]}
         >
           <Animated.View
+            onLayout={(e) => {
+              const w = e.nativeEvent.layout.width;
+              if (w > 0 && Math.abs(w - followBtnWidth) > 0.5) {
+                setFollowBtnWidth(w);
+              }
+            }}
             style={[
               styles.actionCutoutShell,
               { borderWidth: actionCutoutBorder },
@@ -378,7 +392,16 @@ export function ProfileHeader({
           },
         ]}
       >
-        <Text style={styles.profileName} numberOfLines={1}>
+        <Text
+          style={styles.profileName}
+          numberOfLines={1}
+          onLayout={(e) => {
+            const h = e.nativeEvent.layout.height;
+            if (h > 0 && Math.abs(h - nameHeight) > 0.5) {
+              setNameHeight(h);
+            }
+          }}
+        >
           {profile.name}
         </Text>
         <Animated.View
