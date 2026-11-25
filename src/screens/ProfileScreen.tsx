@@ -62,8 +62,14 @@ export default function ProfileScreen() {
   const { styles, colors, isDark } = useThemeStyles(createStyles);
   const insets = useSafeAreaInsets();
   const insetsTop = insets.top;
-  const { profileTab, setProfileTab, likedIds, repostedIds, reviewsMap } =
-    useOlive();
+  const {
+    profileTab,
+    setProfileTab,
+    likedIds,
+    repostedIds,
+    reviewsMap,
+    profileOverrides,
+  } = useOlive();
   const { author, id } = useLocalSearchParams<{
     author?: string;
     id?: string;
@@ -77,8 +83,18 @@ export default function ProfileScreen() {
   const recentVelocityY = useRef(0);
 
   const { width: windowWidth } = useWindowDimensions();
-  const profile: UserProfile = getProfile(author || id);
-  const isMe = profile.id === "chisomo" || profile.id === "amara";
+  const baseProfile: UserProfile = getProfile(author || id);
+  const isMe = baseProfile.id === "chisomo" || baseProfile.id === "amara";
+  const profile: UserProfile = useMemo(
+    () =>
+      isMe
+        ? {
+            ...baseProfile,
+            ...profileOverrides,
+          }
+        : baseProfile,
+    [baseProfile, isMe, profileOverrides]
+  );
 
   const [heroMetaHeight, setHeroMetaHeight] = useState(HERO_META_HEIGHT);
   const [tabBarHeight, setTabBarHeight] = useState(72);

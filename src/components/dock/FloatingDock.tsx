@@ -39,6 +39,8 @@ import { ReportView } from "./views/ReportView";
 import { SearchOptionsView } from "./views/SearchOptionsView";
 import { UserMenuView } from "./views/UserMenuView";
 import { NotificationsView } from "./views/NotificationsView";
+import { EditProfileView } from "./views/EditProfileView";
+import { VisitorsView } from "./views/VisitorsView";
 
 interface OtherUserOption {
   icon: LucideIcon;
@@ -92,6 +94,7 @@ export function FloatingDock({
     closeExpandedWindow,
     reviewsMap,
     addReview,
+    updateProfileOverrides,
     startGuidance,
   } = useOlive();
 
@@ -560,6 +563,31 @@ export function FloatingDock({
             )}
 
             {renderedWindow.type === "profile_settings" && <SettingsView />}
+
+            {renderedWindow.type === "edit_profile" && (
+              <EditProfileView
+                profile={renderedWindow.profile}
+                onSave={(patch) => {
+                  updateProfileOverrides(patch);
+                  closeExpandedWindow();
+                  showToast("Profile info updated");
+                }}
+              />
+            )}
+
+            {renderedWindow.type === "profile_visitors" && (
+              <VisitorsView
+                onSelectVisitor={(visitor) => {
+                  closeExpandedWindow();
+                  setTimeout(() => {
+                    router.push({
+                      pathname: "/profile",
+                      params: { author: visitor.name, id: visitor.id },
+                    });
+                  }, 280);
+                }}
+              />
+            )}
 
             {renderedWindow.type === "message" && (
               <MessageView recipient={renderedWindow.recipient} />

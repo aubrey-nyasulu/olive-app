@@ -28,6 +28,8 @@ export type ExpandedWindow =
   | { type: "related"; post: Post }
   | { type: "profile_saved" }
   | { type: "profile_settings" }
+  | { type: "edit_profile"; profile: UserProfile }
+  | { type: "profile_visitors" }
   | { type: "message"; recipient: UserProfile }
   | { type: "report"; targetUser: UserProfile }
   | { type: "feed_modes" }
@@ -35,6 +37,12 @@ export type ExpandedWindow =
   | { type: "user_menu" }
   | { type: "notifications" }
   | null;
+
+export type ProfileOverrides = {
+  name?: string;
+  neighborhood?: string;
+  bio?: string;
+};
 
 export type ProfileTab =
   | "posts"
@@ -113,6 +121,10 @@ type OliveContextType = {
   // Realtime comments / reviews state
   reviewsMap: Record<string, Review[]>;
   addReview: (postId: string, review: Review) => void;
+
+  // Own-profile editable info overrides
+  profileOverrides: ProfileOverrides;
+  updateProfileOverrides: (patch: ProfileOverrides) => void;
 
   // Scanning state for home feed live scanning vs paused
   isScanning: boolean;
@@ -278,6 +290,12 @@ export function OliveProvider({ children }: { children: ReactNode }) {
 
   // Dynamic reviews / comments state
   const [reviewsMap, setReviewsMap] = useState<Record<string, Review[]>>(REVIEWS);
+
+  // Own-profile editable info overrides
+  const [profileOverrides, setProfileOverrides] = useState<ProfileOverrides>({});
+  const updateProfileOverrides = (patch: ProfileOverrides) => {
+    setProfileOverrides((prev) => ({ ...prev, ...patch }));
+  };
 
   const openExpandedWindow = (win: ExpandedWindow) => {
     setExpandedWindow(win);
@@ -476,6 +494,8 @@ export function OliveProvider({ children }: { children: ReactNode }) {
         closeExpandedWindow,
         reviewsMap,
         addReview,
+        profileOverrides,
+        updateProfileOverrides,
         isScanning,
         setIsScanning,
         activeGuidance,

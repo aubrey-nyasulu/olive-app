@@ -182,7 +182,7 @@ export function ProfileHeader({
     extrapolate: "clamp",
   });
 
-  const targetRight = !isMe ? 16 + followBtnWidth + 10 : 16;
+  const targetRight = 16 + followBtnWidth + 10;
   const expandedMaxWidth = containerWidth - 32;
   const collapsedMaxWidth = Math.max(
     40,
@@ -289,29 +289,52 @@ export function ProfileHeader({
         />
       </Animated.View>
 
-      {/* 3. Floating Follow + Message Buttons (half-in/half-out of cover, transitioning into navbar) */}
-      {!isMe && (
+      {/* 3. Floating Header Action Buttons (half-in/half-out of cover, primary docks in navbar) */}
+      <Animated.View
+        pointerEvents="box-none"
+        style={[
+          styles.floatingActionsWrap,
+          {
+            top: actionsTop,
+          },
+        ]}
+      >
         <Animated.View
-          pointerEvents="box-none"
+          onLayout={(e) => {
+            const w = e.nativeEvent.layout.width;
+            if (w > 0 && Math.abs(w - followBtnWidth) > 0.5) {
+              setFollowBtnWidth(w);
+            }
+          }}
           style={[
-            styles.floatingActionsWrap,
-            {
-              top: actionsTop,
-            },
+            styles.actionCutoutShell,
+            { borderWidth: actionCutoutBorder },
           ]}
         >
-          <Animated.View
-            onLayout={(e) => {
-              const w = e.nativeEvent.layout.width;
-              if (w > 0 && Math.abs(w - followBtnWidth) > 0.5) {
-                setFollowBtnWidth(w);
+          {isMe ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Edit profile info"
+              onPress={() =>
+                openExpandedWindow({ type: "edit_profile", profile })
               }
-            }}
-            style={[
-              styles.actionCutoutShell,
-              { borderWidth: actionCutoutBorder },
-            ]}
-          >
+              style={({ pressed }) => [
+                styles.headerActionBtn,
+                styles.headerActionBtnSecondary,
+                pressed && styles.btnPressed,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.headerActionBtnText,
+                  styles.headerActionBtnTextSecondary,
+                ]}
+                numberOfLines={1}
+              >
+                Edit Info
+              </Text>
+            </Pressable>
+          ) : (
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={
@@ -340,24 +363,49 @@ export function ProfileHeader({
                 {isFollowing ? "Following" : "Follow"}
               </Text>
             </Pressable>
-          </Animated.View>
+          )}
+        </Animated.View>
 
+        <Animated.View
+          style={[
+            styles.messageCollapseWrap,
+            {
+              opacity: messageOpacity,
+              maxWidth: messageMaxWidth,
+              marginLeft: messageGap,
+            },
+          ]}
+        >
           <Animated.View
             style={[
-              styles.messageCollapseWrap,
-              {
-                opacity: messageOpacity,
-                maxWidth: messageMaxWidth,
-                marginLeft: messageGap,
-              },
+              styles.actionCutoutShell,
+              { borderWidth: actionCutoutBorder },
             ]}
           >
-            <Animated.View
-              style={[
-                styles.actionCutoutShell,
-                { borderWidth: actionCutoutBorder },
-              ]}
-            >
+            {isMe ? (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="See who visited your profile"
+                onPress={() =>
+                  openExpandedWindow({ type: "profile_visitors" })
+                }
+                style={({ pressed }) => [
+                  styles.headerActionBtn,
+                  styles.headerActionBtnSecondary,
+                  pressed && styles.btnPressed,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.headerActionBtnText,
+                    styles.headerActionBtnTextSecondary,
+                  ]}
+                  numberOfLines={1}
+                >
+                  Visitors
+                </Text>
+              </Pressable>
+            ) : (
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={`Message ${profile.name}`}
@@ -370,14 +418,20 @@ export function ProfileHeader({
                   pressed && styles.btnPressed,
                 ]}
               >
-                <Text style={styles.headerActionBtnTextSecondary} numberOfLines={1}>
+                <Text
+                  style={[
+                    styles.headerActionBtnText,
+                    styles.headerActionBtnTextSecondary,
+                  ]}
+                  numberOfLines={1}
+                >
                   Message
                 </Text>
               </Pressable>
-            </Animated.View>
+            )}
           </Animated.View>
         </Animated.View>
-      )}
+      </Animated.View>
 
       {/* 4. Floating Name & Neighborhood */}
       <Animated.View
