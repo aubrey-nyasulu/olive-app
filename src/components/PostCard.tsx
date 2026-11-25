@@ -41,10 +41,8 @@ import {
   User,
   Flag,
   X,
-  Clock,
   Quote,
   ArrowLeft,
-  ArrowUpRight,
   Trash2,
 } from "lucide-react-native";
 import { router } from "expo-router";
@@ -1449,7 +1447,7 @@ const stripedStyles = StyleSheet.create({
   },
 });
 
-/* ── Re-imagined No-Photo Editorial Dispatch Card ────────────────── */
+/* ── Artistic No-Photo Text Card ─────────────────────────────────── */
 
 function NoPhotoEditorialCard({
   post,
@@ -1469,86 +1467,74 @@ function NoPhotoEditorialCard({
       accessibilityRole="button"
       accessibilityLabel={`Open ${post.place} details`}
       onPress={onPress}
-      style={({ pressed }) => [nStyles.outer, pressed && { opacity: 0.9 }]}
+      style={({ pressed }) => [nStyles.outer, pressed && { opacity: 0.92 }]}
     >
       <LinearGradient
-        colors={[colors.surface, colors.surfaceMuted, colors.signalLight]}
-        locations={[0, 0.55, 1]}
+        colors={[colors.surface, colors.surfaceMuted, colors.actionPillBg]}
+        locations={[0, 0.58, 1]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={nStyles.gradient}
       >
-        {/* Subtle decorative contour rings */}
-        <View pointerEvents="none" style={nStyles.decorRings}>
-          <Svg width="160" height="160" viewBox="0 0 160 160">
+        {/* Subtle organic contour lines & warm glow accents */}
+        <View pointerEvents="none" style={nStyles.decorTopRight}>
+          <Svg width="180" height="180" viewBox="0 0 180 180">
             <Circle
-              cx="132"
-              cy="28"
-              r="36"
+              cx="154"
+              cy="24"
+              r="42"
               stroke={colors.signal}
               strokeOpacity={0.14}
               strokeWidth="1"
               fill="none"
             />
             <Circle
-              cx="132"
-              cy="28"
-              r="64"
+              cx="154"
+              cy="24"
+              r="76"
               stroke={colors.signal}
-              strokeOpacity={0.1}
+              strokeOpacity={0.09}
               strokeWidth="1"
               fill="none"
             />
             <Circle
-              cx="132"
-              cy="28"
-              r="94"
+              cx="154"
+              cy="24"
+              r="112"
               stroke={colors.line}
-              strokeOpacity={0.65}
+              strokeOpacity={0.7}
               strokeWidth="1"
               fill="none"
             />
           </Svg>
         </View>
 
-        {/* Top metadata pills */}
-        <View style={nStyles.topRow}>
-          <View style={nStyles.kindPill}>
-            <View style={nStyles.kindDot} />
-            <Text style={nStyles.kindText}>
-              {post.kind} · {post.category}
-            </Text>
-          </View>
-
-          <View style={nStyles.whenPill}>
-            <Clock size={11} color={colors.signal} />
-            <Text style={nStyles.whenText} numberOfLines={1}>
-              {post.when}
-            </Text>
-          </View>
+        <View pointerEvents="none" style={nStyles.decorBottomLeft}>
+          <Svg width="140" height="120" viewBox="0 0 140 120">
+            <Circle
+              cx="16"
+              cy="108"
+              r="48"
+              stroke={colors.signal}
+              strokeOpacity={0.08}
+              strokeWidth="1"
+              fill="none"
+            />
+            <Circle
+              cx="16"
+              cy="108"
+              r="82"
+              stroke={colors.line}
+              strokeOpacity={0.55}
+              strokeWidth="1"
+              fill="none"
+            />
+          </Svg>
         </View>
 
-        {/* Centerpiece editorial headline */}
-        <View style={nStyles.headlineBlock}>
-          <View style={nStyles.accentRule} />
-          <Text style={nStyles.title}>{post.title}</Text>
-        </View>
-
-        {/* Spatial place footer */}
-        <View style={nStyles.footer}>
-          <View style={nStyles.footerDivider} />
-          <View style={nStyles.footerRow}>
-            <View style={nStyles.placeGroup}>
-              <MapPin size={13} color={colors.signal} />
-              <Text style={nStyles.placeText} numberOfLines={1}>
-                {post.place}
-              </Text>
-            </View>
-            <View style={nStyles.distancePill}>
-              <Text style={nStyles.distanceText}>{post.distanceKm} km</Text>
-              <ArrowUpRight size={12} color={colors.signal} />
-            </View>
-          </View>
+        <View style={nStyles.bodyWrap}>
+          <View style={nStyles.accentMark} />
+          <Text style={nStyles.bodyText}>{post.body}</Text>
         </View>
       </LinearGradient>
     </Pressable>
@@ -1563,124 +1549,43 @@ const noPhotoStyles = (colors: ColorPalette, embedded: boolean) =>
       borderWidth: 1,
       borderColor: colors.line,
       overflow: "hidden",
-      marginBottom: 2,
     },
     gradient: {
-      padding: embedded ? 18 : 22,
-      minHeight: embedded ? 200 : 232,
-      justifyContent: "space-between",
-      gap: embedded ? 16 : 20,
+      paddingHorizontal: embedded ? 20 : 24,
+      paddingVertical: embedded ? 22 : 28,
+      minHeight: embedded ? 156 : 188,
+      justifyContent: "center",
       position: "relative",
     },
-    decorRings: {
+    decorTopRight: {
       position: "absolute",
       top: 0,
       right: 0,
-      width: 160,
-      height: 160,
+      width: 180,
+      height: 180,
     },
-    topRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      gap: 8,
-      flexWrap: "wrap",
+    decorBottomLeft: {
+      position: "absolute",
+      bottom: 0,
+      left: 0,
+      width: 140,
+      height: 120,
     },
-    kindPill: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 6,
-      paddingHorizontal: 10,
-      paddingVertical: 5,
-      borderRadius: 9999,
-      backgroundColor: colors.surface,
-      borderWidth: 1,
-      borderColor: colors.line,
+    bodyWrap: {
+      gap: 14,
     },
-    kindDot: {
-      width: 6,
-      height: 6,
-      borderRadius: 3,
-      backgroundColor: colors.signal,
-    },
-    kindText: {
-      fontSize: 10.5,
-      fontWeight: "700",
-      textTransform: "uppercase",
-      letterSpacing: 0.65,
-      color: colors.text,
-    },
-    whenPill: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 5,
-      paddingHorizontal: 10,
-      paddingVertical: 5,
-      borderRadius: 9999,
-      backgroundColor: colors.signalLight,
-      maxWidth: "55%",
-    },
-    whenText: {
-      fontSize: 11,
-      fontWeight: "700",
-      color: colors.signal,
-    },
-    headlineBlock: {
-      gap: 10,
-    },
-    accentRule: {
-      width: 28,
-      height: 3,
+    accentMark: {
+      width: 24,
+      height: 2.5,
       borderRadius: 2,
       backgroundColor: colors.signal,
+      opacity: 0.85,
     },
-    title: {
-      fontSize: embedded ? 20 : 23,
-      fontWeight: "800",
-      lineHeight: embedded ? 26 : 30,
-      letterSpacing: -0.45,
-      color: colors.text,
-    },
-    footer: {
-      gap: 10,
-    },
-    footerDivider: {
-      height: 1,
-      backgroundColor: colors.line,
-      opacity: 0.8,
-    },
-    footerRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      gap: 10,
-    },
-    placeGroup: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 6,
-      flex: 1,
-    },
-    placeText: {
-      fontSize: 12.5,
-      fontWeight: "600",
-      color: colors.textSecondary,
-      flex: 1,
-    },
-    distancePill: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 3,
-      paddingHorizontal: 8,
-      paddingVertical: 4,
-      borderRadius: 9999,
-      backgroundColor: colors.surface,
-      borderWidth: 1,
-      borderColor: colors.line,
-    },
-    distanceText: {
-      fontSize: 11.5,
-      fontWeight: "700",
+    bodyText: {
+      fontSize: embedded ? 16 : 18,
+      fontWeight: "500",
+      lineHeight: embedded ? 24 : 27,
+      letterSpacing: -0.2,
       color: colors.text,
     },
   });
@@ -2321,21 +2226,23 @@ export function PostCard({
         embedded && styles.embeddedPostBodySection,
       ]}
     >
-      {/* Narrative Caption */}
-      <Pressable
-        onPress={() => setCaptionExpanded((prev) => !prev)}
-        style={styles.captionWrap}
-      >
-        <Text
-          style={styles.captionText}
-          numberOfLines={captionExpanded ? undefined : 2}
+      {/* Narrative Caption (omitted for no-photo posts since body is already the centerpiece card) */}
+      {Boolean(post.image) && (
+        <Pressable
+          onPress={() => setCaptionExpanded((prev) => !prev)}
+          style={styles.captionWrap}
         >
-          {post.body}
-        </Text>
-        {post.body.length > 85 && !captionExpanded && (
-          <Text style={styles.captionMore}>more</Text>
-        )}
-      </Pressable>
+          <Text
+            style={styles.captionText}
+            numberOfLines={captionExpanded ? undefined : 2}
+          >
+            {post.body}
+          </Text>
+          {post.body.length > 85 && !captionExpanded && (
+            <Text style={styles.captionMore}>more</Text>
+          )}
+        </Pressable>
+      )}
 
       {/* Venue Capsule & Details Trigger */}
       <View style={styles.venueRow}>
