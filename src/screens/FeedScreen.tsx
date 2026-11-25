@@ -64,7 +64,7 @@ export default function FeedScreen() {
         ListHeaderComponentStyle={{
           marginHorizontal: -16,
           marginBottom: 24,
-          marginTop: 4,
+          marginTop: 12,
         }}
         contentContainerStyle={[
           styles.listContent,

@@ -329,7 +329,8 @@ export default function ProfileScreen() {
   };
 
   return (
-    <Screen>
+    // ProfileHeader already manages the full-bleed cover and collapsing frosted navbar under the status bar
+    <Screen statusBarGlass={false}>
       {/* Fixed Collapsible Top Header & Floating Scaling Avatar */}
       <ProfileHeader
         profile={profile}

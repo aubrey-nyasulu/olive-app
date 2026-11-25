@@ -9,7 +9,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { BlurView } from "expo-blur";
+import { BlurTargetView, BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useFocusEffect } from "expo-router";
 import { useOlive } from "../context/OliveProvider";
@@ -23,15 +23,18 @@ export function Screen({
   home,
   children,
   staticContent,
+  statusBarGlass = true,
 }: {
   title?: string;
   home?: boolean;
   children: ReactNode;
   staticContent?: boolean;
+  statusBarGlass?: boolean;
 }) {
   const insets = useSafeAreaInsets();
   const { styles, colors } = useThemeStyles(createStyles);
   const { config, closeSearch, searchOpen, activeMode } = useOlive();
+  const blurTargetRef = useRef<View | null>(null);
 
   const panelOpen = activeMode !== null;
   const dimmed = searchOpen || panelOpen;
@@ -81,98 +84,142 @@ export function Screen({
     outputRange: [home ? 32 : -32, 0],
   });
 
-  return (
-    <View style={styles.root}>
-      <Animated.View
-        style={[
-          styles.container,
-          {
-            opacity: screenOpacity,
-            transform: [{ translateY: screenTranslateY }],
-          },
-        ]}
-      >
-        {/* Fixed Frosted Glassmorphism Header */}
-        {showHeader && (
-          <Animated.View
-            pointerEvents={dimmed ? "none" : "auto"}
-            style={[
-              styles.fixedHeader,
-              {
-                height: headerHeight,
-                paddingTop: insets.top,
-                opacity: headerOpacity,
-              },
-            ]}
-          >
-            {/* Native / Web Blur Backdrop */}
-            <BlurView
-              intensity={Platform.OS === "ios" ? 120 : 200}
-              tint={config.dark ? "dark" : "light"}
-              style={StyleSheet.absoluteFill}
-            />
+  const hairline = (
+    <LinearGradient
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 0 }}
+      colors={[
+        "transparent",
+        colors.line,
+        config.dark ? "#50372A" : "#E6CDBA",
+        colors.line,
+        "transparent",
+      ]}
+      locations={[0, 0.16, 0.5, 0.84, 1.0]}
+      style={styles.glassHairline}
+      pointerEvents="none"
+    />
+  );
 
-            {/* 85% Warm Paper Background Tint Layer */}
-            <View
-              style={[
-                StyleSheet.absoluteFill,
-                styles.glassTintOverlay,
-                config.dark ? styles.glassTintDark : styles.glassTintLight,
-              ]}
-            />
-
-            {/* Glass-Hairline: Linear gradient with warm signal tint in center */}
-            <LinearGradient
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              colors={[
-                "transparent",
-                colors.line,
-                config.dark ? "#50372A" : "#E6CDBA",
-                colors.line,
-                "transparent",
-              ]}
-              locations={[0, 0.16, 0.5, 0.84, 1.0]}
-              style={styles.glassHairline}
-              pointerEvents="none"
-            />
-
-            {/* Header Content Row */}
-            <View style={styles.headerRow}>
-              <View style={styles.headerLeft}>
-                {home ? (
-                  <Pressable
-                    accessibilityRole="link"
-                    accessibilityLabel="Olive home"
-                    onPress={() => {
-                      closeSearch();
-                      router.navigate("/");
-                    }}
-                  >
-                    <Text style={styles.logoText}>
-                      olive<Text style={styles.logoDot}>.</Text>
-                    </Text>
-                  </Pressable>
-                ) : title ? (
-                  <Text numberOfLines={1} style={styles.title}>
-                    {title}
-                  </Text>
-                ) : null}
-              </View>
-            </View>
-          </Animated.View>
-        )}
-
-        {/* Content View: Scrollable lists scroll behind the fixed frosted header */}
-        <View
+  const screenContent = (
+    <Animated.View
+      style={[
+        styles.container,
+        {
+          opacity: screenOpacity,
+          transform: [{ translateY: screenTranslateY }],
+        },
+      ]}
+    >
+      {/* Fixed Frosted Glassmorphism Header */}
+      {showHeader && (
+        <Animated.View
+          pointerEvents={dimmed ? "none" : "auto"}
           style={[
-            styles.content,
-            staticContent && { paddingTop: headerHeight },
+            styles.fixedHeader,
+            {
+              height: headerHeight,
+              paddingTop: insets.top,
+              opacity: headerOpacity,
+            },
           ]}
         >
-          {children}
+          {/* Native / Web Blur Backdrop */}
+          <BlurView
+            intensity={Platform.OS === "ios" ? 120 : 200}
+            tint={config.dark ? "dark" : "light"}
+            style={StyleSheet.absoluteFill}
+          />
+
+          {/* 85% Warm Paper Background Tint Layer */}
+          <View
+            style={[
+              StyleSheet.absoluteFill,
+              styles.glassTintOverlay,
+              config.dark ? styles.glassTintDark : styles.glassTintLight,
+            ]}
+          />
+
+          {/* Glass-Hairline: Linear gradient with warm signal tint in center */}
+          {hairline}
+
+          {/* Header Content Row */}
+          <View style={styles.headerRow}>
+            <View style={styles.headerLeft}>
+              {home ? (
+                <Pressable
+                  accessibilityRole="link"
+                  accessibilityLabel="Olive home"
+                  onPress={() => {
+                    closeSearch();
+                    router.navigate("/");
+                  }}
+                >
+                  <Text style={styles.logoText}>
+                    olive<Text style={styles.logoDot}>.</Text>
+                  </Text>
+                </Pressable>
+              ) : title ? (
+                <Text numberOfLines={1} style={styles.title}>
+                  {title}
+                </Text>
+              ) : null}
+            </View>
+          </View>
+        </Animated.View>
+      )}
+
+      {/* Content View: Scrollable lists scroll behind the fixed frosted header */}
+      <View
+        style={[
+          styles.content,
+          staticContent && { paddingTop: headerHeight },
+        ]}
+      >
+        {children}
+      </View>
+    </Animated.View>
+  );
+
+  return (
+    <View style={styles.root}>
+      {statusBarGlass ? (
+        <BlurTargetView
+          ref={blurTargetRef}
+          collapsable={false}
+          style={styles.blurTarget}
+        >
+          {screenContent}
+        </BlurTargetView>
+      ) : (
+        screenContent
+      )}
+
+      {/* Frosted glass background behind the top status bar (Expo Go safe) */}
+      {statusBarGlass && insets.top > 0 && (
+        <View
+          pointerEvents="none"
+          style={[styles.statusBarGlass, { height: insets.top }]}
+        >
+          <BlurView
+            blurTarget={blurTargetRef}
+            blurMethod="dimezisBlurViewSdk31Plus"
+            intensity={Platform.OS === "ios" ? 75 : 90}
+            tint={config.dark ? "dark" : "light"}
+            style={StyleSheet.absoluteFill}
+          />
+          <View
+            style={[
+              StyleSheet.absoluteFill,
+              styles.glassTintOverlay,
+              config.dark
+                ? styles.statusBarTintDark
+                : styles.statusBarTintLight,
+            ]}
+          />
+          {hairline}
         </View>
-      </Animated.View>
+      )}
     </View>
   );
 }
@@ -182,6 +229,23 @@ const createStyles = (colors: ColorPalette) =>
     root: {
       flex: 1,
       backgroundColor: colors.bg,
+    },
+    blurTarget: {
+      flex: 1,
+    },
+    statusBarGlass: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      zIndex: 40,
+      overflow: "hidden",
+    },
+    statusBarTintLight: {
+      backgroundColor: "rgba(250, 248, 245, 0.68)",
+    },
+    statusBarTintDark: {
+      backgroundColor: "rgba(20, 19, 18, 0.70)",
     },
     container: {
       flex: 1,
