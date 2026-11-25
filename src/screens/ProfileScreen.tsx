@@ -21,7 +21,6 @@ import {
   COVER_EXPANDED_HEIGHT,
   HERO_META_HEIGHT,
   NAVBAR_HEIGHT,
-  type FollowButtonLayout,
 } from "../components/profile/ProfileHeader";
 import { ProfilePostsTab } from "../components/profile/ProfilePostsTab";
 import { ProfileRepostsTab } from "../components/profile/ProfileRepostsTab";
@@ -86,11 +85,6 @@ export default function ProfileScreen() {
   const [barInnerWidth, setBarInnerWidth] = useState(
     Math.max(120, Math.min(windowWidth, 600) - 42)
   );
-  const [followLayout, setFollowLayout] = useState<FollowButtonLayout>(() => ({
-    topOffset: 180,
-    left: 16,
-    width: Math.max(96, (Math.min(windowWidth, 600) - 42) / 2),
-  }));
 
   const activeTabIndex = Math.max(
     0,
@@ -339,7 +333,6 @@ export default function ProfileScreen() {
         onToggleFollow={toggleFollow}
         scrollY={scrollY}
         collapseDistance={tabStickyScroll}
-        followLayout={followLayout}
       />
 
       {/* Scrollable Profile Body */}
@@ -368,15 +361,6 @@ export default function ProfileScreen() {
           collapseDistance={tabStickyScroll}
           onMetaHeightChange={(h) => {
             setHeroMetaHeight((prev) => (Math.abs(prev - h) > 0.5 ? h : prev));
-          }}
-          onFollowLayoutChange={(next) => {
-            setFollowLayout((prev) =>
-              Math.abs(prev.topOffset - next.topOffset) > 0.5 ||
-              Math.abs(prev.left - next.left) > 0.5 ||
-              Math.abs(prev.width - next.width) > 0.5
-                ? next
-                : prev
-            );
           }}
         />
 

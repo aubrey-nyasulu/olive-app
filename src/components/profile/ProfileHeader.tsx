@@ -1,4 +1,3 @@
-import { useRef, useState } from "react";
 import {
   Animated,
   Image,
@@ -13,6 +12,7 @@ import {
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useState } from "react";
 import { useThemeStyles, type ColorPalette } from "../../theme";
 import { PROFILES, type UserProfile } from "../../profiles";
 import { useOlive } from "../../context/OliveProvider";
@@ -22,16 +22,10 @@ export const NAVBAR_HEIGHT = 64;
 export const AVATAR_EXPANDED_SIZE = 80;
 export const AVATAR_COLLAPSED_SIZE = 48;
 export const FOLLOW_BTN_HEIGHT = 36;
-export const FOLLOW_COLLAPSED_WIDTH = 96;
+const BTN_CUTOUT_BORDER = 2;
 
 /** Default fallback height of the in-flow hero content between cover bottom and tab bar */
-export const HERO_META_HEIGHT = 274;
-
-export interface FollowButtonLayout {
-  topOffset: number;
-  left: number;
-  width: number;
-}
+export const HERO_META_HEIGHT = 206;
 
 interface ProfileHeaderProps {
   profile: UserProfile;
@@ -40,7 +34,6 @@ interface ProfileHeaderProps {
   onToggleFollow: () => void;
   scrollY: Animated.Value;
   collapseDistance: number;
-  followLayout: FollowButtonLayout;
 }
 
 export function ProfileHeader({
@@ -50,9 +43,9 @@ export function ProfileHeader({
   onToggleFollow,
   scrollY,
   collapseDistance,
-  followLayout,
 }: ProfileHeaderProps) {
   const { styles, colors, isDark } = useThemeStyles(createStyles);
+  const { openExpandedWindow } = useOlive();
   const insets = useSafeAreaInsets();
   const insetsTop = insets.top;
   const { width: windowWidth } = useWindowDimensions();
@@ -122,32 +115,41 @@ export function ProfileHeader({
     extrapolateRight: "clamp",
   });
 
-  // Floating Follow button: smoothly transitions from expanded row slot into collapsed navbar right
-  const followExpandedTop = expandedHeight + followLayout.topOffset;
-  const followCollapsedTop =
-    insetsTop + (NAVBAR_HEIGHT - FOLLOW_BTN_HEIGHT) / 2;
-  const followCollapsedLeft = containerWidth - 16 - FOLLOW_COLLAPSED_WIDTH;
-
-  const followTop = scrollY.interpolate({
+  // Floating Follow + Message buttons: straddle cover bottom edge (half-in/half-out) and transition into navbar
+  const expandedActionsOuterHeight = FOLLOW_BTN_HEIGHT + BTN_CUTOUT_BORDER * 2;
+  const actionsTop = scrollY.interpolate({
     inputRange: [-100, 0, distance],
     outputRange: [
-      followExpandedTop + 100,
-      followExpandedTop,
-      followCollapsedTop,
+      expandedHeight + 100 - expandedActionsOuterHeight / 2,
+      expandedHeight - expandedActionsOuterHeight / 2,
+      insetsTop + (NAVBAR_HEIGHT - FOLLOW_BTN_HEIGHT) / 2,
     ],
     extrapolateLeft: "extend",
     extrapolateRight: "clamp",
   });
 
-  const followLeft = scrollY.interpolate({
+  const actionCutoutBorder = scrollY.interpolate({
     inputRange: [0, distance],
-    outputRange: [followLayout.left, followCollapsedLeft],
+    outputRange: [BTN_CUTOUT_BORDER, 0],
     extrapolate: "clamp",
   });
 
-  const followWidth = scrollY.interpolate({
-    inputRange: [0, distance],
-    outputRange: [followLayout.width, FOLLOW_COLLAPSED_WIDTH],
+  // Message button smoothly fades out & collapses width during scroll so Follow docks cleanly
+  const messageOpacity = scrollY.interpolate({
+    inputRange: [0, distance * 0.35],
+    outputRange: [1, 0],
+    extrapolate: "clamp",
+  });
+
+  const messageMaxWidth = scrollY.interpolate({
+    inputRange: [0, distance * 0.45],
+    outputRange: [120, 0],
+    extrapolate: "clamp",
+  });
+
+  const messageGap = scrollY.interpolate({
+    inputRange: [0, distance * 0.45],
+    outputRange: [8, 0],
     extrapolate: "clamp",
   });
 
@@ -175,7 +177,7 @@ export function ProfileHeader({
     extrapolate: "clamp",
   });
 
-  const targetRight = !isMe ? FOLLOW_COLLAPSED_WIDTH + 28 : 16;
+  const targetRight = !isMe ? 124 : 16;
   const expandedMaxWidth = containerWidth - 32;
   const collapsedMaxWidth = (containerWidth - targetRight - 64) / 0.78;
   const nameMaxWidth = scrollY.interpolate({
@@ -279,44 +281,87 @@ export function ProfileHeader({
         />
       </Animated.View>
 
-      {/* 3. Floating & Transitioning Follow Button */}
+      {/* 3. Floating Follow + Message Buttons (half-in/half-out of cover, transitioning into navbar) */}
       {!isMe && (
         <Animated.View
+          pointerEvents="box-none"
           style={[
-            styles.floatingFollowWrap,
+            styles.floatingActionsWrap,
             {
-              top: followTop,
-              left: followLeft,
-              width: followWidth,
+              top: actionsTop,
             },
           ]}
         >
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={
-              isFollowing
-                ? `Following ${profile.name}`
-                : `Follow ${profile.name}`
-            }
-            onPress={onToggleFollow}
-            style={({ pressed }) => [
-              styles.followBtn,
-              isFollowing ? styles.followBtnActive : styles.followBtnInactive,
-              pressed && styles.btnPressed,
+          <Animated.View
+            style={[
+              styles.actionCutoutShell,
+              { borderWidth: actionCutoutBorder },
             ]}
           >
-            <Text
-              style={[
-                styles.followBtnText,
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={
                 isFollowing
-                  ? styles.followBtnTextActive
-                  : styles.followBtnTextInactive,
+                  ? `Following ${profile.name}`
+                  : `Follow ${profile.name}`
+              }
+              onPress={onToggleFollow}
+              style={({ pressed }) => [
+                styles.headerActionBtn,
+                isFollowing
+                  ? styles.headerActionBtnSecondary
+                  : styles.headerActionBtnPrimary,
+                pressed && styles.btnPressed,
               ]}
-              numberOfLines={1}
             >
-              {isFollowing ? "Following" : "Follow"}
-            </Text>
-          </Pressable>
+              <Text
+                style={[
+                  styles.headerActionBtnText,
+                  isFollowing
+                    ? styles.headerActionBtnTextSecondary
+                    : styles.headerActionBtnTextPrimary,
+                ]}
+                numberOfLines={1}
+              >
+                {isFollowing ? "Following" : "Follow"}
+              </Text>
+            </Pressable>
+          </Animated.View>
+
+          <Animated.View
+            style={[
+              styles.messageCollapseWrap,
+              {
+                opacity: messageOpacity,
+                maxWidth: messageMaxWidth,
+                marginLeft: messageGap,
+              },
+            ]}
+          >
+            <Animated.View
+              style={[
+                styles.actionCutoutShell,
+                { borderWidth: actionCutoutBorder },
+              ]}
+            >
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`Message ${profile.name}`}
+                onPress={() =>
+                  openExpandedWindow({ type: "message", recipient: profile })
+                }
+                style={({ pressed }) => [
+                  styles.headerActionBtn,
+                  styles.headerActionBtnSecondary,
+                  pressed && styles.btnPressed,
+                ]}
+              >
+                <Text style={styles.headerActionBtnTextSecondary} numberOfLines={1}>
+                  Message
+                </Text>
+              </Pressable>
+            </Animated.View>
+          </Animated.View>
         </Animated.View>
       )}
 
@@ -361,7 +406,6 @@ interface ProfileHeroMetaProps {
   scrollY: Animated.Value;
   collapseDistance: number;
   onMetaHeightChange?: (height: number) => void;
-  onFollowLayoutChange?: (layout: FollowButtonLayout) => void;
 }
 
 function formatCompactCount(value: string | number): string {
@@ -395,34 +439,10 @@ export function ProfileHeroMeta({
   scrollY,
   collapseDistance,
   onMetaHeightChange,
-  onFollowLayoutChange,
 }: ProfileHeroMetaProps) {
   const { styles } = useThemeStyles(createStyles);
   const insets = useSafeAreaInsets();
   const expandedHeight = insets.top + COVER_EXPANDED_HEIGHT;
-  const { openExpandedWindow } = useOlive();
-
-  const leftContentTopRef = useRef<number | null>(null);
-  const actionRowTopRef = useRef<number | null>(null);
-  const actionRowLeftRef = useRef<number | null>(null);
-  const followSlotXRef = useRef<number | null>(null);
-  const followSlotWidthRef = useRef(0);
-
-  const emitFollowLayout = () => {
-    if (
-      leftContentTopRef.current !== null &&
-      actionRowTopRef.current !== null &&
-      actionRowLeftRef.current !== null &&
-      followSlotXRef.current !== null &&
-      followSlotWidthRef.current > 0
-    ) {
-      onFollowLayoutChange?.({
-        topOffset: leftContentTopRef.current + actionRowTopRef.current,
-        left: actionRowLeftRef.current + followSlotXRef.current,
-        width: followSlotWidthRef.current,
-      });
-    }
-  };
 
   const followersDisplay =
     !isMe && typeof profile.stats.followers === "number"
@@ -437,7 +457,7 @@ export function ProfileHeroMeta({
   const followerAvatars = otherAvatars.slice(0, 3);
   const followingAvatars = otherAvatars.slice(3, 6);
 
-  // Fade out bio, message button, and follow stats before they reach the floating name
+  // Fade out bio and follow stats before they reach the floating name
   const heroContentOpacity = scrollY.interpolate({
     inputRange: [0, Math.max(1, collapseDistance) * 0.28],
     outputRange: [1, 0],
@@ -457,52 +477,12 @@ export function ProfileHeroMeta({
         <View style={styles.metaSpacer} />
 
         <Animated.View
-          onLayout={(e) => {
-            leftContentTopRef.current = e.nativeEvent.layout.y;
-            emitFollowLayout();
-          }}
           style={[styles.leftAlignedContent, { opacity: heroContentOpacity }]}
           pointerEvents="box-none"
         >
           <Text style={styles.heroBio} numberOfLines={2}>
             {profile.bio}
           </Text>
-
-          {!isMe && (
-            <View
-              onLayout={(e) => {
-                actionRowTopRef.current = e.nativeEvent.layout.y;
-                actionRowLeftRef.current = e.nativeEvent.layout.x;
-                emitFollowLayout();
-              }}
-              style={styles.actionButtonsRow}
-            >
-              {/* Layout placeholder occupied by the floating transitioning Follow button at scrollY = 0 */}
-              <View
-                pointerEvents="none"
-                onLayout={(e) => {
-                  followSlotXRef.current = e.nativeEvent.layout.x;
-                  followSlotWidthRef.current = e.nativeEvent.layout.width;
-                  emitFollowLayout();
-                }}
-                style={styles.heroActionSlot}
-              />
-
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={`Message ${profile.name}`}
-                onPress={() =>
-                  openExpandedWindow({ type: "message", recipient: profile })
-                }
-                style={({ pressed }) => [
-                  styles.heroMessageBtn,
-                  pressed && styles.btnPressed,
-                ]}
-              >
-                <Text style={styles.heroMessageBtnText}>Message</Text>
-              </Pressable>
-            </View>
-          )}
 
           <View style={styles.followRow}>
             <View style={styles.followGroup}>
@@ -592,37 +572,47 @@ const createStyles = (colors: ColorPalette) =>
       height: "100%",
       resizeMode: "cover",
     },
-    floatingFollowWrap: {
+    floatingActionsWrap: {
       position: "absolute",
+      right: 16,
       zIndex: 36,
+      flexDirection: "row",
+      alignItems: "center",
     },
-    followBtn: {
-      width: "100%",
+    actionCutoutShell: {
+      borderRadius: 9999,
+      borderColor: colors.bg,
+      backgroundColor: colors.bg,
+    },
+    messageCollapseWrap: {
+      overflow: "hidden",
+    },
+    headerActionBtn: {
       height: FOLLOW_BTN_HEIGHT,
       alignItems: "center",
       justifyContent: "center",
-      paddingHorizontal: 14,
+      paddingHorizontal: 16,
       borderRadius: FOLLOW_BTN_HEIGHT / 2,
       borderWidth: 1,
       ...(Platform.OS === "web" ? ({ outlineStyle: "none" } as any) : {}),
     },
-    followBtnActive: {
-      backgroundColor: colors.surfaceMuted,
-      borderColor: colors.line,
-    },
-    followBtnInactive: {
+    headerActionBtnPrimary: {
       backgroundColor: colors.signal,
       borderColor: colors.signal,
     },
-    followBtnText: {
+    headerActionBtnSecondary: {
+      backgroundColor: colors.surfaceMuted,
+      borderColor: colors.line,
+    },
+    headerActionBtnText: {
       fontSize: 13,
       fontWeight: "700",
     },
-    followBtnTextActive: {
-      color: colors.text,
-    },
-    followBtnTextInactive: {
+    headerActionBtnTextPrimary: {
       color: "#FFFFFF",
+    },
+    headerActionBtnTextSecondary: {
+      color: colors.text,
     },
     floatingNameWrap: {
       position: "absolute",
@@ -669,34 +659,6 @@ const createStyles = (colors: ColorPalette) =>
       color: colors.textSecondary,
       textAlign: "left",
       marginTop: 6,
-    },
-    actionButtonsRow: {
-      width: "100%",
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 10,
-      marginTop: 12,
-    },
-    heroActionSlot: {
-      flex: 1,
-      height: FOLLOW_BTN_HEIGHT,
-    },
-    heroMessageBtn: {
-      flex: 1,
-      height: FOLLOW_BTN_HEIGHT,
-      alignItems: "center",
-      justifyContent: "center",
-      paddingHorizontal: 14,
-      borderRadius: FOLLOW_BTN_HEIGHT / 2,
-      borderWidth: 1,
-      backgroundColor: colors.surfaceMuted,
-      borderColor: colors.line,
-      ...(Platform.OS === "web" ? ({ outlineStyle: "none" } as any) : {}),
-    },
-    heroMessageBtnText: {
-      fontSize: 13,
-      fontWeight: "700",
-      color: colors.text,
     },
     followRow: {
       width: "100%",
