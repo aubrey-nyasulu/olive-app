@@ -84,6 +84,10 @@ type OliveContextType = {
   repostedIds: string[];
   isReposted: (id: string) => boolean;
   toggleRepost: (id: string) => void;
+  quoteRepostsMap: Record<string, string>;
+  getUserQuoteNote: (postId: string) => string | null;
+  setQuoteRepost: (postId: string, note: string) => void;
+  removeRepost: (postId: string) => void;
 
   // Reactions state (multi-reaction system)
   reactionsMap: Record<string, PostReactions>;
@@ -153,6 +157,7 @@ export function OliveProvider({ children }: { children: ReactNode }) {
     "park-live",
     "saturday-market",
   ]);
+  const [quoteRepostsMap, setQuoteRepostsMap] = useState<Record<string, string>>({});
 
   const isLiked = (id: string) => likedIds.includes(id);
   const toggleLike = (id: string) => {
@@ -163,9 +168,40 @@ export function OliveProvider({ children }: { children: ReactNode }) {
 
   const isReposted = (id: string) => repostedIds.includes(id);
   const toggleRepost = (id: string) => {
-    setRepostedIds((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
-    );
+    setRepostedIds((prev) => {
+      const exists = prev.includes(id);
+      if (exists) {
+        setQuoteRepostsMap((qPrev) => {
+          if (!(id in qPrev)) return qPrev;
+          const next = { ...qPrev };
+          delete next[id];
+          return next;
+        });
+        return prev.filter((item) => item !== id);
+      }
+      return [...prev, id];
+    });
+  };
+
+  const getUserQuoteNote = (postId: string): string | null => {
+    return quoteRepostsMap[postId] ?? null;
+  };
+
+  const setQuoteRepost = (postId: string, note: string) => {
+    const trimmed = note.trim();
+    if (!trimmed) return;
+    setRepostedIds((prev) => (prev.includes(postId) ? prev : [...prev, postId]));
+    setQuoteRepostsMap((prev) => ({ ...prev, [postId]: trimmed }));
+  };
+
+  const removeRepost = (postId: string) => {
+    setRepostedIds((prev) => prev.filter((item) => item !== postId));
+    setQuoteRepostsMap((prev) => {
+      if (!(postId in prev)) return prev;
+      const next = { ...prev };
+      delete next[postId];
+      return next;
+    });
   };
 
   // Reactions state (multi-reaction system)
@@ -181,6 +217,9 @@ export function OliveProvider({ children }: { children: ReactNode }) {
     "forno": { heart: 8, flower: 1, like: 0, laugh: 2, fire: 1, clap: 0 },
     "kuchawe-chambo": { heart: 3, flower: 6, like: 1, laugh: 0, fire: 2, clap: 1 },
     "saturday-market": { heart: 4, flower: 2, like: 3, laugh: 1, fire: 0, clap: 0 },
+    "area18-guavas-note": { heart: 7, flower: 0, like: 4, laugh: 0, fire: 0, clap: 5 },
+    "kondwani-repost-lingadzi": { heart: 24, flower: 14, like: 9, laugh: 2, fire: 19, clap: 15 },
+    "dalitso-quote-forno": { heart: 16, flower: 7, like: 5, laugh: 1, fire: 12, clap: 8 },
   });
 
   const getUserReaction = (postId: string): ReactionType | null => {
@@ -422,6 +461,10 @@ export function OliveProvider({ children }: { children: ReactNode }) {
         repostedIds,
         isReposted,
         toggleRepost,
+        quoteRepostsMap,
+        getUserQuoteNote,
+        setQuoteRepost,
+        removeRepost,
         reactionsMap,
         getUserReaction,
         setReaction,

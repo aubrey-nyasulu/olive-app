@@ -1,4 +1,5 @@
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { MapPin } from "lucide-react-native";
 import type { Post } from "../../../models";
 import { relatedPosts } from "../../../places";
 import { useThemeStyles, type ColorPalette } from "../../../theme";
@@ -44,7 +45,13 @@ export function RelatedView({ post, onSelectPlace }: RelatedViewProps) {
                 pressed && styles.pressed,
               ]}
             >
-              <Image source={rel.image} style={styles.itemThumb} />
+              {rel.image ? (
+                <Image source={rel.image} style={styles.itemThumb} />
+              ) : (
+                <View style={styles.itemThumbFallback}>
+                  <MapPin size={16} color={colors.signal} />
+                </View>
+              )}
               <View style={styles.itemMeta}>
                 <Text style={styles.itemTitle} numberOfLines={1}>
                   {rel.title}
@@ -117,6 +124,14 @@ const createStyles = (colors: ColorPalette) =>
     width: 44,
     height: 44,
     borderRadius: 12,
+  },
+  itemThumbFallback: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: colors.signalLight,
+    alignItems: "center",
+    justifyContent: "center",
   },
   itemMeta: {
     flex: 1,

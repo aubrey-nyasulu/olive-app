@@ -1,16 +1,23 @@
 import { StyleSheet, Text, View } from "react-native";
 import { Repeat2 } from "lucide-react-native";
 import { useThemeStyles, type ColorPalette } from "../../theme";
+import { useOlive } from "../../context/OliveProvider";
 import { PostCard } from "../PostCard";
 import type { Post } from "../../models";
 
 interface ProfileRepostsTabProps {
   posts: Post[];
   userName: string;
+  isMe?: boolean;
 }
 
-export function ProfileRepostsTab({ posts, userName }: ProfileRepostsTabProps) {
+export function ProfileRepostsTab({
+  posts,
+  userName,
+  isMe = false,
+}: ProfileRepostsTabProps) {
   const { styles, colors } = useThemeStyles(createStyles);
+  const { getUserQuoteNote } = useOlive();
 
   if (posts.length === 0) {
     return (
@@ -26,15 +33,21 @@ export function ProfileRepostsTab({ posts, userName }: ProfileRepostsTabProps) {
 
   return (
     <View style={styles.list}>
-      {posts.map((post) => (
-        <View key={`repost-${post.id}`} style={styles.itemWrap}>
-          <View style={styles.repostHeader}>
-            <Repeat2 size={14} color={colors.signal} />
-            <Text style={styles.repostHeaderText}>{userName} reposted</Text>
-          </View>
-          <PostCard post={post} />
-        </View>
-      ))}
+      {posts.map((post) => {
+        const quoteNote = isMe
+          ? getUserQuoteNote(post.id) ?? post.quoteNote ?? null
+          : post.quoteNote ?? null;
+        const repostedPost: Post = {
+          ...post,
+          repostedBy: post.repostedBy ?? {
+            name: userName,
+            role: quoteNote ? "Local Guide · Just now" : undefined,
+            time: "Reposted",
+          },
+          quoteNote,
+        };
+        return <PostCard key={`repost-${post.id}`} post={repostedPost} />;
+      })}
     </View>
   );
 }
@@ -43,24 +56,6 @@ const createStyles = (colors: ColorPalette) =>
   StyleSheet.create({
     list: {
       gap: 0,
-    },
-    itemWrap: {
-      marginBottom: 8,
-    },
-    repostHeader: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 6,
-      paddingHorizontal: 16,
-      paddingVertical: 8,
-      backgroundColor: colors.surfaceMuted,
-      borderRadius: 8,
-      marginBottom: 4,
-    },
-    repostHeaderText: {
-      fontSize: 12,
-      fontWeight: "600",
-      color: colors.signal,
     },
     emptyWrap: {
       alignItems: "center",

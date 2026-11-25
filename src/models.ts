@@ -3,6 +3,12 @@ import type { LucideIcon } from "lucide-react-native";
 
 export type PostKind = "Business" | "Event" | "Person";
 
+export type RepostMeta = {
+  name: string;
+  role?: string;
+  time?: string;
+};
+
 export type Post = {
   id: string;
   author: string;
@@ -15,8 +21,10 @@ export type Post = {
   lng: number;
   distanceKm: number;
   when: string;
-  image: ImageSourcePropType;
+  image?: ImageSourcePropType | null;
   ratio?: "1/1" | "4/3" | "4/5";
+  repostedBy?: RepostMeta | null;
+  quoteNote?: string | null;
 };
 
 export type Review = {

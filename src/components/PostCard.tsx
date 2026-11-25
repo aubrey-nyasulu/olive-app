@@ -1,8 +1,16 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import {
   Animated,
   Easing,
   Image,
+  KeyboardAvoidingView,
   Modal,
   Platform,
   Pressable,
@@ -10,9 +18,12 @@ import {
   Share,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import { BlurView } from "expo-blur";
+import { LinearGradient } from "expo-linear-gradient";
+import Svg, { Circle, Defs, Line, Pattern, Rect } from "react-native-svg";
 import {
   Heart,
   MessageCircle,
@@ -30,6 +41,11 @@ import {
   User,
   Flag,
   X,
+  Clock,
+  Quote,
+  ArrowLeft,
+  ArrowUpRight,
+  Trash2,
 } from "lucide-react-native";
 import { router } from "expo-router";
 import type { Post, ReactionType } from "../models";
@@ -38,6 +54,16 @@ import { useOlive } from "../context/OliveProvider";
 import { useThemeStyles, type ColorPalette } from "../theme";
 
 export const POST_MEDIA_ASPECT_RATIO = 1;
+
+function getInitials(name: string): string {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .map((n) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
 
 /* ── Reaction definitions & Harmonious Palette ────────────────────── */
 
@@ -174,7 +200,7 @@ function ReactionPicker({
                   pressed && pStyles.pickerItemPressed,
                 ]}
               >
-                <def.Icon size={24} color={colors.text} fill="none" />
+                <def.Icon size={24} color="#FFFFFF" fill="none" />
               </Pressable>
             </Animated.View>
           ))}
@@ -620,18 +646,34 @@ const menuStyles = (colors: ColorPalette) =>
 /* ── Community Reactors Directory ────────────────────────────────── */
 
 const COMMUNITY_REACTORS = [
-  { name: "Kondwani Banda", handle: "@kondwani", role: "Coffee & Architecture" },
+  {
+    name: "Kondwani Banda",
+    handle: "@kondwani",
+    role: "Coffee & Architecture",
+  },
   { name: "Dalitso Phiri", handle: "@dalitso", role: "Local Food Explorer" },
   { name: "Puma Energy", handle: "@pumaenergy", role: "Kenyatta Drive Bay" },
   { name: "Chisomo Banda", handle: "@chisomo", role: "Music & Live Sessions" },
   { name: "Tamanda Gondwe", handle: "@tamanda", role: "Market Gardener" },
-  { name: "Lingadzi Sessions", handle: "@lingadzi", role: "Acoustic Arts Community" },
+  {
+    name: "Lingadzi Sessions",
+    handle: "@lingadzi",
+    role: "Acoustic Arts Community",
+  },
   { name: "Mabu Artisan Bakes", handle: "@mabubakes", role: "Artisan Baker" },
-  { name: "Alinafe Mwale", handle: "@alinafe", role: "Wildlife & Nature Guide" },
+  {
+    name: "Alinafe Mwale",
+    handle: "@alinafe",
+    role: "Wildlife & Nature Guide",
+  },
   { name: "Tawonga Phiri", handle: "@tawonga", role: "Weekend Cyclist" },
   { name: "Chifundo Banda", handle: "@chifundo", role: "Urban Planner" },
   { name: "Lumbani Chirwa", handle: "@lumbani", role: "Area 10 Resident" },
-  { name: "Madalitso Nyirenda", handle: "@madalitso", role: "Culture & Heritage" },
+  {
+    name: "Madalitso Nyirenda",
+    handle: "@madalitso",
+    role: "Culture & Heritage",
+  },
   { name: "Sekani Mhone", handle: "@sekani", role: "Specialty Roaster" },
   { name: "Chimwemwe Tembo", handle: "@chimwemwe", role: "Visual Storyteller" },
   { name: "Thokozani Kamanga", handle: "@thoko", role: "Craft Brewer" },
@@ -746,9 +788,7 @@ function ReactionsListModal({
 
     for (let i = 0; i < countNeeded; i++) {
       const candidate =
-        availableCandidates[
-          (candidateOffset + i) % availableCandidates.length
-        ];
+        availableCandidates[(candidateOffset + i) % availableCandidates.length];
       allReactors.push({
         id: `${candidate.name}-${def.type}-${i}`,
         name: candidate.name,
@@ -793,10 +833,7 @@ function ReactionsListModal({
 
         {/* Sliding Sheet */}
         <Animated.View
-          style={[
-            rStyles.sheet,
-            { transform: [{ translateY: slideAnim }] },
-          ]}
+          style={[rStyles.sheet, { transform: [{ translateY: slideAnim }] }]}
         >
           {/* Drag Handle */}
           <View style={rStyles.handle} />
@@ -1210,7 +1247,7 @@ function AnimatedReactionCarousel({
                 width: 26,
                 height: 26,
                 borderRadius: 13,
-                backgroundColor: "#E6CDBA50",
+                backgroundColor: colors.actionPillBg,
                 borderWidth: 1.5,
                 borderColor: colors.surface,
                 alignItems: "center",
@@ -1267,7 +1304,7 @@ function CommunityReactionBadges({
             width: 26,
             height: 26,
             borderRadius: 13,
-            backgroundColor: "#E6CDBA50",
+            backgroundColor: colors.actionPillBg,
             borderWidth: 1.5,
             borderColor: colors.surface,
             alignItems: "center",
@@ -1352,6 +1389,718 @@ function ReactionSummary({
   );
 }
 
+/* ── Diagonal-Striped Repost Frame ───────────────────────────────── */
+
+function RepostStripedFrame({
+  colors,
+  children,
+}: {
+  colors: ColorPalette;
+  children: ReactNode;
+}) {
+  const rawId = useId();
+  const patternId = `repost-stripe-${rawId.replace(/[^a-zA-Z0-9_-]/g, "")}`;
+
+  return (
+    <View style={stripedStyles.frame}>
+      <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+        <Svg width="100%" height="100%">
+          <Defs>
+            <Pattern
+              id={patternId}
+              width="24"
+              height="24"
+              patternUnits="userSpaceOnUse"
+              patternTransform="rotate(-45)"
+            >
+              <Line
+                x1="12"
+                y1="0"
+                x2="12"
+                y2="24"
+                stroke={colors.repostStripe}
+                strokeWidth="1"
+              />
+            </Pattern>
+          </Defs>
+          <Rect
+            x="0"
+            y="0"
+            width="100%"
+            height="100%"
+            fill={`url(#${patternId})`}
+          />
+        </Svg>
+      </View>
+      {children}
+    </View>
+  );
+}
+
+const stripedStyles = StyleSheet.create({
+  frame: {
+    width: "100%",
+    borderRadius: 32,
+    overflow: "hidden",
+    padding: 16,
+    paddingRight: 0,
+    marginBottom: 4,
+    position: "relative",
+  },
+});
+
+/* ── Re-imagined No-Photo Editorial Dispatch Card ────────────────── */
+
+function NoPhotoEditorialCard({
+  post,
+  colors,
+  embedded = false,
+  onPress,
+}: {
+  post: Post;
+  colors: ColorPalette;
+  embedded?: boolean;
+  onPress: () => void;
+}) {
+  const nStyles = noPhotoStyles(colors, embedded);
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`Open ${post.place} details`}
+      onPress={onPress}
+      style={({ pressed }) => [nStyles.outer, pressed && { opacity: 0.9 }]}
+    >
+      <LinearGradient
+        colors={[colors.surface, colors.surfaceMuted, colors.signalLight]}
+        locations={[0, 0.55, 1]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={nStyles.gradient}
+      >
+        {/* Subtle decorative contour rings */}
+        <View pointerEvents="none" style={nStyles.decorRings}>
+          <Svg width="160" height="160" viewBox="0 0 160 160">
+            <Circle
+              cx="132"
+              cy="28"
+              r="36"
+              stroke={colors.signal}
+              strokeOpacity={0.14}
+              strokeWidth="1"
+              fill="none"
+            />
+            <Circle
+              cx="132"
+              cy="28"
+              r="64"
+              stroke={colors.signal}
+              strokeOpacity={0.1}
+              strokeWidth="1"
+              fill="none"
+            />
+            <Circle
+              cx="132"
+              cy="28"
+              r="94"
+              stroke={colors.line}
+              strokeOpacity={0.65}
+              strokeWidth="1"
+              fill="none"
+            />
+          </Svg>
+        </View>
+
+        {/* Top metadata pills */}
+        <View style={nStyles.topRow}>
+          <View style={nStyles.kindPill}>
+            <View style={nStyles.kindDot} />
+            <Text style={nStyles.kindText}>
+              {post.kind} · {post.category}
+            </Text>
+          </View>
+
+          <View style={nStyles.whenPill}>
+            <Clock size={11} color={colors.signal} />
+            <Text style={nStyles.whenText} numberOfLines={1}>
+              {post.when}
+            </Text>
+          </View>
+        </View>
+
+        {/* Centerpiece editorial headline */}
+        <View style={nStyles.headlineBlock}>
+          <View style={nStyles.accentRule} />
+          <Text style={nStyles.title}>{post.title}</Text>
+        </View>
+
+        {/* Spatial place footer */}
+        <View style={nStyles.footer}>
+          <View style={nStyles.footerDivider} />
+          <View style={nStyles.footerRow}>
+            <View style={nStyles.placeGroup}>
+              <MapPin size={13} color={colors.signal} />
+              <Text style={nStyles.placeText} numberOfLines={1}>
+                {post.place}
+              </Text>
+            </View>
+            <View style={nStyles.distancePill}>
+              <Text style={nStyles.distanceText}>{post.distanceKm} km</Text>
+              <ArrowUpRight size={12} color={colors.signal} />
+            </View>
+          </View>
+        </View>
+      </LinearGradient>
+    </Pressable>
+  );
+}
+
+const noPhotoStyles = (colors: ColorPalette, embedded: boolean) =>
+  StyleSheet.create({
+    outer: {
+      width: "100%",
+      borderRadius: embedded ? 24 : 32,
+      borderWidth: 1,
+      borderColor: colors.line,
+      overflow: "hidden",
+      marginBottom: 2,
+    },
+    gradient: {
+      padding: embedded ? 18 : 22,
+      minHeight: embedded ? 200 : 232,
+      justifyContent: "space-between",
+      gap: embedded ? 16 : 20,
+      position: "relative",
+    },
+    decorRings: {
+      position: "absolute",
+      top: 0,
+      right: 0,
+      width: 160,
+      height: 160,
+    },
+    topRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: 8,
+      flexWrap: "wrap",
+    },
+    kindPill: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+      borderRadius: 9999,
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.line,
+    },
+    kindDot: {
+      width: 6,
+      height: 6,
+      borderRadius: 3,
+      backgroundColor: colors.signal,
+    },
+    kindText: {
+      fontSize: 10.5,
+      fontWeight: "700",
+      textTransform: "uppercase",
+      letterSpacing: 0.65,
+      color: colors.text,
+    },
+    whenPill: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 5,
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+      borderRadius: 9999,
+      backgroundColor: colors.signalLight,
+      maxWidth: "55%",
+    },
+    whenText: {
+      fontSize: 11,
+      fontWeight: "700",
+      color: colors.signal,
+    },
+    headlineBlock: {
+      gap: 10,
+    },
+    accentRule: {
+      width: 28,
+      height: 3,
+      borderRadius: 2,
+      backgroundColor: colors.signal,
+    },
+    title: {
+      fontSize: embedded ? 20 : 23,
+      fontWeight: "800",
+      lineHeight: embedded ? 26 : 30,
+      letterSpacing: -0.45,
+      color: colors.text,
+    },
+    footer: {
+      gap: 10,
+    },
+    footerDivider: {
+      height: 1,
+      backgroundColor: colors.line,
+      opacity: 0.8,
+    },
+    footerRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: 10,
+    },
+    placeGroup: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+      flex: 1,
+    },
+    placeText: {
+      fontSize: 12.5,
+      fontWeight: "600",
+      color: colors.textSecondary,
+      flex: 1,
+    },
+    distancePill: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 3,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 9999,
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.line,
+    },
+    distanceText: {
+      fontSize: 11.5,
+      fontWeight: "700",
+      color: colors.text,
+    },
+  });
+
+/* ── Reshare Options Sheet (Instant Repost / Quote / Share) ──────── */
+
+function ReshareOptionsSheet({
+  visible,
+  post,
+  isRepostedByMe,
+  existingQuoteNote,
+  onInstantRepost,
+  onSaveQuoteRepost,
+  onRemoveRepost,
+  onShareExternal,
+  onClose,
+  colors,
+}: {
+  visible: boolean;
+  post: Post;
+  isRepostedByMe: boolean;
+  existingQuoteNote: string | null;
+  onInstantRepost: () => void;
+  onSaveQuoteRepost: (note: string) => void;
+  onRemoveRepost: () => void;
+  onShareExternal: () => void;
+  onClose: () => void;
+  colors: ColorPalette;
+}) {
+  const slideAnim = useRef(new Animated.Value(360)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const [animVisible, setAnimVisible] = useState(false);
+  const [mode, setMode] = useState<"menu" | "quote">("menu");
+  const [quoteText, setQuoteText] = useState("");
+
+  useEffect(() => {
+    if (visible) {
+      setMode("menu");
+      setQuoteText(existingQuoteNote ?? "");
+      setAnimVisible(true);
+      Animated.parallel([
+        Animated.spring(slideAnim, {
+          toValue: 0,
+          friction: 9,
+          tension: 90,
+          useNativeDriver: true,
+        }),
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 180,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else if (animVisible) {
+      Animated.parallel([
+        Animated.timing(slideAnim, {
+          toValue: 360,
+          duration: 180,
+          useNativeDriver: true,
+        }),
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 140,
+          useNativeDriver: true,
+        }),
+      ]).start(() => setAnimVisible(false));
+    }
+  }, [visible]);
+
+  if (!visible && !animVisible) return null;
+
+  const mStyles = menuStyles(colors);
+  const rStyles = reshareSheetStyles(colors);
+
+  const actions = [
+    {
+      id: "instant",
+      icon: Repeat2,
+      label:
+        isRepostedByMe && !existingQuoteNote
+          ? "Undo Instant Repost"
+          : isRepostedByMe
+          ? "Switch to Instant Repost"
+          : "Instant Repost",
+      subLabel:
+        isRepostedByMe && !existingQuoteNote
+          ? "Remove this post from your reposts"
+          : "Share directly to your followers' feed",
+      iconColor:
+        isRepostedByMe && !existingQuoteNote ? colors.signal : colors.text,
+      iconBg:
+        isRepostedByMe && !existingQuoteNote
+          ? colors.signalLight
+          : colors.surfaceMuted,
+      onPress: () => {
+        if (isRepostedByMe && !existingQuoteNote) {
+          onRemoveRepost();
+        } else {
+          onInstantRepost();
+        }
+        onClose();
+      },
+    },
+    {
+      id: "quote",
+      icon: Quote,
+      label: existingQuoteNote ? "Edit Quote Repost" : "Quote Repost",
+      subLabel: existingQuoteNote
+        ? "Update your commentary on this post"
+        : "Add your own thoughts above the post",
+      iconColor: existingQuoteNote ? colors.signal : colors.text,
+      iconBg: existingQuoteNote ? colors.signalLight : colors.surfaceMuted,
+      onPress: () => {
+        setQuoteText(existingQuoteNote ?? "");
+        setMode("quote");
+      },
+    },
+    ...(isRepostedByMe && existingQuoteNote
+      ? [
+          {
+            id: "remove",
+            icon: Trash2,
+            label: "Remove Repost",
+            subLabel: "Remove this quote repost from your profile",
+            iconColor: colors.error,
+            iconBg: `${colors.error}15`,
+            onPress: () => {
+              onRemoveRepost();
+              onClose();
+            },
+          },
+        ]
+      : []),
+    {
+      id: "share",
+      icon: Share2,
+      label: "Share Externally",
+      subLabel: "Send via system share sheet or copy link",
+      iconColor: colors.text,
+      iconBg: colors.surfaceMuted,
+      onPress: () => {
+        onClose();
+        setTimeout(onShareExternal, 200);
+      },
+    },
+  ];
+
+  const canPublish = quoteText.trim().length > 0;
+
+  return (
+    <Modal
+      transparent
+      visible={visible || animVisible}
+      onRequestClose={onClose}
+      animationType="none"
+      statusBarTranslucent
+    >
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={mStyles.overlay}
+      >
+        <Animated.View
+          style={[
+            StyleSheet.absoluteFill,
+            { backgroundColor: colors.overlay, opacity: fadeAnim },
+          ]}
+        >
+          <Pressable
+            style={StyleSheet.absoluteFill}
+            onPress={onClose}
+            accessibilityLabel="Close reshare sheet"
+          />
+        </Animated.View>
+
+        <Animated.View
+          style={[mStyles.sheet, { transform: [{ translateY: slideAnim }] }]}
+        >
+          <View style={mStyles.handle} />
+
+          {mode === "menu" ? (
+            <>
+              <View style={mStyles.header}>
+                <View style={mStyles.thumbnailWrap}>
+                  {post.image ? (
+                    <Image source={post.image} style={mStyles.thumbnail} />
+                  ) : (
+                    <View style={mStyles.thumbnailFallback}>
+                      <MapPin size={18} color={colors.signal} />
+                    </View>
+                  )}
+                </View>
+                <View style={mStyles.headerMeta}>
+                  <Text numberOfLines={1} style={mStyles.headerTitle}>
+                    Reshare Post
+                  </Text>
+                  <Text numberOfLines={1} style={mStyles.headerSubtitle}>
+                    {post.author} · {post.place}
+                  </Text>
+                </View>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Dismiss reshare sheet"
+                  onPress={onClose}
+                  style={({ pressed }) => [
+                    mStyles.closeButton,
+                    pressed && mStyles.pressed,
+                  ]}
+                >
+                  <X size={16} color={colors.textSecondary} />
+                </Pressable>
+              </View>
+
+              <View style={mStyles.actionList}>
+                {actions.map((item) => {
+                  const IconComponent = item.icon;
+                  return (
+                    <Pressable
+                      key={item.id}
+                      accessibilityRole="button"
+                      accessibilityLabel={item.label}
+                      onPress={item.onPress}
+                      style={({ pressed }) => [
+                        mStyles.actionRow,
+                        pressed && mStyles.actionRowPressed,
+                      ]}
+                    >
+                      <View
+                        style={[
+                          mStyles.iconContainer,
+                          { backgroundColor: item.iconBg },
+                        ]}
+                      >
+                        <IconComponent size={18} color={item.iconColor} />
+                      </View>
+                      <View style={mStyles.actionTextCol}>
+                        <Text
+                          style={[
+                            mStyles.actionLabel,
+                            item.id === "remove" && { color: colors.error },
+                          ]}
+                        >
+                          {item.label}
+                        </Text>
+                        <Text numberOfLines={1} style={mStyles.actionSubLabel}>
+                          {item.subLabel}
+                        </Text>
+                      </View>
+                      <ChevronRight size={16} color={colors.muted} />
+                    </Pressable>
+                  );
+                })}
+              </View>
+
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Cancel"
+                onPress={onClose}
+                style={({ pressed }) => [
+                  mStyles.cancelButton,
+                  pressed && mStyles.pressed,
+                ]}
+              >
+                <Text style={mStyles.cancelText}>Cancel</Text>
+              </Pressable>
+            </>
+          ) : (
+            <View style={rStyles.composerWrap}>
+              <View style={rStyles.composerHeader}>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Back to reshare options"
+                  onPress={() => setMode("menu")}
+                  style={({ pressed }) => [
+                    mStyles.closeButton,
+                    pressed && mStyles.pressed,
+                  ]}
+                >
+                  <ArrowLeft size={16} color={colors.textSecondary} />
+                </Pressable>
+                <Text style={rStyles.composerTitle}>Quote Repost</Text>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Close quote composer"
+                  onPress={onClose}
+                  style={({ pressed }) => [
+                    mStyles.closeButton,
+                    pressed && mStyles.pressed,
+                  ]}
+                >
+                  <X size={16} color={colors.textSecondary} />
+                </Pressable>
+              </View>
+
+              <TextInput
+                value={quoteText}
+                onChangeText={setQuoteText}
+                placeholder="Add your thoughts about this spot..."
+                placeholderTextColor={colors.muted}
+                multiline
+                maxLength={280}
+                autoFocus
+                style={rStyles.quoteInput}
+              />
+
+              <View style={rStyles.quotePreview}>
+                <Text numberOfLines={1} style={rStyles.quotePreviewAuthor}>
+                  {post.author} · {post.place}
+                </Text>
+                <Text numberOfLines={2} style={rStyles.quotePreviewTitle}>
+                  {post.title}
+                </Text>
+              </View>
+
+              <View style={rStyles.composerFooter}>
+                <Text style={rStyles.charCount}>{quoteText.length}/280</Text>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Publish quote repost"
+                  disabled={!canPublish}
+                  onPress={() => {
+                    if (!canPublish) return;
+                    onSaveQuoteRepost(quoteText.trim());
+                    onClose();
+                  }}
+                  style={({ pressed }) => [
+                    rStyles.publishBtn,
+                    !canPublish && rStyles.publishBtnDisabled,
+                    pressed && canPublish && mStyles.pressed,
+                  ]}
+                >
+                  <Text style={rStyles.publishBtnText}>
+                    {existingQuoteNote ? "Update Quote" : "Post Quote"}
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
+          )}
+        </Animated.View>
+      </KeyboardAvoidingView>
+    </Modal>
+  );
+}
+
+const reshareSheetStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
+    composerWrap: {
+      gap: 12,
+      paddingTop: 2,
+    },
+    composerHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingBottom: 6,
+    },
+    composerTitle: {
+      fontSize: 16,
+      fontWeight: "700",
+      color: colors.text,
+    },
+    quoteInput: {
+      minHeight: 96,
+      maxHeight: 160,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: colors.line,
+      backgroundColor: colors.surfaceMuted,
+      padding: 14,
+      fontSize: 14,
+      lineHeight: 20,
+      color: colors.text,
+      textAlignVertical: "top",
+    },
+    quotePreview: {
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: colors.line,
+      backgroundColor: colors.bg,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      gap: 2,
+    },
+    quotePreviewAuthor: {
+      fontSize: 12,
+      fontWeight: "700",
+      color: colors.text,
+    },
+    quotePreviewTitle: {
+      fontSize: 12.5,
+      lineHeight: 17,
+      color: colors.muted,
+    },
+    composerFooter: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingTop: 2,
+    },
+    charCount: {
+      fontSize: 12,
+      color: colors.muted,
+    },
+    publishBtn: {
+      paddingHorizontal: 18,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: colors.signal,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    publishBtnDisabled: {
+      opacity: 0.45,
+    },
+    publishBtnText: {
+      fontSize: 14,
+      fontWeight: "700",
+      color: colors.signalForeground,
+    },
+  });
+
 /* ── PostCard Component ───────────────────────────────────────────── */
 
 export function PostCard({
@@ -1372,11 +2121,19 @@ export function PostCard({
     setReaction,
     removeReaction,
     reactionsMap,
+    isReposted,
+    toggleRepost,
+    getUserQuoteNote,
+    setQuoteRepost,
+    removeRepost,
   } = useOlive();
 
   const userReaction = getUserReaction(post.id);
+  const userReposted = isReposted(post.id);
+  const userQuoteNote = getUserQuoteNote(post.id);
   const [pickerVisible, setPickerVisible] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
+  const [reshareSheetVisible, setReshareSheetVisible] = useState(false);
   const [reactionsModalVisible, setReactionsModalVisible] = useState(false);
   const [anchorY, setAnchorY] = useState(300);
   const reactionButtonRef = useRef<View>(null);
@@ -1386,6 +2143,10 @@ export function PostCard({
   const reviews = reviewsMap[post.id] ?? REVIEWS[post.id] ?? [];
   const latestReview = reviews.length > 0 ? reviews[0] : null;
   const saved = isSaved(post.id);
+
+  const isInstantRepost = Boolean(post.repostedBy && !post.quoteNote);
+  const isQuoteRepost = Boolean(post.repostedBy && post.quoteNote);
+  const isAnyRepost = isInstantRepost || isQuoteRepost;
 
   // Compute total reaction count for display
   const postReactions = reactionsMap[post.id];
@@ -1398,21 +2159,26 @@ export function PostCard({
     ? Math.max(0, totalReactionCount - 1)
     : totalReactionCount;
 
-  // Compute reshare count (deterministic seed from post data)
-  const reshareCount = Math.floor(Math.abs(post.lng * 10) % 12);
+  // Compute reshare count (deterministic seed from post data + active repost state)
+  const baseReshareCount =
+    Math.floor(Math.abs(post.lng * 10) % 12) + (post.repostedBy ? 1 : 0);
+  const reshareCount =
+    baseReshareCount + (userReposted && !post.repostedBy ? 1 : 0);
 
   const openPlace = () => {
     closeSearch();
     openExpandedWindow({ type: "details", post });
   };
 
-  const openAuthorProfile = () => {
+  const openProfileByName = (name: string) => {
     closeSearch();
     router.push({
       pathname: "/profile",
-      params: { author: post.author, id: post.id },
+      params: { author: name, id: post.id },
     });
   };
+
+  const openAuthorProfile = () => openProfileByName(post.author);
 
   /* ── Reaction handlers ────────────────────────────────────────── */
 
@@ -1472,61 +2238,224 @@ export function PostCard({
     setMenuVisible(true);
   };
 
+  const handleInstantRepost = () => {
+    if (!userReposted) {
+      toggleRepost(post.id);
+    } else if (userQuoteNote) {
+      // Switch from quote repost back to instant repost
+      removeRepost(post.id);
+      toggleRepost(post.id);
+    }
+  };
+
   /* ── Determine which icon to show for the reaction button ────── */
   const currentReactionDef = userReaction
     ? getReactionDef(userReaction)
     : REACTION_DEFS[0];
   const ReactionIcon = currentReactionDef.Icon;
 
-  return (
-    <View style={styles.card}>
-      {/* Author Header */}
-      {!hideAuthor && (
-        <View style={styles.headerRow}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={`View ${post.author}'s profile`}
-            onPress={openAuthorProfile}
-            style={styles.authorGroup}
-          >
-            <View style={styles.avatarCircle}>
-              {post.image ? (
-                <Image source={post.image} style={styles.avatarPhoto} />
-              ) : (
-                <Text style={styles.avatarLetter}>{post.author[0]}</Text>
-              )}
-            </View>
-            <View style={styles.authorMeta}>
-              <Text style={styles.authorName}>{post.author}</Text>
-              <Text style={styles.authorSub}>
-                {post.kind} · {post.category} · {post.distanceKm} km
-              </Text>
-            </View>
-          </Pressable>
+  const moreButton = (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel="More options"
+      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+      onPress={handleMoreOptions}
+      style={({ pressed }) => [styles.moreButton, pressed && styles.pressed]}
+    >
+      <MoreHorizontal size={20} color={colors.textSecondary} />
+    </Pressable>
+  );
 
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="More options"
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            onPress={handleMoreOptions}
-            style={({ pressed }) => [
-              styles.moreButton,
-              pressed && styles.pressed,
-            ]}
-          >
-            <MoreHorizontal size={20} color={colors.textSecondary} />
-          </Pressable>
-        </View>
-      )}
-
-      {/* Image */}
+  const renderOriginalAuthorHeader = (withMoreButton: boolean) => (
+    <View style={styles.headerRow}>
       <Pressable
         accessibilityRole="button"
+        accessibilityLabel={`View ${post.author}'s profile`}
+        onPress={openAuthorProfile}
+        style={styles.authorGroup}
+      >
+        <View style={styles.avatarCircle}>
+          {post.image ? (
+            <Image source={post.image} style={styles.avatarPhoto} />
+          ) : (
+            <Text style={styles.avatarLetter}>{post.author[0]}</Text>
+          )}
+        </View>
+        <View style={styles.authorMeta}>
+          <Text numberOfLines={1} style={styles.authorName}>
+            {post.author}
+          </Text>
+          <Text numberOfLines={1} style={styles.authorSub}>
+            {post.kind} · {post.category} · {post.distanceKm} km
+          </Text>
+        </View>
+      </Pressable>
+
+      {withMoreButton && moreButton}
+    </View>
+  );
+
+  const renderMedia = (embedded: boolean) =>
+    post.image ? (
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`Open ${post.place} details`}
         onPress={openPlace}
-        style={styles.imageWrap}
+        style={[styles.imageWrap, embedded && styles.embeddedImageWrap]}
       >
         <Image source={post.image} style={styles.postImage} />
       </Pressable>
+    ) : (
+      <NoPhotoEditorialCard
+        post={post}
+        colors={colors}
+        embedded={embedded}
+        onPress={openPlace}
+      />
+    );
+
+  const renderPostBody = (embedded: boolean) => (
+    <View
+      style={[
+        styles.postBodySection,
+        embedded && styles.embeddedPostBodySection,
+      ]}
+    >
+      {/* Narrative Caption */}
+      <Pressable
+        onPress={() => setCaptionExpanded((prev) => !prev)}
+        style={styles.captionWrap}
+      >
+        <Text
+          style={styles.captionText}
+          numberOfLines={captionExpanded ? undefined : 2}
+        >
+          {post.body}
+        </Text>
+        {post.body.length > 85 && !captionExpanded && (
+          <Text style={styles.captionMore}>more</Text>
+        )}
+      </Pressable>
+
+      {/* Venue Capsule & Details Trigger */}
+      <View style={styles.venueRow}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`Location: ${post.place}`}
+          onPress={openPlace}
+          style={styles.venueCapsule}
+        >
+          <MapPin size={12} color={colors.signal} />
+          <Text numberOfLines={1} style={styles.venueCapsuleText}>
+            {post.place}
+          </Text>
+        </Pressable>
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Open details sheet"
+          onPress={() => openExpandedWindow({ type: "details", post })}
+          style={styles.detailsChip}
+        >
+          <Text style={styles.detailsChipText}>Details</Text>
+          <ChevronRight size={11} color={colors.muted} />
+        </Pressable>
+      </View>
+
+      {/* Community Review Highlight */}
+      {latestReview && (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`Community review from ${latestReview.by}`}
+          onPress={() => openExpandedWindow({ type: "comments", post })}
+          style={styles.reviewHighlight}
+        >
+          <Text numberOfLines={1} style={styles.reviewQuote}>
+            <Text style={styles.reviewAuthorPrefix}>{latestReview.by}: </Text>
+            &ldquo;{latestReview.text}&rdquo;
+          </Text>
+        </Pressable>
+      )}
+    </View>
+  );
+
+  return (
+    <View style={styles.card}>
+      {/* LinkedIn-Style Instant Repost Banner */}
+      {isInstantRepost && post.repostedBy && (
+        <View style={styles.repostBanner}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`View ${post.repostedBy.name}'s profile`}
+            onPress={() => openProfileByName(post.repostedBy!.name)}
+            style={({ pressed }) => [
+              styles.repostBannerLeft,
+              pressed && styles.pressed,
+            ]}
+          >
+            <View style={styles.repostMiniAvatar}>
+              <Text style={styles.repostMiniAvatarText}>
+                {getInitials(post.repostedBy.name)}
+              </Text>
+            </View>
+            <Text numberOfLines={1} style={styles.repostBannerText}>
+              <Text style={styles.repostBannerAuthor}>
+                {post.repostedBy.name}
+              </Text>{" "}
+              reposted this
+            </Text>
+          </Pressable>
+          {moreButton}
+        </View>
+      )}
+
+      {/* Quote Repost Header (Reposter's Own Header) */}
+      {isQuoteRepost && post.repostedBy && (
+        <View style={styles.headerRow}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`View ${post.repostedBy.name}'s profile`}
+            onPress={() => openProfileByName(post.repostedBy!.name)}
+            style={styles.authorGroup}
+          >
+            <View style={styles.avatarCircle}>
+              <Text style={styles.avatarLetter}>
+                {getInitials(post.repostedBy.name)}
+              </Text>
+            </View>
+            <View style={styles.authorMeta}>
+              <Text numberOfLines={1} style={styles.authorName}>
+                {post.repostedBy.name}
+              </Text>
+              <Text numberOfLines={1} style={styles.authorSub}>
+                {post.repostedBy.role || post.repostedBy.time || "Reposted"}
+              </Text>
+            </View>
+          </Pressable>
+          {moreButton}
+        </View>
+      )}
+
+      {/* Normal Post Author Header */}
+      {!isAnyRepost && !hideAuthor && renderOriginalAuthorHeader(true)}
+
+      {/* Media or Embedded Repost Container */}
+      {isAnyRepost ? (
+        <>
+          {isQuoteRepost && post.quoteNote && (
+            <Text style={styles.quoteRepostCommentary}>{post.quoteNote}</Text>
+          )}
+          <RepostStripedFrame colors={colors}>
+            <View style={styles.innerOriginalPost}>
+              {renderOriginalAuthorHeader(false)}
+              {renderMedia(true)}
+              {renderPostBody(true)}
+            </View>
+          </RepostStripedFrame>
+        </>
+      ) : (
+        renderMedia(false)
+      )}
 
       {/* ═══ Social Action Bar — 2 Groups with justify-between ═══ */}
       <View style={styles.actionBar}>
@@ -1591,16 +2520,26 @@ export function PostCard({
           {/* Reshare */}
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Reshare"
-            onPress={handleShare}
+            accessibilityLabel="Reshare options"
+            onPress={() => setReshareSheetVisible(true)}
             style={({ pressed }) => [
               styles.actionItem,
               pressed && styles.pressed,
             ]}
           >
-            <Repeat2 size={20} color={colors.text} />
+            <Repeat2
+              size={20}
+              color={userReposted ? colors.signal : colors.text}
+            />
             {reshareCount > 0 && (
-              <Text style={styles.actionCount}>{reshareCount}</Text>
+              <Text
+                style={[
+                  styles.actionCount,
+                  userReposted && { color: colors.signal },
+                ]}
+              >
+                {reshareCount}
+              </Text>
             )}
           </Pressable>
         </View>
@@ -1647,65 +2586,8 @@ export function PostCard({
         </Pressable>
       )}
 
-      {/* Editorial Post Content & Story Narrative */}
-      <View style={styles.postBodySection}>
-        {/* Narrative Caption */}
-        <Pressable
-          onPress={() => setCaptionExpanded((prev) => !prev)}
-          style={styles.captionWrap}
-        >
-          <Text
-            style={styles.captionText}
-            numberOfLines={captionExpanded ? undefined : 2}
-          >
-            {/* <Text style={styles.captionAuthor}>{post.author} </Text> */}
-            {post.body}
-          </Text>
-          {post.body.length > 85 && !captionExpanded && (
-            <Text style={styles.captionMore}>more</Text>
-          )}
-        </Pressable>
-
-        {/* Venue Capsule & Details Trigger */}
-        <View style={styles.venueRow}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={`Location: ${post.place}`}
-            onPress={openPlace}
-            style={styles.venueCapsule}
-          >
-            <MapPin size={12} color={colors.signal} />
-            <Text numberOfLines={1} style={styles.venueCapsuleText}>
-              {post.place}
-            </Text>
-          </Pressable>
-
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Open details sheet"
-            onPress={() => openExpandedWindow({ type: "details", post })}
-            style={styles.detailsChip}
-          >
-            <Text style={styles.detailsChipText}>Details</Text>
-            <ChevronRight size={11} color={colors.muted} />
-          </Pressable>
-        </View>
-
-        {/* Community Review Highlight */}
-        {latestReview && (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={`Community review from ${latestReview.by}`}
-            onPress={() => openExpandedWindow({ type: "comments", post })}
-            style={styles.reviewHighlight}
-          >
-            <Text numberOfLines={1} style={styles.reviewQuote}>
-              <Text style={styles.reviewAuthorPrefix}>{latestReview.by}: </Text>
-              &ldquo;{latestReview.text}&rdquo;
-            </Text>
-          </Pressable>
-        )}
-      </View>
+      {/* Editorial Post Content & Story Narrative (for non-repost posts) */}
+      {!isAnyRepost && renderPostBody(false)}
 
       {/* Post Options Menu Modal Sheet */}
       <PostOptionsMenu
@@ -1717,6 +2599,20 @@ export function PostCard({
         onViewPlace={openPlace}
         onViewAuthor={openAuthorProfile}
         onClose={() => setMenuVisible(false)}
+        colors={colors}
+      />
+
+      {/* Reshare Options Sheet (Instant Repost / Quote Repost / Share) */}
+      <ReshareOptionsSheet
+        visible={reshareSheetVisible}
+        post={post}
+        isRepostedByMe={userReposted}
+        existingQuoteNote={userQuoteNote}
+        onInstantRepost={handleInstantRepost}
+        onSaveQuoteRepost={(note) => setQuoteRepost(post.id, note)}
+        onRemoveRepost={() => removeRepost(post.id)}
+        onShareExternal={handleShare}
+        onClose={() => setReshareSheetVisible(false)}
         colors={colors}
       />
 
@@ -1739,11 +2635,63 @@ const createStyles = (colors: ColorPalette) =>
     card: {
       marginBottom: 36,
     },
+    repostBanner: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: 8,
+      paddingHorizontal: 4,
+      paddingBottom: 10,
+    },
+    repostBannerLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      flex: 1,
+      minWidth: 0,
+    },
+    repostMiniAvatar: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      backgroundColor: colors.surfaceMuted,
+      borderWidth: 1,
+      borderColor: colors.line,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    repostMiniAvatarText: {
+      fontSize: 10,
+      fontWeight: "700",
+      color: colors.text,
+    },
+    repostBannerText: {
+      fontSize: 12.5,
+      color: colors.muted,
+      flexShrink: 1,
+    },
+    repostBannerAuthor: {
+      color: colors.text,
+      fontWeight: "700",
+    },
+    quoteRepostCommentary: {
+      fontSize: 14,
+      lineHeight: 20,
+      color: colors.text,
+      marginBottom: 12,
+    },
+    innerOriginalPost: {
+      backgroundColor: colors.bg,
+      borderRadius: 20,
+      padding: 8,
+      paddingRight: 0,
+    },
     headerRow: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
       paddingBottom: 8,
+      gap: 10,
     },
     moreButton: {
       padding: 6,
@@ -1757,6 +2705,7 @@ const createStyles = (colors: ColorPalette) =>
       alignItems: "center",
       gap: 12,
       flex: 1,
+      minWidth: 0,
     },
     avatarCircle: {
       width: 48,
@@ -1779,6 +2728,7 @@ const createStyles = (colors: ColorPalette) =>
     },
     authorMeta: {
       flex: 1,
+      minWidth: 0,
     },
     authorName: {
       fontSize: 16,
@@ -1796,6 +2746,10 @@ const createStyles = (colors: ColorPalette) =>
       borderRadius: 32,
       overflow: "hidden",
       position: "relative",
+      backgroundColor: colors.surfaceMuted,
+    },
+    embeddedImageWrap: {
+      borderRadius: 24,
     },
     postImage: {
       width: "100%",
@@ -1837,8 +2791,8 @@ const createStyles = (colors: ColorPalette) =>
       height: 32,
       borderRadius: 9999,
       borderWidth: 1,
-      backgroundColor: "#E6CDBA50",
-      borderColor: "#E6CDBA",
+      backgroundColor: colors.actionPillBg,
+      borderColor: colors.actionPillBorder,
     },
     actionCount: {
       fontSize: 12,
@@ -1851,6 +2805,9 @@ const createStyles = (colors: ColorPalette) =>
     postBodySection: {
       paddingTop: 4,
       gap: 4,
+    },
+    embeddedPostBodySection: {
+      paddingTop: 8,
     },
     captionWrap: {
       paddingVertical: 2,

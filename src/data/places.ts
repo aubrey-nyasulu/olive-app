@@ -176,6 +176,61 @@ export const POSTS: Post[] = [
     image: nature,
     ratio: "1/1",
   },
+  {
+    id: "area18-guavas-note",
+    author: "Tamanda Gondwe",
+    kind: "Person",
+    category: "Market",
+    title: "Fresh White-Flesh Guavas & Wild Honey Restocked",
+    body: "Heads up for anyone passing through before noon: the cooperative stall near the north gate just unloaded crates of tree-ripened guavas, fresh lemongrass bundles, and raw miombo woodland honey in glass jars.",
+    place: "Area 18 Farmers Stall",
+    lat: -13.949,
+    lng: 33.791,
+    distanceKm: 0.9,
+    when: "Fresh until 13:00",
+    image: null,
+  },
+  {
+    id: "kondwani-repost-lingadzi",
+    author: "Lingadzi Sessions",
+    kind: "Event",
+    category: "Concert",
+    title: "Golden Hour Acoustic Circle",
+    body: "Every second Friday at dusk, local acoustic guitarists and vocalists gather around the stone terrace for an unplugged two-hour set. Bring a woven mat, grab ginger tea from the side stall, and stay for the open-mic encore under the string lights.",
+    place: "Area 3 Amphitheatre Garden",
+    lat: -13.975,
+    lng: 33.765,
+    distanceKm: 1.1,
+    when: "Friday · 17:30",
+    image: concert,
+    ratio: "1/1",
+    repostedBy: {
+      name: "Kondwani Banda",
+      time: "2h ago",
+    },
+  },
+  {
+    id: "dalitso-quote-forno",
+    author: "Mabu Artisan Bakes",
+    kind: "Business",
+    category: "Bakery",
+    title: "Morning Pour-Overs & Cardamom Buns",
+    body: "Dropped by early before the weekend rush and caught the first batch of Malawi Misuku single-origin beans coming off the roaster. The courtyard is shaded, the sourdough croissants are still warm, and there's plenty of quiet corner seating.",
+    place: "14 Presidential Way, Area 10",
+    lat: -13.9525,
+    lng: 33.7815,
+    distanceKm: 1.6,
+    when: "Open until 18:30",
+    image: coffee,
+    ratio: "1/1",
+    repostedBy: {
+      name: "Dalitso Phiri",
+      role: "Wildlife Photographer · 45m",
+      time: "45m ago",
+    },
+    quoteNote:
+      "Stopped by right after the sanctuary walk — the cardamom buns are still warm and the courtyard under the jacarandas is peaceful.",
+  },
 ];
 
 export const CATEGORIES = Array.from(new Set(POSTS.map((p) => p.category)));
@@ -271,6 +326,32 @@ export const REVIEWS: Record<string, Review[]> = {
       by: "Blessings",
       stars: 5,
       text: "Incredible light by the river trail, thanks for organizing the walk.",
+    },
+  ],
+  "area18-guavas-note": [
+    {
+      by: "Lumbani Chirwa",
+      stars: 5,
+      text: "Just picked up two jars of the miombo honey — super floral!",
+    },
+  ],
+  "kondwani-repost-lingadzi": [
+    {
+      by: "Chisomo Banda",
+      stars: 5,
+      text: "Best vibe in Lilongwe when the sun drops behind the trees.",
+    },
+    {
+      by: "Alinafe Mwale",
+      stars: 5,
+      text: "The sound carries so cleanly in the garden courtyard.",
+    },
+  ],
+  "dalitso-quote-forno": [
+    {
+      by: "Kondwani Banda",
+      stars: 5,
+      text: "Their Misuku pour-over on Sunday morning is unbeatable — sit by the mango tree.",
     },
   ],
 };

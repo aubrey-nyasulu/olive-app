@@ -1,5 +1,5 @@
 import { Image, Pressable, ScrollView, Share, StyleSheet, Text, View } from "react-native";
-import { Share2, Bookmark, Trash2 } from "lucide-react-native";
+import { Share2, Bookmark, MapPin, Trash2 } from "lucide-react-native";
 import type { Post } from "../../../models";
 import { useThemeStyles, type ColorPalette } from "../../../theme";
 
@@ -62,7 +62,13 @@ export function SavedView({ savedPosts, onSelectPlace, onRemove }: SavedViewProp
                 onPress={() => onSelectPlace(post.id)}
                 style={styles.itemPressable}
               >
-                <Image source={post.image} style={styles.itemThumb} />
+                {post.image ? (
+                  <Image source={post.image} style={styles.itemThumb} />
+                ) : (
+                  <View style={styles.itemThumbFallback}>
+                    <MapPin size={16} color={colors.signal} />
+                  </View>
+                )}
                 <View style={styles.itemMeta}>
                   <Text style={styles.itemTitle} numberOfLines={1}>
                     {post.author}
@@ -171,6 +177,14 @@ const createStyles = (colors: ColorPalette) =>
     width: 44,
     height: 44,
     borderRadius: 12,
+  },
+  itemThumbFallback: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: colors.signalLight,
+    alignItems: "center",
+    justifyContent: "center",
   },
   itemMeta: {
     flex: 1,

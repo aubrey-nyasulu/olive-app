@@ -269,9 +269,10 @@ export default function ProfileScreen() {
               byNorm === "blessings" ||
               byNorm === "kondwani"));
         if (isAuthor) {
-          const schedule =
-            reviewSchedules[list.length] ??
-            { timeAgo: `${list.length + 2}d ago`, minutesAgo: (list.length + 2) * 1440 };
+          const schedule = reviewSchedules[list.length] ?? {
+            timeAgo: `${list.length + 2}d ago`,
+            minutesAgo: (list.length + 2) * 1440,
+          };
           list.push({
             post,
             review: r,
@@ -389,7 +390,11 @@ export default function ProfileScreen() {
           )}
 
           {profileTab === "reposted" && (
-            <ProfileRepostsTab posts={repostedPosts} userName={profile.name} />
+            <ProfileRepostsTab
+              posts={repostedPosts}
+              userName={profile.name}
+              isMe={isMe}
+            />
           )}
 
           {profileTab === "interacted" && (
