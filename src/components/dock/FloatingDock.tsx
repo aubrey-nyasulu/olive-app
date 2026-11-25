@@ -5,6 +5,7 @@ import {
   Keyboard,
   type KeyboardEvent,
   PanResponder,
+  type PanResponderGestureState,
   Platform,
   Pressable,
   Share,
@@ -15,22 +16,15 @@ import {
 import type { LucideIcon } from "lucide-react-native";
 import {
   Bell,
-  Bookmark,
   Flag,
   Link,
   MessageSquareMore,
-  Settings,
   Share2,
 } from "lucide-react-native";
 import { BlurView } from "expo-blur";
-import { LinearGradient } from "expo-linear-gradient";
 import { router, usePathname } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import {
-  useOlive,
-  type ExpandedWindow,
-  type FeedMode,
-} from "../../context/OliveProvider";
+import { useOlive, type ExpandedWindow } from "../../context/OliveProvider";
 import { useThemeStyles, type ColorPalette } from "../../theme";
 import { POSTS, getPostById } from "../../places";
 import type { UserProfile } from "../../profiles";
@@ -42,32 +36,17 @@ import { SavedView } from "./views/SavedView";
 import { SettingsView } from "./views/SettingsView";
 import { MessageView } from "./views/MessageView";
 import { ReportView } from "./views/ReportView";
-import { FeedModesView } from "./views/FeedModesView";
 import { SearchOptionsView } from "./views/SearchOptionsView";
 import { UserMenuView } from "./views/UserMenuView";
 import { NotificationsView } from "./views/NotificationsView";
 
-interface DockOption {
+interface OtherUserOption {
   icon: LucideIcon;
   label: string;
-  id:
-    | "settings"
-    | "saved"
-    | "share"
-    | "message"
-    | "alerts"
-    | "share_user"
-    | "copy"
-    | "report";
+  id: "message" | "alerts" | "share_user" | "copy" | "report";
 }
 
-const PROFILE_OPTIONS: DockOption[] = [
-  { icon: Settings, label: "Settings", id: "settings" },
-  { icon: Bookmark, label: "Saved", id: "saved" },
-  { icon: Share2, label: "Share", id: "share" },
-];
-
-const OTHER_USER_OPTIONS: DockOption[] = [
+const OTHER_USER_OPTIONS: OtherUserOption[] = [
   {
     icon: MessageSquareMore,
     label: "Message",
@@ -98,16 +77,14 @@ export function FloatingDock({
   const {
     savedIds,
     toggleSave,
-    feedMode,
-    setFeedMode,
-    searchOpen,
-    setSearchOpen,
     activeMode,
     setActiveMode,
     isListening,
     setIsListening,
+    typeQuery,
     closeSearch,
     isSearching,
+    setIsSearching,
     isScanning,
     setIsScanning,
     expandedWindow,
@@ -120,7 +97,6 @@ export function FloatingDock({
 
   const insets = useSafeAreaInsets();
   const pathname = usePathname();
-  const onFeed = pathname === "/";
   const onProfile = pathname === "/profile";
   const panelOpen = activeMode !== null;
   const isExpanded = expandedWindow !== null;
@@ -216,18 +192,8 @@ export function FloatingDock({
   maxCollapseDeltaRef.current = maxCollapseDelta;
 
   const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: (_, gestureState) => {
-        return gestureState.dy > 2;
-      },
-      onPanResponderMove: (_, gestureState) => {
-        const collapseDelta = maxCollapseDeltaRef.current;
-        const dy = Math.max(0, gestureState.dy);
-        const progress = Math.max(0, Math.min(1, 1 - dy / collapseDelta));
-        dockExpandedAnim.setValue(progress);
-      },
-      onPanResponderRelease: (_, gestureState) => {
+    (() => {
+      const handleGestureEnd = (gestureState: PanResponderGestureState) => {
         if (gestureState.dy > 65 || gestureState.vy > 0.45) {
           closeExpandedWindow();
         } else {
@@ -238,20 +204,23 @@ export function FloatingDock({
             useNativeDriver: false,
           }).start();
         }
-      },
-      onPanResponderTerminate: (_, gestureState) => {
-        if (gestureState.dy > 65 || gestureState.vy > 0.45) {
-          closeExpandedWindow();
-        } else {
-          Animated.spring(dockExpandedAnim, {
-            toValue: 1,
-            friction: 9,
-            tension: 70,
-            useNativeDriver: false,
-          }).start();
-        }
-      },
-    })
+      };
+
+      return PanResponder.create({
+        onStartShouldSetPanResponder: () => true,
+        onMoveShouldSetPanResponder: (_, gestureState) => gestureState.dy > 2,
+        onPanResponderMove: (_, gestureState) => {
+          const collapseDelta = maxCollapseDeltaRef.current;
+          const dy = Math.max(0, gestureState.dy);
+          const progress = Math.max(0, Math.min(1, 1 - dy / collapseDelta));
+          dockExpandedAnim.setValue(progress);
+        },
+        onPanResponderRelease: (_, gestureState) =>
+          handleGestureEnd(gestureState),
+        onPanResponderTerminate: (_, gestureState) =>
+          handleGestureEnd(gestureState),
+      });
+    })()
   ).current;
 
   // Spring animation when expanded & keep content mounted until collapse finishes
@@ -355,22 +324,15 @@ export function FloatingDock({
     showToast(next ? "Live stream active" : "Live stream paused");
   };
 
-  const handleLeftPill = () => {
+  // Left button: Cancel search (when panelOpen), Back (Profile), or Profile avatar -> User Menu (Feed)
+  const handleLeftPress = () => {
     Keyboard.dismiss();
     if (profileMenuOpen) {
       setProfileMenuOpen(false);
       return;
     }
-    if (panelOpen || searchOpen) {
+    if (panelOpen) {
       closeSearch();
-      return;
-    }
-    if (expandedWindow?.type === "search_options") {
-      closeExpandedWindow();
-      return;
-    }
-    if (isExpanded) {
-      openExpandedWindow({ type: "search_options" });
       return;
     }
     if (onProfile) {
@@ -381,30 +343,84 @@ export function FloatingDock({
       }
       return;
     }
-    // On feed: left button shows search icon; clicking it shows search options
-    openExpandedWindow({ type: "search_options" });
-  };
-
-  const handleRightPress = () => {
-    Keyboard.dismiss();
-    if (onProfile && isOtherUser) {
-      setProfileMenuOpen((prev) => !prev);
-      return;
-    }
-    if (panelOpen) {
-      closeSearch();
-      return;
-    }
-    // Right button shows profile image; clicking it expands dock to show user options
     if (expandedWindow?.type === "user_menu") {
       closeExpandedWindow();
       return;
     }
-    if (isExpanded) {
+    openExpandedWindow({ type: "user_menu" });
+  };
+
+  // Right button: Search action (when panelOpen), Other User menu / Profile avatar (Profile), or Search options (Feed)
+  const handleRightPress = () => {
+    Keyboard.dismiss();
+    if (panelOpen) {
+      if (activeMode === "voice") {
+        setIsListening((l) => !l);
+      } else if (activeMode === "type") {
+        if (typeQuery.trim()) {
+          setIsSearching(true);
+          setTimeout(() => setIsSearching(false), 1800);
+        }
+      } else {
+        closeSearch();
+      }
+      return;
+    }
+    if (onProfile && isOtherUser) {
+      setProfileMenuOpen((prev) => !prev);
+      return;
+    }
+    if (onProfile) {
+      if (expandedWindow?.type === "user_menu") {
+        closeExpandedWindow();
+        return;
+      }
       openExpandedWindow({ type: "user_menu" });
       return;
     }
-    openExpandedWindow({ type: "user_menu" });
+    if (expandedWindow?.type === "search_options") {
+      closeExpandedWindow();
+      return;
+    }
+    openExpandedWindow({ type: "search_options" });
+  };
+
+  const handleOtherUserOption = (optionId: OtherUserOption["id"]) => {
+    setProfileMenuOpen(false);
+    if (optionId === "message") {
+      setMessageDraft("");
+      openExpandedWindow({
+        type: "message",
+        recipient: currentProfile,
+      });
+    } else if (optionId === "alerts") {
+      const isAlerted = !alertsMap[currentProfile.id];
+      setAlertsMap((prev) => ({
+        ...prev,
+        [currentProfile.id]: isAlerted,
+      }));
+      showToast(
+        isAlerted
+          ? `Alerts turned on for ${currentProfile.name}`
+          : `Alerts muted for ${currentProfile.name}`
+      );
+    } else if (optionId === "share_user") {
+      Share.share({
+        message: `Check out ${currentProfile.name} (${currentProfile.handle}) on Olive!`,
+      });
+    } else if (optionId === "copy") {
+      showToast(
+        `Profile link copied: olive.app/${currentProfile.handle.replace(
+          "@",
+          ""
+        )}`
+      );
+    } else if (optionId === "report") {
+      openExpandedWindow({
+        type: "report",
+        targetUser: currentProfile,
+      });
+    }
   };
 
   return (
@@ -422,60 +438,17 @@ export function FloatingDock({
       ]}
       pointerEvents="box-none"
     >
-      {/* Vertical Profile Options Popup */}
-      {profileMenuOpen && onProfile && (
+      {/* Vertical Other-User Profile Options Popup (anchored above Right button) */}
+      {profileMenuOpen && onProfile && isOtherUser && (
         <View style={styles.modesPopup}>
-          {(isOtherUser ? OTHER_USER_OPTIONS : PROFILE_OPTIONS).map(
-            (item) => (
+          {OTHER_USER_OPTIONS.map((item) => {
+            const ItemIcon = item.icon;
+            return (
               <Pressable
-                key={item.label}
+                key={item.id}
                 accessibilityRole="button"
                 accessibilityLabel={item.label}
-                onPress={() => {
-                  setProfileMenuOpen(false);
-                  if (item.id === "settings") {
-                    openExpandedWindow({ type: "profile_settings" });
-                  } else if (item.id === "saved") {
-                    openExpandedWindow({ type: "profile_saved" });
-                  } else if (item.id === "share") {
-                    Share.share({
-                      message: "Olive — Discover local places and events",
-                    });
-                  } else if (item.id === "message") {
-                    setMessageDraft("");
-                    openExpandedWindow({
-                      type: "message",
-                      recipient: currentProfile,
-                    });
-                  } else if (item.id === "alerts") {
-                    const isAlerted = !alertsMap[currentProfile.id];
-                    setAlertsMap((prev) => ({
-                      ...prev,
-                      [currentProfile.id]: isAlerted,
-                    }));
-                    showToast(
-                      isAlerted
-                        ? `Alerts turned on for ${currentProfile.name}`
-                        : `Alerts muted for ${currentProfile.name}`
-                    );
-                  } else if (item.id === "share_user") {
-                    Share.share({
-                      message: `Check out ${currentProfile.name} (${currentProfile.handle}) on Olive!`,
-                    });
-                  } else if (item.id === "copy") {
-                    showToast(
-                      `Profile link copied: olive.app/${currentProfile.handle.replace(
-                        "@",
-                        ""
-                      )}`
-                    );
-                  } else if (item.id === "report") {
-                    openExpandedWindow({
-                      type: "report",
-                      targetUser: currentProfile,
-                    });
-                  }
-                }}
+                onPress={() => handleOtherUserOption(item.id)}
                 style={({ pressed }) => [
                   styles.modeOptionRow,
                   { opacity: pressed ? 0.8 : 1 },
@@ -483,14 +456,11 @@ export function FloatingDock({
               >
                 <Text style={styles.modeLabel}>{item.label}</Text>
                 <View style={styles.modeCircle}>
-                  {(() => {
-                    const ItemIcon = item.icon;
-                    return <ItemIcon size={18} color={colors.bg} />;
-                  })()}
+                  <ItemIcon size={18} color={colors.bg} />
                 </View>
               </Pressable>
-            )
-          )}
+            );
+          })}
         </View>
       )}
 
@@ -515,7 +485,7 @@ export function FloatingDock({
               },
             ]}
           >
-            {/* Top Drag Handle (Functional Drag down to close) */}
+            {/* Top Drag Handle (Drag down to close) */}
             <Animated.View
               {...panResponder.panHandlers}
               style={[styles.handleRow, { opacity: handleOpacity }]}
@@ -605,22 +575,6 @@ export function FloatingDock({
               />
             )}
 
-            {renderedWindow.type === "feed_modes" && (
-              <FeedModesView
-                onSelectMode={(mode) => {
-                  setFeedMode(mode);
-                  closeExpandedWindow();
-                  showToast(
-                    mode === "people"
-                      ? "Feed: People only"
-                      : mode === "places"
-                      ? "Feed: Places & Events"
-                      : "Feed: All activity"
-                  );
-                }}
-              />
-            )}
-
             {renderedWindow.type === "search_options" && (
               <SearchOptionsView
                 onToggleSync={() => {
@@ -685,10 +639,8 @@ export function FloatingDock({
             isExpanded={isExpanded}
             expandedWindow={expandedWindow}
             showAnimatingLine={showAnimatingLine}
-            onFeed={onFeed}
             onProfile={onProfile}
             panelOpen={panelOpen}
-            searchOpen={searchOpen}
             profileMenuOpen={profileMenuOpen}
             isListening={isListening}
             isOtherUser={isOtherUser}
@@ -696,27 +648,12 @@ export function FloatingDock({
             setCommentDraft={setCommentDraft}
             messageDraft={messageDraft}
             setMessageDraft={setMessageDraft}
-            savedCount={savedPosts.length}
             onSendComment={handleSendComment}
             onSendMessage={handleSendMessage}
             onCloseExpanded={closeExpandedWindow}
-            onToggleSearch={handleRightPress}
-            onRightLongPress={() => {
-              if (onFeed && !panelOpen) {
-                openExpandedWindow({ type: "search_options" });
-              }
-            }}
-            onLeftPill={handleLeftPill}
-            onLeftLongPress={() => {
-              if (onFeed && !panelOpen && !searchOpen) {
-                openExpandedWindow({ type: "feed_modes" });
-              }
-            }}
+            onLeftPress={handleLeftPress}
+            onRightPress={handleRightPress}
             onToggleListening={() => setIsListening((l) => !l)}
-            onDoneExpanded={() => {
-              closeExpandedWindow();
-              showToast("Saved");
-            }}
           />
         </View>
       </Animated.View>
