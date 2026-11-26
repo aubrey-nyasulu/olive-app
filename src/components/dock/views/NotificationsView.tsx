@@ -85,7 +85,7 @@ export function NotificationsView({
   showToast,
 }: NotificationsViewProps) {
   const { styles, colors } = useThemeStyles(createStyles);
-  const { openExpandedWindow } = useOlive();
+  const { openPopup } = useOlive();
   const [items, setItems] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS);
 
   const unreadCount = items.filter((n) => n.unread).length;
@@ -103,7 +103,29 @@ export function NotificationsView({
     if (item.postId) {
       const targetPost = POSTS.find((p) => p.id === item.postId);
       if (targetPost) {
-        openExpandedWindow({ type: "details", post: targetPost });
+        onClose();
+        openPopup(
+          { type: "details", post: targetPost },
+          {
+            triggerId: `notif-${item.id}`,
+            rect: {
+              x: 16,
+              y: 120,
+              width: 360,
+              height: 240,
+            },
+            style: {
+              borderRadius: 24,
+              backgroundColor: colors.surface,
+              borderColor: colors.line,
+              borderWidth: 1,
+            },
+            headerMorph: {
+              headerTitle: targetPost.place,
+              headerSubtitle: `${targetPost.author} · ${targetPost.category} · ${targetPost.distanceKm} km`,
+            },
+          }
+        );
       }
     }
   };

@@ -21,7 +21,6 @@ import {
   MessageSquareMore,
   Share2,
 } from "lucide-react-native";
-import { BlurView } from "expo-blur";
 import { router, usePathname } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useOlive, type ExpandedWindow } from "../../context/OliveProvider";
@@ -29,9 +28,6 @@ import { useThemeStyles, type ColorPalette } from "../../theme";
 import { POSTS, getPostById } from "../../places";
 import type { UserProfile } from "../../profiles";
 import { DockActionBar } from "./DockActionBar";
-import { CommentsView } from "./views/CommentsView";
-import { DetailsView } from "./views/DetailsView";
-import { RelatedView } from "./views/RelatedView";
 import { SavedView } from "./views/SavedView";
 import { SettingsView } from "./views/SettingsView";
 import { MessageView } from "./views/MessageView";
@@ -39,8 +35,6 @@ import { ReportView } from "./views/ReportView";
 import { SearchOptionsView } from "./views/SearchOptionsView";
 import { UserMenuView } from "./views/UserMenuView";
 import { NotificationsView } from "./views/NotificationsView";
-import { EditProfileView } from "./views/EditProfileView";
-import { VisitorsView } from "./views/VisitorsView";
 
 interface OtherUserOption {
   icon: LucideIcon;
@@ -75,7 +69,7 @@ export function FloatingDock({
   setProfileMenuOpen,
   showToast,
 }: FloatingDockProps) {
-  const { styles, colors, isDark } = useThemeStyles(createStyles);
+  const { styles, colors } = useThemeStyles(createStyles);
   const {
     savedIds,
     toggleSave,
@@ -92,10 +86,7 @@ export function FloatingDock({
     expandedWindow,
     openExpandedWindow,
     closeExpandedWindow,
-    reviewsMap,
-    addReview,
-    updateProfileOverrides,
-    startGuidance,
+    openPopup,
   } = useOlive();
 
   const insets = useSafeAreaInsets();
@@ -108,8 +99,6 @@ export function FloatingDock({
     Dimensions.get("window").height
   );
   const [keyboardHeight, setKeyboardHeight] = useState(0);
-  const [commentDraft, setCommentDraft] = useState("");
-  const [messageDraft, setMessageDraft] = useState("");
   const [alertsMap, setAlertsMap] = useState<Record<string, boolean>>({});
   const [isInitialLoading, setIsInitialLoading] = useState(true);
 
@@ -180,13 +169,11 @@ export function FloatingDock({
     useState<ExpandedWindow>(expandedWindow);
 
   // Height bounds
-  const isDetailsWindow =
-    (renderedWindow ?? expandedWindow)?.type === "details";
   const expandedMaxHeight = Math.min(
     keyboardHeight > 0
       ? screenHeight - keyboardHeight - insets.top - 40
-      : screenHeight * (isDetailsWindow ? 0.78 : 0.72),
-    isDetailsWindow ? 580 : 520
+      : screenHeight * 0.72,
+    520
   );
   const maxDockHeight = Math.max(280, expandedMaxHeight);
   const maxCollapseDelta = maxDockHeight - 64;
@@ -250,21 +237,15 @@ export function FloatingDock({
     }
   }, [isExpanded, expandedWindow, dockExpandedAnim]);
 
-  const dockHeight = dockExpandedAnim.interpolate({
+  const drawerHeight = dockExpandedAnim.interpolate({
     inputRange: [0, 1],
     outputRange: [64, maxDockHeight],
     extrapolate: "clamp",
   });
 
-  const dockBg = dockExpandedAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [colors.text, colors.surface],
-    extrapolate: "clamp",
-  });
-
-  const dockBorderColor = dockExpandedAnim.interpolate({
-    inputRange: [0, 0.2, 1],
-    outputRange: ["rgba(0,0,0,0)", colors.line, colors.line],
+  const drawerOpacity = dockExpandedAnim.interpolate({
+    inputRange: [0, 0.15, 1],
+    outputRange: [0, 1, 1],
     extrapolate: "clamp",
   });
 
@@ -286,41 +267,12 @@ export function FloatingDock({
     extrapolate: "clamp",
   });
 
-  const glassOpacity = dockExpandedAnim.interpolate({
-    inputRange: [0, 0.25, 1],
-    outputRange: [0, 0.85, 1],
-    extrapolate: "clamp",
-  });
-
   const savedPosts = useMemo(
     () => POSTS.filter((p) => savedIds.includes(p.id)),
     [savedIds]
   );
 
   // Actions
-  const handleSendComment = () => {
-    if (commentDraft.trim() && expandedWindow?.type === "comments") {
-      addReview(expandedWindow.post.id, {
-        by: "Chisomo Banda",
-        stars: 5,
-        text: commentDraft.trim(),
-      });
-      setCommentDraft("");
-      Keyboard.dismiss();
-      showToast(`Review added for ${expandedWindow.post.author}`);
-    }
-  };
-
-  const handleSendMessage = () => {
-    if (messageDraft.trim() && expandedWindow?.type === "message") {
-      const name = expandedWindow.recipient.name;
-      setMessageDraft("");
-      closeExpandedWindow();
-      Keyboard.dismiss();
-      showToast(`Message sent to ${name}`);
-    }
-  };
-
   const handleToggleSync = () => {
     const next = !isScanning;
     setIsScanning(next);
@@ -391,7 +343,6 @@ export function FloatingDock({
   const handleOtherUserOption = (optionId: OtherUserOption["id"]) => {
     setProfileMenuOpen(false);
     if (optionId === "message") {
-      setMessageDraft("");
       openExpandedWindow({
         type: "message",
         recipient: currentProfile,
@@ -467,95 +418,66 @@ export function FloatingDock({
         </View>
       )}
 
-      <Animated.View
-        style={[
-          styles.dockCard,
-          {
-            height: dockHeight,
-            backgroundColor: dockBg,
-            borderColor: dockBorderColor,
-          },
-        ]}
-      >
-        {/* Expanded Window View */}
-        {renderedWindow !== null && (
+      {/* 1. Drawer Container (Expands from behind the floating dock) */}
+      {renderedWindow !== null && (
+        <Animated.View
+          style={[
+            styles.drawerCard,
+            {
+              height: drawerHeight,
+              opacity: drawerOpacity,
+            },
+          ]}
+        >
+          {/* Top Drag Handle (Drag down to close) */}
+          <Animated.View
+            {...panResponder.panHandlers}
+            style={[styles.handleRow, { opacity: handleOpacity }]}
+            accessibilityRole="adjustable"
+            accessibilityLabel="Drag down to close menu"
+          >
+            <View style={styles.handleBar} />
+          </Animated.View>
+
+          {/* Expanded Drawer Content View */}
           <Animated.View
             style={[
-              styles.expandedWrap,
+              styles.drawerContentWrap,
               {
                 opacity: contentOpacity,
                 transform: [{ translateY: contentTranslateY }],
               },
             ]}
           >
-            {/* Top Drag Handle (Drag down to close) */}
-            <Animated.View
-              {...panResponder.panHandlers}
-              style={[styles.handleRow, { opacity: handleOpacity }]}
-              accessibilityRole="adjustable"
-              accessibilityLabel="Drag down to close menu"
-            >
-              <View style={styles.handleBar} />
-            </Animated.View>
-
-            {/* Content view based on active window */}
-            {renderedWindow.type === "comments" && (
-              <CommentsView
-                post={renderedWindow.post}
-                reviews={reviewsMap[renderedWindow.post.id] ?? []}
-              />
-            )}
-
-            {renderedWindow.type === "details" && (
-              <DetailsView
-                post={renderedWindow.post}
-                onNavigate={() => {
-                  const p = renderedWindow.post;
-                  closeExpandedWindow();
-                  startGuidance(p);
-                }}
-                onSelectPlace={(other) => {
-                  openExpandedWindow({ type: "details", post: other });
-                }}
-                onOpenProfile={() => {
-                  const p = renderedWindow.post;
-                  closeExpandedWindow();
-                  setTimeout(() => {
-                    router.push({
-                      pathname: "/profile",
-                      params: { author: p.author, id: p.id },
-                    });
-                  }, 280);
-                }}
-                onOpenReviews={() => {
-                  openExpandedWindow({
-                    type: "comments",
-                    post: renderedWindow.post,
-                  });
-                }}
-                showToast={showToast}
-              />
-            )}
-
-            {renderedWindow.type === "related" && (
-              <RelatedView
-                post={renderedWindow.post}
-                onSelectPlace={(id) => {
-                  const p = getPostById(id);
-                  if (p) {
-                    openExpandedWindow({ type: "details", post: p });
-                  }
-                }}
-              />
-            )}
-
             {renderedWindow.type === "profile_saved" && (
               <SavedView
                 savedPosts={savedPosts}
                 onSelectPlace={(id) => {
                   const p = getPostById(id);
                   if (p) {
-                    openExpandedWindow({ type: "details", post: p });
+                    closeExpandedWindow();
+                    openPopup(
+                      { type: "details", post: p },
+                      {
+                        triggerId: `saved-${p.id}`,
+                        rect: {
+                          x: 16,
+                          y: 120,
+                          width: 360,
+                          height: 240,
+                        },
+                        style: {
+                          borderRadius: 24,
+                          backgroundColor: colors.surface,
+                          borderColor: colors.line,
+                          borderWidth: 1,
+                        },
+                        headerMorph: {
+                          headerTitle: p.place,
+                          headerSubtitle: `${p.author} · ${p.category} · ${p.distanceKm} km`,
+                        },
+                      }
+                    );
                   }
                 }}
                 onRemove={(id) => toggleSave(id)}
@@ -563,31 +485,6 @@ export function FloatingDock({
             )}
 
             {renderedWindow.type === "profile_settings" && <SettingsView />}
-
-            {renderedWindow.type === "edit_profile" && (
-              <EditProfileView
-                profile={renderedWindow.profile}
-                onSave={(patch) => {
-                  updateProfileOverrides(patch);
-                  closeExpandedWindow();
-                  showToast("Profile info updated");
-                }}
-              />
-            )}
-
-            {renderedWindow.type === "profile_visitors" && (
-              <VisitorsView
-                onSelectVisitor={(visitor) => {
-                  closeExpandedWindow();
-                  setTimeout(() => {
-                    router.push({
-                      pathname: "/profile",
-                      params: { author: visitor.name, id: visitor.id },
-                    });
-                  }, 280);
-                }}
-              />
-            )}
 
             {renderedWindow.type === "message" && (
               <MessageView recipient={renderedWindow.recipient} />
@@ -631,60 +528,28 @@ export function FloatingDock({
               />
             )}
           </Animated.View>
-        )}
+        </Animated.View>
+      )}
 
-        {/* Fixed Bottom Glassmorphism Action Bar Container */}
-        <View style={styles.fixedBottomWrap} pointerEvents="box-none">
-          {/* Glassmorphism Background Layer */}
-          <Animated.View
-            style={[styles.glassContainer, { opacity: glassOpacity }]}
-            pointerEvents="none"
-          >
-            {/* Frosted Glass Pane with BlurView and Tint */}
-            <View style={styles.glassFrostedPane}>
-              <BlurView
-                intensity={Platform.OS === "ios" ? 120 : 200}
-                tint={isDark ? "dark" : "light"}
-                style={StyleSheet.absoluteFill}
-              />
-              <View
-                style={[
-                  StyleSheet.absoluteFill,
-                  styles.glassTintOverlay,
-                  isDark ? styles.glassTintDark : styles.glassTintLight,
-                ]}
-              />
-            </View>
-
-            {/* Subtle Frosted Top Hairline */}
-            <View style={styles.glassTopBorder} />
-          </Animated.View>
-
-          {/* Action Bar (Contextual when expanded, standard when collapsed) */}
-          <DockActionBar
-            expandProgress={dockExpandedAnim}
-            renderedWindow={renderedWindow}
-            isExpanded={isExpanded}
-            expandedWindow={expandedWindow}
-            showAnimatingLine={showAnimatingLine}
-            onProfile={onProfile}
-            panelOpen={panelOpen}
-            profileMenuOpen={profileMenuOpen}
-            isListening={isListening}
-            isOtherUser={isOtherUser}
-            commentDraft={commentDraft}
-            setCommentDraft={setCommentDraft}
-            messageDraft={messageDraft}
-            setMessageDraft={setMessageDraft}
-            onSendComment={handleSendComment}
-            onSendMessage={handleSendMessage}
-            onCloseExpanded={closeExpandedWindow}
-            onLeftPress={handleLeftPress}
-            onRightPress={handleRightPress}
-            onToggleListening={() => setIsListening((l) => !l)}
-          />
-        </View>
-      </Animated.View>
+      {/* 2. Floating Dock Pill (Remains intact at the bottom, resting in front of the drawer) */}
+      <View style={styles.floatingDockPill}>
+        <DockActionBar
+          expandProgress={dockExpandedAnim}
+          renderedWindow={renderedWindow}
+          isExpanded={isExpanded}
+          expandedWindow={expandedWindow}
+          showAnimatingLine={showAnimatingLine}
+          onProfile={onProfile}
+          panelOpen={panelOpen}
+          profileMenuOpen={profileMenuOpen}
+          isListening={isListening}
+          isOtherUser={isOtherUser}
+          onCloseExpanded={closeExpandedWindow}
+          onLeftPress={handleLeftPress}
+          onRightPress={handleRightPress}
+          onToggleListening={() => setIsListening((l) => !l)}
+        />
+      </View>
     </Animated.View>
   );
 }
@@ -698,74 +563,41 @@ const createStyles = (colors: ColorPalette) =>
       alignItems: "center",
       zIndex: 50,
     },
-    dockCard: {
+    drawerCard: {
+      position: "absolute",
+      bottom: 0,
       width: "100%",
       maxWidth: 420,
       borderRadius: 32,
       borderWidth: 1,
+      borderColor: colors.line,
+      backgroundColor: colors.surface,
       shadowColor: colors.overlay,
+      shadowOffset: { width: 0, height: -4 },
+      shadowOpacity: 0.16,
+      shadowRadius: 18,
+      elevation: 8,
       overflow: "hidden",
+      zIndex: 10,
+    },
+    drawerContentWrap: {
+      flex: 1,
+      overflow: "hidden",
+    },
+    floatingDockPill: {
+      width: "100%",
+      maxWidth: 420,
+      height: 64,
+      borderRadius: 32,
+      backgroundColor: colors.text,
+      shadowColor: colors.overlay,
       shadowOffset: { width: 0, height: 10 },
       shadowOpacity: 0.32,
       shadowRadius: 24,
-      elevation: 12,
-      justifyContent: "flex-end",
-    },
-    expandedWrap: {
-      position: "absolute",
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
+      elevation: 16,
       overflow: "hidden",
-    },
-    fixedBottomWrap: {
-      position: "absolute",
-      bottom: 0,
-      left: 0,
-      right: 0,
-      height: 64,
+      justifyContent: "center",
       zIndex: 20,
-      justifyContent: "flex-end",
-    },
-    glassContainer: {
-      position: "absolute",
-      left: 0,
-      right: 0,
-      bottom: 0,
-      height: 88,
-      overflow: "hidden",
-    },
-    glassFrostedPane: {
-      position: "absolute",
-      bottom: 0,
-      left: 0,
-      right: 0,
-      height: 64,
-      overflow: "hidden",
-    },
-    glassTintOverlay: {
-      ...(Platform.OS === "web"
-        ? ({
-            backdropFilter: "blur(16px)",
-            WebkitBackdropFilter: "blur(16px)",
-          } as any)
-        : {}),
-    },
-    glassTintLight: {
-      backgroundColor: "rgba(255, 255, 255, 0.72)",
-    },
-    glassTintDark: {
-      backgroundColor: "rgba(20, 19, 18, 0.76)",
-    },
-    glassTopBorder: {
-      position: "absolute",
-      top: 24,
-      left: 0,
-      right: 0,
-      height: 1,
-      backgroundColor: colors.line,
-      opacity: 0.5,
     },
     handleRow: {
       height: 32,

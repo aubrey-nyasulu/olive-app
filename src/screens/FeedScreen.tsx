@@ -7,7 +7,6 @@ import { StoriesBar } from "../components/StoriesBar";
 import { useOlive } from "../context/OliveProvider";
 import { useThemeStyles, type ColorPalette } from "../theme";
 import { POSTS } from "../places";
-import { MarginBottom } from "lucide-react-native";
 
 export default function FeedScreen() {
   const { styles } = useThemeStyles(createStyles);

@@ -25,7 +25,6 @@ import { MorphPopupOverlay } from "./popup/MorphPopupOverlay";
 export function AppShell({ children }: { children: ReactNode }) {
   const { styles, colors } = useThemeStyles(createStyles);
   const {
-    searchOpen,
     activeMode,
     typeQuery,
     setTypeQuery,
@@ -143,8 +142,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         {children}
       </BlurTargetView>
 
-      {/* Dimmed backdrop when expanded dock, search, panel, or profile menu is active */}
-      {(isExpanded || searchOpen || panelOpen || profileMenuOpen) && (
+      {/* Dimmed backdrop when expanded dock, panel, or profile menu is active */}
+      {(isExpanded || panelOpen || profileMenuOpen) && (
         <Pressable
           accessibilityLabel="Dismiss overlay"
           onPress={() => {

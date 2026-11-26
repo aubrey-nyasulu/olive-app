@@ -33,11 +33,11 @@ export function Screen({
 }) {
   const insets = useSafeAreaInsets();
   const { styles, colors } = useThemeStyles(createStyles);
-  const { config, closeSearch, searchOpen, activeMode } = useOlive();
+  const { config, closeSearch, activeMode } = useOlive();
   const blurTargetRef = useRef<View | null>(null);
 
   const panelOpen = activeMode !== null;
-  const dimmed = searchOpen || panelOpen;
+  const dimmed = panelOpen;
   const headerHeight = getHeaderHeight(insets.top);
 
   const headerOpacity = useRef(new Animated.Value(1)).current;

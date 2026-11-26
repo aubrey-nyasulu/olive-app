@@ -10,12 +10,10 @@ import {
 import {
   ArrowLeft,
   ArrowRight,
-  ArrowUp,
   ChevronUp,
   Mic,
   MicOff,
   Search,
-  Send,
   X,
 } from "lucide-react-native";
 import type { ExpandedWindow } from "../../context/OliveProvider";
@@ -36,12 +34,6 @@ interface DockActionBarProps {
   profileMenuOpen: boolean;
   isListening: boolean;
   isOtherUser: boolean;
-  commentDraft: string;
-  setCommentDraft: (text: string) => void;
-  messageDraft: string;
-  setMessageDraft: (text: string) => void;
-  onSendComment: () => void;
-  onSendMessage: () => void;
   onCloseExpanded: () => void;
   onLeftPress: () => void;
   onRightPress: () => void;
@@ -59,12 +51,6 @@ export function DockActionBar({
   profileMenuOpen,
   panelOpen,
   isListening,
-  commentDraft,
-  setCommentDraft,
-  messageDraft,
-  setMessageDraft,
-  onSendComment,
-  onSendMessage,
   onCloseExpanded,
   onLeftPress,
   onRightPress,
@@ -74,9 +60,6 @@ export function DockActionBar({
   const { activeMode, typeQuery, setTypeQuery, setIsSearching } = useOlive();
 
   const activeWin = expandedWindow ?? renderedWindow;
-  const isComments = activeWin?.type === "comments";
-  const isMessage = activeWin?.type === "message";
-  const isInputMode = isComments || isMessage;
   const isUserMenu = activeWin?.type === "user_menu";
   const isWindowActive = activeWin !== null;
 
@@ -121,17 +104,6 @@ export function DockActionBar({
   const centerRestingScale = expandProgress.interpolate({
     inputRange: [0, 0.35],
     outputRange: [1, 0.84],
-    extrapolate: "clamp",
-  });
-
-  const centerInputOpacity = expandProgress.interpolate({
-    inputRange: [0.4, 0.9],
-    outputRange: [0, 1],
-    extrapolate: "clamp",
-  });
-  const centerInputTranslateY = expandProgress.interpolate({
-    inputRange: [0.4, 0.9],
-    outputRange: [14, 0],
     extrapolate: "clamp",
   });
 
@@ -659,20 +631,7 @@ export function DockActionBar({
     <View style={styles.bar}>
       {/* LEFT BUTTON SLOT */}
       <View style={styles.slotLeft}>
-        {isInputMode
-          ? renderMorphSlot(
-              renderRestingLeftButton(),
-              <View
-                style={[
-                  styles.avatarButtonCircle,
-                  styles.avatarButtonCircleInputMode,
-                ]}
-              >
-                <Image source={userAvatar} style={styles.dockAvatarImg} />
-              </View>,
-              false
-            )
-          : morphLeftToClose
+        {morphLeftToClose
           ? renderMorphSlot(
               renderRestingLeftButton(),
               <Pressable
@@ -693,56 +652,7 @@ export function DockActionBar({
 
       {/* CENTER SLOT */}
       <View style={styles.slotCenter}>
-        {isInputMode ? (
-          // Input mode: Waveform fades out, TextInput slides up
-          <>
-            <Animated.View
-              style={[
-                styles.centerContentLayer,
-                {
-                  opacity: centerRestingOpacity,
-                  transform: [{ scale: centerRestingScale }],
-                },
-              ]}
-              pointerEvents="none"
-            >
-              {renderWaveform()}
-            </Animated.View>
-
-            <Animated.View
-              style={[
-                styles.centerContentLayer,
-                {
-                  opacity: centerInputOpacity,
-                  transform: [{ translateY: centerInputTranslateY }],
-                },
-              ]}
-              pointerEvents={isExpanded ? "auto" : "none"}
-            >
-              {isComments ? (
-                <TextInput
-                  value={commentDraft}
-                  onChangeText={setCommentDraft}
-                  placeholder="Add a review or note..."
-                  placeholderTextColor={colors.muted}
-                  returnKeyType="send"
-                  onSubmitEditing={onSendComment}
-                  style={styles.expandedInput}
-                />
-              ) : isMessage && activeWin?.type === "message" ? (
-                <TextInput
-                  value={messageDraft}
-                  onChangeText={setMessageDraft}
-                  placeholder={`Message ${activeWin.recipient.name}...`}
-                  placeholderTextColor={colors.muted}
-                  returnKeyType="send"
-                  onSubmitEditing={onSendMessage}
-                  style={styles.expandedInput}
-                />
-              ) : null}
-            </Animated.View>
-          </>
-        ) : isWindowActive ? (
+        {isWindowActive ? (
           // Menu modes: Waveform scales and fades out smoothly with dock height
           <Animated.View
             style={[
@@ -781,43 +691,7 @@ export function DockActionBar({
 
       {/* RIGHT BUTTON SLOT */}
       <View style={styles.slotRight}>
-        {isInputMode
-          ? renderMorphSlot(
-              renderRestingRightButton(),
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={isComments ? "Send review" : "Send message"}
-                onPress={isComments ? onSendComment : onSendMessage}
-                style={({ pressed }) => [
-                  styles.sideBtn,
-                  (isComments ? commentDraft.trim() : messageDraft.trim())
-                    ? styles.sideBtnSignal
-                    : styles.sideBtnMuted,
-                  pressed && styles.pressed,
-                ]}
-              >
-                {isComments ? (
-                  <ArrowUp
-                    size={20}
-                    color={
-                      commentDraft.trim()
-                        ? colors.signalForeground
-                        : colors.muted
-                    }
-                  />
-                ) : (
-                  <Send
-                    size={18}
-                    color={
-                      messageDraft.trim()
-                        ? colors.signalForeground
-                        : colors.muted
-                    }
-                  />
-                )}
-              </Pressable>
-            )
-          : morphRightToClose
+        {morphRightToClose
           ? renderMorphSlot(
               renderRestingRightButton(),
               <Pressable
@@ -923,24 +797,10 @@ const createStyles = (colors: ColorPalette) =>
       alignItems: "center",
       justifyContent: "center",
     },
-    avatarButtonCircleInputMode: {
-      borderWidth: 2,
-      borderColor: colors.signal,
-    },
     dockAvatarImg: {
       width: "100%",
       height: "100%",
       resizeMode: "cover",
-    },
-    expandedInput: {
-      height: 44,
-      borderRadius: 22,
-      paddingHorizontal: 16,
-      fontSize: 14,
-      borderWidth: 1,
-      color: colors.text,
-      backgroundColor: colors.surfaceMuted,
-      borderColor: colors.line,
     },
     input: {
       fontSize: 14,

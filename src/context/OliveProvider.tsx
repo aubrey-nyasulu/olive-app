@@ -29,16 +29,10 @@ import type {
 export type FeedMode = "all" | "people" | "places";
 
 export type ExpandedWindow =
-  | { type: "comments"; post: Post }
-  | { type: "details"; post: Post }
-  | { type: "related"; post: Post }
   | { type: "profile_saved" }
   | { type: "profile_settings" }
-  | { type: "edit_profile"; profile: UserProfile }
-  | { type: "profile_visitors" }
   | { type: "message"; recipient: UserProfile }
   | { type: "report"; targetUser: UserProfile }
-  | { type: "feed_modes" }
   | { type: "search_options" }
   | { type: "user_menu" }
   | { type: "notifications" }
@@ -70,8 +64,6 @@ type OliveContextType = {
   setFeedMode: (mode: FeedMode | ((prev: FeedMode) => FeedMode)) => void;
 
   // Search state for the bottom floating dock
-  searchOpen: boolean;
-  setSearchOpen: (open: boolean | ((prev: boolean) => boolean)) => void;
   activeMode: SearchMode | null;
   setActiveMode: (mode: SearchMode | null) => void;
   isListening: boolean;
@@ -82,14 +74,9 @@ type OliveContextType = {
   isSearching: boolean;
   setIsSearching: (searching: boolean | ((prev: boolean) => boolean)) => void;
 
-  // Profile screen tab state (synced with bottom floating dock & header)
+  // Profile screen tab state (synced with header)
   profileTab: ProfileTab;
-  setProfileTab: (
-    tab:
-      | ProfileTab
-      | "settings"
-      | ((prev: ProfileTab) => ProfileTab)
-  ) => void;
+  setProfileTab: (tab: ProfileTab | ((prev: ProfileTab) => ProfileTab)) => void;
 
   // Liked & Reposted state
   likedIds: string[];
@@ -108,16 +95,6 @@ type OliveContextType = {
   getUserReaction: (postId: string) => ReactionType | null;
   setReaction: (postId: string, reaction: ReactionType) => void;
   removeReaction: (postId: string) => void;
-
-  // Profile modal sheet state (Saved / Settings popup)
-  profileModal: "saved" | "settings" | null;
-  setProfileModal: (
-    modal:
-      | "saved"
-      | "settings"
-      | null
-      | ((prev: "saved" | "settings" | null) => "saved" | "settings" | null)
-  ) => void;
 
   // Expanded floating nav window state (dock-triggered windows only)
   expandedWindow: ExpandedWindow;
@@ -173,14 +150,13 @@ export function OliveProvider({ children }: { children: ReactNode }) {
   const [feedMode, setFeedMode] = useState<FeedMode>("all");
 
   // Search state
-  const [searchOpen, setSearchOpen] = useState(false);
   const [activeMode, setActiveMode] = useState<SearchMode | null>(null);
   const [isListening, setIsListening] = useState(false);
   const [typeQuery, setTypeQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
 
   // Profile screen tab state (defaults to "posts" as first tab)
-  const [profileTab, setProfileTabState] = useState<ProfileTab>("posts");
+  const [profileTab, setProfileTab] = useState<ProfileTab>("posts");
 
   // Liked & Reposted posts tracking
   const [likedIds, setLikedIds] = useState<string[]>([
@@ -354,7 +330,6 @@ export function OliveProvider({ children }: { children: ReactNode }) {
 
   const openPopup = (payload: PopupPayload, origin: PopupOrigin) => {
     setExpandedWindow(null);
-    setSearchOpen(false);
     setActiveMode(null);
     setIsListening(false);
     popupSeqRef.current += 1;
@@ -416,51 +391,6 @@ export function OliveProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  // Derive profileModal for backward compatibility
-  const profileModal =
-    expandedWindow?.type === "profile_saved"
-      ? "saved"
-      : expandedWindow?.type === "profile_settings"
-      ? "settings"
-      : null;
-
-  const setProfileModal = (
-    modal:
-      | "saved"
-      | "settings"
-      | null
-      | ((prev: "saved" | "settings" | null) => "saved" | "settings" | null)
-  ) => {
-    const nextModal = typeof modal === "function" ? modal(profileModal) : modal;
-    if (nextModal === "saved") {
-      setExpandedWindow({ type: "profile_saved" });
-    } else if (nextModal === "settings") {
-      setExpandedWindow({ type: "profile_settings" });
-    } else {
-      if (
-        expandedWindow?.type === "profile_saved" ||
-        expandedWindow?.type === "profile_settings"
-      ) {
-        setExpandedWindow(null);
-      }
-    }
-  };
-
-  const setProfileTab = (
-    tab:
-      | ProfileTab
-      | "settings"
-      | ((prev: ProfileTab) => ProfileTab)
-  ) => {
-    if (tab === "settings") {
-      setExpandedWindow({ type: "profile_settings" });
-    } else if (typeof tab === "function") {
-      setProfileTabState(tab);
-    } else {
-      setProfileTabState(tab);
-    }
-  };
-
   // Scanning state (live feed realtime syncing vs paused - defaults to false)
   const [isScanning, setIsScanning] = useState(false);
 
@@ -507,7 +437,6 @@ export function OliveProvider({ children }: { children: ReactNode }) {
   }
 
   function closeSearch() {
-    setSearchOpen(false);
     setActiveMode(null);
     setIsListening(false);
     setTypeQuery("");
@@ -561,8 +490,6 @@ export function OliveProvider({ children }: { children: ReactNode }) {
         resetSettings,
         feedMode,
         setFeedMode,
-        searchOpen,
-        setSearchOpen,
         activeMode,
         setActiveMode,
         isListening,
@@ -588,8 +515,6 @@ export function OliveProvider({ children }: { children: ReactNode }) {
         getUserReaction,
         setReaction,
         removeReaction,
-        profileModal,
-        setProfileModal,
         expandedWindow,
         openExpandedWindow,
         closeExpandedWindow,
