@@ -34,6 +34,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     expandedWindow,
     closeExpandedWindow,
     rootContainerRef,
+    setRootDims,
     toastMessage,
     showToast,
   } = useOlive();
@@ -123,7 +124,17 @@ export function AppShell({ children }: { children: ReactNode }) {
   };
 
   return (
-    <View ref={rootContainerRef} collapsable={false} style={styles.root}>
+    <View
+      ref={rootContainerRef}
+      collapsable={false}
+      style={styles.root}
+      onLayout={(e) => {
+        const { width, height } = e.nativeEvent.layout;
+        if (width > 0 && height > 0) {
+          setRootDims({ width, height });
+        }
+      }}
+    >
       <BlurTargetView
         ref={appBlurTargetRef}
         collapsable={false}

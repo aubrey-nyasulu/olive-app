@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import {
   Animated,
   BackHandler,
-  Dimensions,
   Image,
   Keyboard,
   type KeyboardEvent,
@@ -46,32 +45,57 @@ import {
 } from "./PostPopupViews";
 import type { ActivePopupState, PopupPayload, SourceRect } from "./popupTypes";
 
-const HEADER_HEIGHT = 64;
+const HEADER_HEIGHT = 68;
+
+type PopupPlacement = "bottom" | "center" | "full" | "image";
+
+function getPopupPlacement(payload: PopupPayload): PopupPlacement {
+  switch (payload.type) {
+    case "image_viewer":
+      return "image";
+    case "story":
+      return "full";
+    case "comments":
+    case "message":
+    case "reshare":
+    case "reactions_list":
+    case "report":
+      return "bottom";
+    case "details":
+    case "post_options":
+    case "edit_profile":
+    case "profile_visitors":
+    case "profile_saved":
+    case "profile_settings":
+    default:
+      return "center";
+  }
+}
 
 function getIdealPopupHeight(payload: PopupPayload): number {
   switch (payload.type) {
     case "details":
       return 560;
     case "comments":
-      return 500;
+      return 460;
     case "profile_settings":
       return 500;
     case "edit_profile":
       return 480;
     case "reactions_list":
-      return 460;
+      return 440;
     case "profile_saved":
       return 460;
     case "profile_visitors":
       return 440;
     case "post_options":
-      return 430;
+      return 410;
     case "reshare":
-      return 430;
+      return 410;
     case "report":
-      return 380;
-    case "message":
       return 360;
+    case "message":
+      return 340;
     default:
       return 460;
   }
@@ -199,26 +223,24 @@ function MorphPopupSession({
     popPopupPayload,
     updatePopupPayload,
     showToast,
+    rootDims,
   } = useOlive();
 
-  const [windowDims, setWindowDims] = useState(() => Dimensions.get("window"));
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [closeRect, setCloseRect] = useState<SourceRect>(popup.origin.rect);
+  const [isFullExpanded, setIsFullExpanded] = useState(false);
 
   const progress = useRef(new Animated.Value(0)).current;
+  const expandAnim = useRef(new Animated.Value(0)).current;
   const hasStartedCloseRef = useRef(false);
+  const isFullExpandedRef = useRef(false);
+  isFullExpandedRef.current = isFullExpanded;
 
   const { payload, origin, history, closing } = popup;
-  const isImageViewer = payload.type === "image_viewer";
-  const isStoryViewer = payload.type === "story";
+  const placement = getPopupPlacement(payload);
+  const isImageViewer = placement === "image";
+  const isStoryViewer = placement === "full";
   const isStandardCard = !isImageViewer && !isStoryViewer;
-
-  useEffect(() => {
-    const sub = Dimensions.addEventListener("change", ({ window }) => {
-      setWindowDims(window);
-    });
-    return () => sub.remove();
-  }, []);
 
   // Keyboard tracking so input popups remain unobstructed
   useEffect(() => {
@@ -274,18 +296,21 @@ function MorphPopupSession({
     Keyboard.dismiss();
 
     const runClose = () => {
-      Animated.spring(progress, {
-        toValue: 0,
-        friction: 10,
-        tension: 76,
-        useNativeDriver: false,
-      }).start(({ finished }) => {
-        if (finished) {
-          onFinishClose();
-        } else {
-          // Fallback cleanup in case animation was interrupted
-          onFinishClose();
-        }
+      Animated.parallel([
+        Animated.spring(progress, {
+          toValue: 0,
+          friction: 10,
+          tension: 76,
+          useNativeDriver: false,
+        }),
+        Animated.spring(expandAnim, {
+          toValue: 0,
+          friction: 10,
+          tension: 76,
+          useNativeDriver: false,
+        }),
+      ]).start(() => {
+        onFinishClose();
       });
     };
 
@@ -319,13 +344,24 @@ function MorphPopupSession({
     } else {
       runClose();
     }
-  }, [closing, origin, payload, progress, onFinishClose]);
+  }, [closing, origin, payload, progress, expandAnim, onFinishClose]);
 
   const activeSourceRect = closing ? closeRect : origin.rect;
-  const screenW = windowDims.width;
-  const screenH = windowDims.height;
+  const screenW = rootDims.width;
+  const screenH = rootDims.height;
 
-  // Compute target geometry based on pop-up type
+  // Full-size geometry: 100% - status bar - home bar area - 16px
+  const fullTop = insets.top + 8;
+  const fullBottomClearance =
+    keyboardHeight > 0
+      ? Math.max(insets.bottom + 8, keyboardHeight + 8)
+      : insets.bottom + 8;
+  const fullHeight = Math.max(
+    240,
+    screenH - insets.top - fullBottomClearance - 8
+  );
+
+  // Compute target geometry based on pop-up type and placement
   const target = useMemo(() => {
     if (payload.type === "image_viewer") {
       const natW = Math.max(1, payload.naturalWidth);
@@ -346,6 +382,8 @@ function MorphPopupSession({
         top,
         width: targetW,
         height: targetH,
+        fullTop: top,
+        fullHeight: targetH,
         borderRadius: coversFullScreen ? 0 : 18,
         backgroundColor: "#000000",
         borderColor: "rgba(255,255,255,0.08)",
@@ -356,14 +394,15 @@ function MorphPopupSession({
     if (payload.type === "story") {
       const targetW = Math.min(screenW - 16, 560);
       const left = Math.round((screenW - targetW) / 2);
-      const top = Math.max(8, insets.top + 8);
-      const bottom = Math.max(8, insets.bottom + 8);
-      const height = Math.max(320, screenH - top - bottom);
+      const storyHeight = Math.max(300, screenH - insets.top - insets.bottom - 16);
+      const storyTop = insets.top + 8;
       return {
         left,
-        top,
+        top: storyTop,
         width: targetW,
-        height,
+        height: storyHeight,
+        fullTop: storyTop,
+        fullHeight: storyHeight,
         borderRadius: 32,
         backgroundColor: colors.surface,
         borderColor: colors.signal,
@@ -371,10 +410,41 @@ function MorphPopupSession({
       };
     }
 
+    if (placement === "bottom") {
+      const targetW = Math.min(screenW - 32, 420);
+      const left = Math.round((screenW - targetW) / 2);
+      const normalDockBottom = Math.max(20, insets.bottom + 8);
+      const bottomOffset =
+        keyboardHeight > 0
+          ? Math.max(normalDockBottom, keyboardHeight + 12)
+          : normalDockBottom;
+      const availH = Math.max(220, screenH - insets.top - bottomOffset - 12);
+      const idealH = getIdealPopupHeight(payload);
+      const height = Math.min(idealH, availH);
+      const top = Math.round(screenH - bottomOffset - height);
+
+      return {
+        left,
+        top,
+        width: targetW,
+        height,
+        fullTop,
+        fullHeight: Math.max(height, fullHeight),
+        borderRadius: 28,
+        backgroundColor: colors.surface,
+        borderColor: colors.line,
+        borderWidth: 1,
+      };
+    }
+
+    // Centered pop-up windows (Details, Edit Info, Visitors, Saved, Settings)
     const targetW = Math.min(screenW - 24, 460);
     const left = Math.round((screenW - targetW) / 2);
     const safeBottom = Math.max(insets.bottom, 16);
-    const bottomInset = Math.max(safeBottom, keyboardHeight + 12);
+    const bottomInset = Math.max(
+      safeBottom,
+      keyboardHeight > 0 ? keyboardHeight + 12 : 0
+    );
     const availH = Math.max(240, screenH - insets.top - bottomInset - 20);
     const idealH = getIdealPopupHeight(payload);
     const height = Math.min(idealH, availH);
@@ -385,63 +455,222 @@ function MorphPopupSession({
       top,
       width: targetW,
       height,
+      fullTop,
+      fullHeight: Math.max(height, fullHeight),
       borderRadius: 28,
       backgroundColor: colors.surface,
       borderColor: colors.line,
       borderWidth: 1,
     };
-  }, [payload, screenW, screenH, insets.top, insets.bottom, keyboardHeight, colors]);
+  }, [
+    payload,
+    placement,
+    screenW,
+    screenH,
+    insets.top,
+    insets.bottom,
+    keyboardHeight,
+    fullTop,
+    fullHeight,
+    colors,
+  ]);
 
-  // Drag-down-to-dismiss on the header handle for standard cards
-  const dragCollapseDeltaRef = useRef(260);
-  dragCollapseDeltaRef.current = Math.max(160, target.height - activeSourceRect.height);
+  // 2-way drag gesture on the header/handle:
+  // - Drag UP from normal size -> expand smoothly to full size
+  // - Drag DOWN from full size -> collapse to normal size (or close if dragged further)
+  // - Drag DOWN from normal size -> close smoothly back into source button
+  const expandDistRef = useRef(180);
+  expandDistRef.current = Math.max(80, target.fullHeight - target.height);
+  const collapseDistRef = useRef(260);
+  collapseDistRef.current = Math.max(140, target.height - activeSourceRect.height);
+  const dragStartExpandedRef = useRef(false);
 
-  const panResponder = useRef(
+  const handleHandleTap = () => {
+    if (!isFullExpandedRef.current) {
+      setIsFullExpanded(true);
+      Animated.parallel([
+        Animated.spring(progress, {
+          toValue: 1,
+          friction: 9,
+          tension: 70,
+          useNativeDriver: false,
+        }),
+        Animated.spring(expandAnim, {
+          toValue: 1,
+          friction: 9,
+          tension: 70,
+          useNativeDriver: false,
+        }),
+      ]).start();
+    } else {
+      onRequestClose();
+    }
+  };
+  const handleHandleTapRef = useRef(handleHandleTap);
+  handleHandleTapRef.current = handleHandleTap;
+
+  const createDragPanResponder = (captureStart: boolean) =>
     (() => {
       const endGesture = (g: PanResponderGestureState) => {
-        if (g.dy > 65 || g.vy > 0.45) {
-          onRequestClose();
+        // Quick tap on the top handle bar: expands to full size, or closes if already full size
+        if (captureStart && Math.abs(g.dy) < 6 && Math.abs(g.dx) < 6) {
+          handleHandleTapRef.current();
+          return;
+        }
+
+        const startedExpanded = dragStartExpandedRef.current;
+        const expandDist = expandDistRef.current;
+
+        if (!startedExpanded) {
+          if (g.dy < -42 || g.vy < -0.4) {
+            setIsFullExpanded(true);
+            Animated.parallel([
+              Animated.spring(progress, {
+                toValue: 1,
+                friction: 9,
+                tension: 70,
+                useNativeDriver: false,
+              }),
+              Animated.spring(expandAnim, {
+                toValue: 1,
+                friction: 9,
+                tension: 70,
+                useNativeDriver: false,
+              }),
+            ]).start();
+          } else if (g.dy > 55 || g.vy > 0.4) {
+            onRequestClose();
+          } else {
+            setIsFullExpanded(false);
+            Animated.parallel([
+              Animated.spring(progress, {
+                toValue: 1,
+                friction: 9,
+                tension: 70,
+                useNativeDriver: false,
+              }),
+              Animated.spring(expandAnim, {
+                toValue: 0,
+                friction: 9,
+                tension: 70,
+                useNativeDriver: false,
+              }),
+            ]).start();
+          }
         } else {
-          Animated.spring(progress, {
-            toValue: 1,
-            friction: 9,
-            tension: 70,
-            useNativeDriver: false,
-          }).start();
+          if (
+            g.dy > expandDist + 55 ||
+            (g.dy > expandDist * 0.55 && g.vy > 0.95)
+          ) {
+            onRequestClose();
+          } else if (g.dy > 50 || g.vy > 0.4) {
+            setIsFullExpanded(false);
+            Animated.parallel([
+              Animated.spring(progress, {
+                toValue: 1,
+                friction: 9,
+                tension: 70,
+                useNativeDriver: false,
+              }),
+              Animated.spring(expandAnim, {
+                toValue: 0,
+                friction: 9,
+                tension: 70,
+                useNativeDriver: false,
+              }),
+            ]).start();
+          } else {
+            setIsFullExpanded(true);
+            Animated.parallel([
+              Animated.spring(progress, {
+                toValue: 1,
+                friction: 9,
+                tension: 70,
+                useNativeDriver: false,
+              }),
+              Animated.spring(expandAnim, {
+                toValue: 1,
+                friction: 9,
+                tension: 70,
+                useNativeDriver: false,
+              }),
+            ]).start();
+          }
         }
       };
 
       return PanResponder.create({
-        onStartShouldSetPanResponder: () => false,
-        onMoveShouldSetPanResponder: (_, g) => g.dy > 6 && Math.abs(g.dy) > Math.abs(g.dx),
+        onStartShouldSetPanResponder: () => captureStart,
+        onMoveShouldSetPanResponder: (_, g) =>
+          Math.abs(g.dy) > 5 && Math.abs(g.dy) > Math.abs(g.dx),
+        onPanResponderGrant: () => {
+          dragStartExpandedRef.current = isFullExpandedRef.current;
+        },
         onPanResponderMove: (_, g) => {
-          const dy = Math.max(0, g.dy);
-          const next = Math.max(0, Math.min(1, 1 - dy / dragCollapseDeltaRef.current));
-          progress.setValue(next);
+          const startedExpanded = dragStartExpandedRef.current;
+          const expandDist = expandDistRef.current;
+          const collapseDist = collapseDistRef.current;
+
+          if (!startedExpanded) {
+            if (g.dy < 0) {
+              progress.setValue(1);
+              expandAnim.setValue(Math.min(1, -g.dy / expandDist));
+            } else {
+              expandAnim.setValue(0);
+              progress.setValue(
+                Math.max(0, Math.min(1, 1 - g.dy / collapseDist))
+              );
+            }
+          } else {
+            if (g.dy <= 0) {
+              progress.setValue(1);
+              expandAnim.setValue(1);
+            } else if (g.dy <= expandDist) {
+              progress.setValue(1);
+              expandAnim.setValue(Math.max(0, 1 - g.dy / expandDist));
+            } else {
+              expandAnim.setValue(0);
+              const extraDy = g.dy - expandDist;
+              progress.setValue(Math.max(0, 1 - extraDy / collapseDist));
+            }
+          }
         },
         onPanResponderRelease: (_, g) => endGesture(g),
         onPanResponderTerminate: (_, g) => endGesture(g),
       });
-    })()
-  ).current;
+    })();
 
-  // Interpolated shell bounds
+  const handlePanResponder = useRef(createDragPanResponder(true)).current;
+  const headerPanResponder = useRef(createDragPanResponder(false)).current;
+
+  // Interpolated shell bounds (combining source->normal morph + normal->full drag expand)
   const animLeft = progress.interpolate({
     inputRange: [0, 1],
     outputRange: [activeSourceRect.x, target.left],
   });
-  const animTop = progress.interpolate({
+  const baseTop = progress.interpolate({
     inputRange: [0, 1],
     outputRange: [activeSourceRect.y, target.top],
   });
+  const expandTopDelta = expandAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, target.fullTop - target.top],
+  });
+  const animTop = Animated.add(baseTop, expandTopDelta);
+
   const animWidth = progress.interpolate({
     inputRange: [0, 1],
     outputRange: [activeSourceRect.width, target.width],
   });
-  const animHeight = progress.interpolate({
+  const baseHeight = progress.interpolate({
     inputRange: [0, 1],
     outputRange: [activeSourceRect.height, target.height],
   });
+  const expandHeightDelta = expandAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, target.fullHeight - target.height],
+  });
+  const animHeight = Animated.add(baseHeight, expandHeightDelta);
   const animRadius = progress.interpolate({
     inputRange: [0, 1],
     outputRange: [origin.style.borderRadius, target.borderRadius],
@@ -520,7 +749,7 @@ function MorphPopupSession({
   const iconAnimTop = iconStart
     ? progress.interpolate({
         inputRange: [0, 1],
-        outputRange: [iconStart.y, 18 + (iconBadgeSize - iconTargetSize) / 2],
+        outputRange: [iconStart.y, 27 + (iconBadgeSize - iconTargetSize) / 2],
       })
     : undefined;
   const iconAnimScale = iconStart
@@ -531,7 +760,8 @@ function MorphPopupSession({
     : undefined;
 
   const titleStart = headerMorph?.title;
-  const titleTargetTop = headerMorph?.headerSubtitle || fallbackHeader.subtitle ? 17 : 23;
+  const titleTargetTop =
+    headerMorph?.headerSubtitle || fallbackHeader.subtitle ? 26 : 34;
   const titleTargetFontSize = 17;
   const titleAnimLeft = titleStart
     ? progress.interpolate({
@@ -1067,18 +1297,23 @@ function MorphPopupSession({
                 </Animated.View>
               )}
 
-            {/* Header Bar (Drag handle + Back button + Fade-in title/subtitle + Right actions + Close) */}
-            <Animated.View
-              {...panResponder.panHandlers}
-              style={[styles.cardHeader, { width: target.width - 2 }]}
-            >
+            {/* Header Bar (Top vertical handle for expand/close + Back + Title + Contextual Actions) */}
+            <View style={[styles.cardHeader, { width: target.width - 2 }]}>
               <Animated.View
+                {...handlePanResponder.panHandlers}
+                accessibilityRole="adjustable"
+                accessibilityLabel={
+                  isFullExpanded
+                    ? "Drag down to collapse or close, tap to close"
+                    : "Drag up to expand or down to close"
+                }
                 style={[styles.dragHandleRow, { opacity: headerExtraOpacity }]}
               >
                 <View style={styles.dragHandleBar} />
               </Animated.View>
 
               <Animated.View
+                {...headerPanResponder.panHandlers}
                 style={[
                   styles.headerMainRow,
                   { opacity: headerExtraOpacity },
@@ -1129,17 +1364,6 @@ function MorphPopupSession({
 
                 <View style={styles.headerRightGroup}>
                   {renderHeaderRightAction()}
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel="Close window"
-                    onPress={onRequestClose}
-                    style={({ pressed }) => [
-                      styles.headerCloseBtn,
-                      pressed && styles.pressed,
-                    ]}
-                  >
-                    <X size={16} color={colors.textSecondary} />
-                  </Pressable>
                 </View>
               </Animated.View>
 
@@ -1149,15 +1373,14 @@ function MorphPopupSession({
                   { opacity: headerExtraOpacity },
                 ]}
               />
-            </Animated.View>
+            </View>
 
-            {/* Fixed-Width Body Content (prevents text reflow jitter during expand) */}
+            {/* Fixed-Width Body Content (flex: 1 fills normal or full-expanded height seamlessly) */}
             <Animated.View
               style={[
                 styles.bodyWrap,
                 {
                   width: target.width - 2,
-                  height: Math.max(120, target.height - HEADER_HEIGHT - 2),
                   opacity: contentOpacity,
                   transform: [{ translateY: contentTranslateY }],
                 },
@@ -1240,7 +1463,7 @@ const createStyles = (colors: ColorPalette) =>
     headerIconBadge: {
       position: "absolute",
       left: 16,
-      top: 18,
+      top: 27,
       width: 34,
       height: 34,
       borderRadius: 17,
@@ -1267,16 +1490,17 @@ const createStyles = (colors: ColorPalette) =>
       zIndex: 10,
     },
     dragHandleRow: {
-      height: 14,
+      height: 22,
       alignItems: "center",
       justifyContent: "center",
-      paddingTop: 4,
+      paddingTop: 6,
     },
     dragHandleBar: {
-      width: 36,
-      height: 4,
-      borderRadius: 2,
-      backgroundColor: colors.line,
+      width: 44,
+      height: 5,
+      borderRadius: 3,
+      backgroundColor: colors.muted,
+      opacity: 0.45,
     },
     headerMainRow: {
       flex: 1,
@@ -1344,20 +1568,13 @@ const createStyles = (colors: ColorPalette) =>
       fontWeight: "700",
       color: colors.signal,
     },
-    headerCloseBtn: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
-      backgroundColor: colors.surfaceMuted,
-      alignItems: "center",
-      justifyContent: "center",
-    },
     headerDivider: {
       height: 1,
       backgroundColor: colors.line,
       marginHorizontal: 0,
     },
     bodyWrap: {
+      flex: 1,
       overflow: "hidden",
     },
     pressed: {

@@ -7,7 +7,7 @@ import {
   type ReactNode,
   type RefObject,
 } from "react";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Dimensions, StyleSheet, Text, View } from "react-native";
 import type { GuidanceSession, Post, PostReactions, ReactionType, Review, SearchMode, SettingsState } from "../models";
 import {
   DEFAULT_SAVED_IDS,
@@ -126,6 +126,8 @@ type OliveContextType = {
 
   // Standalone morphing pop-up window state (non-dock pressables)
   rootContainerRef: RefObject<View | null>;
+  rootDims: { width: number; height: number };
+  setRootDims: (dims: { width: number; height: number }) => void;
   activePopup: ActivePopupState | null;
   activeTriggerId: string | null;
   openPopup: (payload: PopupPayload, origin: PopupOrigin) => void;
@@ -311,6 +313,10 @@ export function OliveProvider({ children }: { children: ReactNode }) {
 
   // Standalone morphing pop-up window state (non-dock pressables)
   const rootContainerRef = useRef<View | null>(null);
+  const [rootDims, setRootDims] = useState(() => {
+    const win = Dimensions.get("window");
+    return { width: win.width, height: win.height };
+  });
   const popupSeqRef = useRef(0);
   const [activePopup, setActivePopup] = useState<ActivePopupState | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -588,6 +594,8 @@ export function OliveProvider({ children }: { children: ReactNode }) {
         openExpandedWindow,
         closeExpandedWindow,
         rootContainerRef,
+        rootDims,
+        setRootDims,
         activePopup,
         activeTriggerId,
         openPopup,
