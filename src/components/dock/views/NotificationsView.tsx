@@ -169,6 +169,8 @@ export function NotificationsView({
         data={items}
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
+        nestedScrollEnabled={true}
+        keyboardShouldPersistTaps="handled"
         contentContainerStyle={styles.listContent}
         renderItem={({ item }) => {
           const Icon = item.icon;
@@ -267,7 +269,7 @@ const createStyles = (colors: ColorPalette) =>
   },
   listContent: {
     gap: 8,
-    paddingBottom: 88,
+    paddingBottom: 110,
   },
   itemRow: {
     flexDirection: "row",

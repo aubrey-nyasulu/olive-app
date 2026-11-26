@@ -55,6 +55,9 @@ export function SavedView({
           hideHeader && { paddingTop: 14, paddingBottom: 20 },
         ]}
         showsVerticalScrollIndicator={false}
+        nestedScrollEnabled={true}
+        keyboardShouldPersistTaps="handled"
+        bounces={true}
       >
         {savedPosts.length === 0 ? (
           <View style={styles.emptyContainer}>
@@ -147,7 +150,7 @@ const createStyles = (colors: ColorPalette) =>
   },
   scrollContent: {
     paddingHorizontal: 16,
-    paddingBottom: 88,
+    paddingBottom: 110,
     gap: 8,
   },
   emptyContainer: {

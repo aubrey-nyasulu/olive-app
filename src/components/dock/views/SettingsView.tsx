@@ -43,6 +43,9 @@ export function SettingsView({ hideHeader = false }: { hideHeader?: boolean }) {
           hideHeader && { paddingTop: 14, paddingBottom: 24 },
         ]}
         showsVerticalScrollIndicator={false}
+        nestedScrollEnabled={true}
+        keyboardShouldPersistTaps="handled"
+        bounces={true}
       >
         {/* Search Radius */}
         <View style={styles.section}>
@@ -213,7 +216,7 @@ const createStyles = (colors: ColorPalette) =>
   },
   scrollContent: {
     paddingHorizontal: 16,
-    paddingBottom: 88,
+    paddingBottom: 110,
     gap: 12,
   },
   section: {

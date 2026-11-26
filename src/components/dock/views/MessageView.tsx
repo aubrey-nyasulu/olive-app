@@ -64,7 +64,10 @@ export function MessageView({
           styles.scrollContent,
           showComposer && styles.scrollContentComposer,
         ]}
+        showsVerticalScrollIndicator={false}
+        nestedScrollEnabled={true}
         keyboardShouldPersistTaps="handled"
+        bounces={true}
       >
         {hideHeader && (
           <View style={styles.popupRecipientCard}>
@@ -154,7 +157,7 @@ const createStyles = (colors: ColorPalette) =>
   },
   scrollContent: {
     paddingHorizontal: 16,
-    paddingBottom: 88,
+    paddingBottom: 110,
   },
   scrollContentComposer: {
     paddingTop: 12,

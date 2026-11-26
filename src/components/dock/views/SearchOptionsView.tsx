@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import type { LucideIcon } from "lucide-react-native";
 import {
   Camera,
@@ -62,7 +62,14 @@ export function SearchOptionsView({
         </Text>
       </View>
 
-      <View style={styles.optionsWrap}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.optionsWrap}
+        showsVerticalScrollIndicator={false}
+        nestedScrollEnabled={true}
+        keyboardShouldPersistTaps="handled"
+        bounces={true}
+      >
         {/* Realtime Stream Toggle Card */}
         <Pressable
           accessibilityRole="button"
@@ -132,7 +139,7 @@ export function SearchOptionsView({
             </Pressable>
           );
         })}
-      </View>
+      </ScrollView>
     </View>
   );
 }
@@ -140,29 +147,32 @@ export function SearchOptionsView({
 const createStyles = (colors: ColorPalette) =>
   StyleSheet.create({
     container: {
-    flex: 1,
-  },
-  header: {
-    paddingHorizontal: 16,
-    paddingBottom: 8,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: "800",
-    letterSpacing: -0.2,
-    color: colors.text,
-  },
-  subtitle: {
-    fontSize: 12,
-    marginTop: 2,
-    color: colors.muted,
-  },
-  optionsWrap: {
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 88,
-  },
+      flex: 1,
+    },
+    scroll: {
+      flex: 1,
+    },
+    header: {
+      paddingHorizontal: 16,
+      paddingBottom: 8,
+    },
+    title: {
+      fontSize: 16,
+      fontWeight: "800",
+      letterSpacing: -0.2,
+      color: colors.text,
+    },
+    subtitle: {
+      fontSize: 12,
+      marginTop: 2,
+      color: colors.muted,
+    },
+    optionsWrap: {
+      gap: 8,
+      paddingHorizontal: 16,
+      paddingTop: 8,
+      paddingBottom: 110,
+    },
   card: {
     flexDirection: "row",
     alignItems: "center",

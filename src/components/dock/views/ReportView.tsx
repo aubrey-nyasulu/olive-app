@@ -41,6 +41,10 @@ export function ReportView({
           styles.scrollContent,
           hideHeader && { paddingTop: 14, paddingBottom: 20 },
         ]}
+        showsVerticalScrollIndicator={false}
+        nestedScrollEnabled={true}
+        keyboardShouldPersistTaps="handled"
+        bounces={true}
       >
         {REPORT_REASONS.map((reason) => (
           <Pressable
@@ -87,7 +91,7 @@ const createStyles = (colors: ColorPalette) =>
   },
   scrollContent: {
     paddingHorizontal: 16,
-    paddingBottom: 88,
+    paddingBottom: 110,
     gap: 8,
   },
   reasonRow: {

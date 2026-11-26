@@ -98,6 +98,9 @@ export function FloatingDock({
   const [screenHeight, setScreenHeight] = useState(
     Dimensions.get("window").height
   );
+  const [screenWidth, setScreenWidth] = useState(
+    Dimensions.get("window").width
+  );
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [alertsMap, setAlertsMap] = useState<Record<string, boolean>>({});
   const [isInitialLoading, setIsInitialLoading] = useState(true);
@@ -105,6 +108,9 @@ export function FloatingDock({
   const keyboardShiftAnim = useRef(new Animated.Value(0)).current;
   const dockExpandedAnim = useRef(new Animated.Value(0)).current;
   const normalDockBottom = Math.max(20, insets.bottom + 8);
+
+  const dockWidth = Math.min(screenWidth - 32, 420);
+  const drawerWidth = dockWidth - 32;
 
   // Initial load timer (shows animating line on app launch)
   useEffect(() => {
@@ -118,6 +124,7 @@ export function FloatingDock({
   useEffect(() => {
     const sub = Dimensions.addEventListener("change", ({ window }) => {
       setScreenHeight(window.height);
+      setScreenWidth(window.width);
     });
     return () => sub.remove();
   }, []);
@@ -383,6 +390,7 @@ export function FloatingDock({
         styles.dockWrap,
         {
           bottom: normalDockBottom,
+          height: drawerHeight,
           transform: [
             {
               translateY: Animated.multiply(keyboardShiftAnim, -1),
@@ -418,12 +426,13 @@ export function FloatingDock({
         </View>
       )}
 
-      {/* 1. Drawer Container (Expands from behind the floating dock) */}
+      {/* 1. Drawer Container (Expands from behind the floating dock, 32px narrower) */}
       {renderedWindow !== null && (
         <Animated.View
           style={[
             styles.drawerCard,
             {
+              width: drawerWidth,
               height: drawerHeight,
               opacity: drawerOpacity,
             },
@@ -531,24 +540,26 @@ export function FloatingDock({
         </Animated.View>
       )}
 
-      {/* 2. Floating Dock Pill (Remains intact at the bottom, resting in front of the drawer) */}
-      <View style={styles.floatingDockPill}>
-        <DockActionBar
-          expandProgress={dockExpandedAnim}
-          renderedWindow={renderedWindow}
-          isExpanded={isExpanded}
-          expandedWindow={expandedWindow}
-          showAnimatingLine={showAnimatingLine}
-          onProfile={onProfile}
-          panelOpen={panelOpen}
-          profileMenuOpen={profileMenuOpen}
-          isListening={isListening}
-          isOtherUser={isOtherUser}
-          onCloseExpanded={closeExpandedWindow}
-          onLeftPress={handleLeftPress}
-          onRightPress={handleRightPress}
-          onToggleListening={() => setIsListening((l) => !l)}
-        />
+      {/* 2. Floating Dock (Elevated Pill resting in front of the drawer) */}
+      <View style={[styles.floatingDockShadowWrap, { width: dockWidth }]}>
+        <View style={styles.floatingDockPill}>
+          <DockActionBar
+            expandProgress={dockExpandedAnim}
+            renderedWindow={renderedWindow}
+            isExpanded={isExpanded}
+            expandedWindow={expandedWindow}
+            showAnimatingLine={showAnimatingLine}
+            onProfile={onProfile}
+            panelOpen={panelOpen}
+            profileMenuOpen={profileMenuOpen}
+            isListening={isListening}
+            isOtherUser={isOtherUser}
+            onCloseExpanded={closeExpandedWindow}
+            onLeftPress={handleLeftPress}
+            onRightPress={handleRightPress}
+            onToggleListening={() => setIsListening((l) => !l)}
+          />
+        </View>
       </View>
     </Animated.View>
   );
@@ -562,13 +573,12 @@ const createStyles = (colors: ColorPalette) =>
       right: 16,
       alignItems: "center",
       zIndex: 50,
+      overflow: "visible",
     },
     drawerCard: {
       position: "absolute",
       bottom: 0,
-      width: "100%",
-      maxWidth: 420,
-      borderRadius: 32,
+      borderRadius: 28,
       borderWidth: 1,
       borderColor: colors.line,
       backgroundColor: colors.surface,
@@ -584,20 +594,27 @@ const createStyles = (colors: ColorPalette) =>
       flex: 1,
       overflow: "hidden",
     },
-    floatingDockPill: {
-      width: "100%",
+    floatingDockShadowWrap: {
+      position: "absolute",
+      bottom: 0,
       maxWidth: 420,
       height: 64,
       borderRadius: 32,
-      backgroundColor: colors.text,
-      shadowColor: colors.overlay,
-      shadowOffset: { width: 0, height: 10 },
-      shadowOpacity: 0.32,
-      shadowRadius: 24,
+      backgroundColor: "transparent",
+      shadowColor: "#000000",
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0.28,
+      shadowRadius: 14,
       elevation: 16,
+      zIndex: 20,
+    },
+    floatingDockPill: {
+      width: "100%",
+      height: 64,
+      borderRadius: 32,
+      backgroundColor: colors.text,
       overflow: "hidden",
       justifyContent: "center",
-      zIndex: 20,
     },
     handleRow: {
       height: 32,

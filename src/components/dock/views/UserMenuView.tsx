@@ -58,6 +58,9 @@ export function UserMenuView({ onClose }: UserMenuViewProps) {
       style={styles.container}
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
+      nestedScrollEnabled={true}
+      keyboardShouldPersistTaps="handled"
+      bounces={true}
     >
       {/* 1. Profile Header Card */}
       <Pressable
@@ -214,7 +217,7 @@ const createStyles = (colors: ColorPalette) =>
   content: {
     paddingHorizontal: 16,
     paddingTop: 8,
-    paddingBottom: 88,
+    paddingBottom: 110,
     gap: 12,
   },
   profileCard: {
