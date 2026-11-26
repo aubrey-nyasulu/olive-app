@@ -13,24 +13,34 @@ const REPORT_REASONS = [
 interface ReportViewProps {
   targetUser: UserProfile;
   onSubmitReport: (reason: string) => void;
+  hideHeader?: boolean;
 }
 
-export function ReportView({ targetUser, onSubmitReport }: ReportViewProps) {
+export function ReportView({
+  targetUser,
+  onSubmitReport,
+  hideHeader = false,
+}: ReportViewProps) {
   const { styles, colors } = useThemeStyles(createStyles);
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>
-          Report Account
-        </Text>
-        <Text style={styles.subtitle}>
-          {targetUser.handle}
-        </Text>
-      </View>
+      {!hideHeader && (
+        <View style={styles.header}>
+          <Text style={styles.title}>
+            Report Account
+          </Text>
+          <Text style={styles.subtitle}>
+            {targetUser.handle}
+          </Text>
+        </View>
+      )}
 
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          hideHeader && { paddingTop: 14, paddingBottom: 20 },
+        ]}
       >
         {REPORT_REASONS.map((reason) => (
           <Pressable

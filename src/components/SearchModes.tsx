@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import {
   Pressable,
   ScrollView,
@@ -7,8 +8,66 @@ import {
 } from "react-native";
 import { ChevronRight, Camera } from "lucide-react-native";
 import { CATEGORIES, POSTS } from "../places";
+import type { Post } from "../models";
 import { useOlive } from "../context/OliveProvider";
 import { useThemeStyles, type ColorPalette } from "../theme";
+import { measureNodeInRoot } from "./popup/MorphTrigger";
+
+function SearchResultRow({
+  item,
+  onClose,
+}: {
+  item: Post;
+  onClose: () => void;
+}) {
+  const { styles, colors } = useThemeStyles(createStyles);
+  const { openPopup, rootContainerRef } = useOlive();
+  const rowRef = useRef<View | null>(null);
+
+  return (
+    <Pressable
+      ref={rowRef}
+      collapsable={false}
+      onPress={() => {
+        measureNodeInRoot(rowRef.current, rootContainerRef.current).then(
+          (rect) => {
+            onClose();
+            openPopup(
+              { type: "details", post: item },
+              {
+                triggerId: `search-result-${item.id}`,
+                rect,
+                style: {
+                  borderRadius: 16,
+                  backgroundColor: colors.surface,
+                  borderColor: colors.line,
+                  borderWidth: 1,
+                },
+                headerMorph: {
+                  headerTitle: item.place,
+                  headerSubtitle: `${item.author} · ${item.category} · ${item.distanceKm} km`,
+                },
+              }
+            );
+          }
+        );
+      }}
+      style={({ pressed }) => [
+        styles.resultRow,
+        pressed && styles.resultRowPressed,
+      ]}
+    >
+      <View style={styles.resultMeta}>
+        <Text style={styles.resultTitle}>{item.author}</Text>
+        <Text style={styles.resultSubtitle}>{item.title}</Text>
+      </View>
+      <View style={styles.resultRight}>
+        <Text style={styles.resultDist}>{item.distanceKm} km</Text>
+        <ChevronRight size={16} color={colors.muted} />
+      </View>
+    </Pressable>
+  );
+}
 
 export function TypeSearch({
   query,
@@ -19,8 +78,7 @@ export function TypeSearch({
   onSelectCategory: (cat: string) => void;
   onClose: () => void;
 }) {
-  const { styles, colors } = useThemeStyles(createStyles);
-  const { openExpandedWindow } = useOlive();
+  const { styles } = useThemeStyles(createStyles);
   const q = query.trim().toLowerCase();
 
   const results = q
@@ -42,29 +100,7 @@ export function TypeSearch({
             showsVerticalScrollIndicator={false}
           >
             {results.map((item) => (
-              <Pressable
-                key={item.id}
-                onPress={() => {
-                  onClose();
-                  openExpandedWindow({ type: "details", post: item });
-                }}
-                style={({ pressed }) => [
-                  styles.resultRow,
-                  pressed && styles.resultRowPressed,
-                ]}
-              >
-                <View style={styles.resultMeta}>
-                  <Text style={styles.resultTitle}>{item.author}</Text>
-                  <Text style={styles.resultSubtitle}>{item.title}</Text>
-                </View>
-                <View style={styles.resultRight}>
-                  <Text style={styles.resultDist}>{item.distanceKm} km</Text>
-                  <ChevronRight
-                    size={16}
-                    color={colors.muted}
-                  />
-                </View>
-              </Pressable>
+              <SearchResultRow key={item.id} item={item} onClose={onClose} />
             ))}
           </ScrollView>
         ) : (

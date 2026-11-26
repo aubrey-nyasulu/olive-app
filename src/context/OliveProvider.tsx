@@ -5,6 +5,7 @@ import {
   useRef,
   useState,
   type ReactNode,
+  type RefObject,
 } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import type { GuidanceSession, Post, PostReactions, ReactionType, Review, SearchMode, SettingsState } from "../models";
@@ -19,6 +20,11 @@ import {
 import { getPalette, type ColorPalette } from "../constants/colors";
 import { estimateTravelMinutes, generateGuidanceSteps, REVIEWS } from "../places";
 import type { UserProfile } from "../profiles";
+import type {
+  ActivePopupState,
+  PopupOrigin,
+  PopupPayload,
+} from "../components/popup/popupTypes";
 
 export type FeedMode = "all" | "people" | "places";
 
@@ -113,10 +119,25 @@ type OliveContextType = {
       | ((prev: "saved" | "settings" | null) => "saved" | "settings" | null)
   ) => void;
 
-  // Expanded floating nav window state
+  // Expanded floating nav window state (dock-triggered windows only)
   expandedWindow: ExpandedWindow;
   openExpandedWindow: (win: ExpandedWindow) => void;
   closeExpandedWindow: () => void;
+
+  // Standalone morphing pop-up window state (non-dock pressables)
+  rootContainerRef: RefObject<View | null>;
+  activePopup: ActivePopupState | null;
+  activeTriggerId: string | null;
+  openPopup: (payload: PopupPayload, origin: PopupOrigin) => void;
+  pushPopupPayload: (payload: PopupPayload) => void;
+  popPopupPayload: () => void;
+  updatePopupPayload: (payload: PopupPayload) => void;
+  closePopup: () => void;
+  clearPopup: () => void;
+
+  // Global toast notifications
+  toastMessage: string | null;
+  showToast: (msg: string) => void;
 
   // Realtime comments / reviews state
   reviewsMap: Record<string, Review[]>;
@@ -285,8 +306,27 @@ export function OliveProvider({ children }: { children: ReactNode }) {
     setLikedIds((prev) => prev.filter((item) => item !== postId));
   };
 
-  // Expanded floating nav window state
+  // Expanded floating nav window state (dock-triggered windows)
   const [expandedWindow, setExpandedWindow] = useState<ExpandedWindow>(null);
+
+  // Standalone morphing pop-up window state (non-dock pressables)
+  const rootContainerRef = useRef<View | null>(null);
+  const popupSeqRef = useRef(0);
+  const [activePopup, setActivePopup] = useState<ActivePopupState | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const showToast = (msg: string) => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    setToastMessage(msg);
+    toastTimerRef.current = setTimeout(() => setToastMessage(null), 2400);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    };
+  }, []);
 
   // Dynamic reviews / comments state
   const [reviewsMap, setReviewsMap] = useState<Record<string, Review[]>>(REVIEWS);
@@ -298,12 +338,67 @@ export function OliveProvider({ children }: { children: ReactNode }) {
   };
 
   const openExpandedWindow = (win: ExpandedWindow) => {
+    setActivePopup(null);
     setExpandedWindow(win);
   };
 
   const closeExpandedWindow = () => {
     setExpandedWindow(null);
   };
+
+  const openPopup = (payload: PopupPayload, origin: PopupOrigin) => {
+    setExpandedWindow(null);
+    setSearchOpen(false);
+    setActiveMode(null);
+    setIsListening(false);
+    popupSeqRef.current += 1;
+    setActivePopup({
+      id: popupSeqRef.current,
+      payload,
+      history: [],
+      origin,
+      closing: false,
+    });
+  };
+
+  const pushPopupPayload = (payload: PopupPayload) => {
+    setActivePopup((prev) =>
+      prev
+        ? {
+            ...prev,
+            history: [...prev.history, prev.payload],
+            payload,
+          }
+        : prev
+    );
+  };
+
+  const popPopupPayload = () => {
+    setActivePopup((prev) => {
+      if (!prev || prev.history.length === 0) return prev;
+      const nextHistory = [...prev.history];
+      const previousPayload = nextHistory.pop()!;
+      return {
+        ...prev,
+        history: nextHistory,
+        payload: previousPayload,
+      };
+    });
+  };
+
+  const updatePopupPayload = (payload: PopupPayload) => {
+    setActivePopup((prev) => (prev ? { ...prev, payload } : prev));
+  };
+
+  const closePopup = () => {
+    setActivePopup((prev) => (prev ? { ...prev, closing: true } : prev));
+  };
+
+  const clearPopup = () => {
+    setActivePopup(null);
+  };
+
+  const activeTriggerId = activePopup?.origin.triggerId ?? null;
 
   const addReview = (postId: string, review: Review) => {
     setReviewsMap((prev) => {
@@ -492,6 +587,17 @@ export function OliveProvider({ children }: { children: ReactNode }) {
         expandedWindow,
         openExpandedWindow,
         closeExpandedWindow,
+        rootContainerRef,
+        activePopup,
+        activeTriggerId,
+        openPopup,
+        pushPopupPayload,
+        popPopupPayload,
+        updatePopupPayload,
+        closePopup,
+        clearPopup,
+        toastMessage,
+        showToast,
         reviewsMap,
         addReview,
         profileOverrides,

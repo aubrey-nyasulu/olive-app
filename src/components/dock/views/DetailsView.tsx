@@ -27,6 +27,7 @@ interface DetailsViewProps {
   onOpenProfile?: () => void;
   onOpenReviews?: () => void;
   showToast?: (message: string) => void;
+  hideHeader?: boolean;
 }
 
 export function DetailsView({
@@ -36,6 +37,7 @@ export function DetailsView({
   onOpenProfile,
   onOpenReviews,
   showToast,
+  hideHeader = false,
 }: DetailsViewProps) {
   const { styles, colors } = useThemeStyles(createStyles);
   const { isSaved, toggleSave, reviewsMap } = useOlive();
@@ -60,50 +62,55 @@ export function DetailsView({
   return (
     <View style={styles.container}>
       {/* Top Header Summary */}
-      <View style={styles.header}>
-        <View style={styles.headerMeta}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={`View ${post.author}'s profile`}
-            onPress={onOpenProfile}
-            style={({ pressed }) => [
-              styles.authorPressable,
-              pressed && styles.pressed,
-            ]}
-          >
-            <Text style={styles.authorHeadline} numberOfLines={1}>
-              {post.author}
+      {!hideHeader && (
+        <View style={styles.header}>
+          <View style={styles.headerMeta}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`View ${post.author}'s profile`}
+              onPress={onOpenProfile}
+              style={({ pressed }) => [
+                styles.authorPressable,
+                pressed && styles.pressed,
+              ]}
+            >
+              <Text style={styles.authorHeadline} numberOfLines={1}>
+                {post.author}
+              </Text>
+            </Pressable>
+            <Text style={styles.metaSubtitle}>
+              {post.category} · {post.distanceKm} km · {post.when}
             </Text>
-          </Pressable>
-          <Text style={styles.metaSubtitle}>
-            {post.category} · {post.distanceKm} km · {post.when}
-          </Text>
-        </View>
+          </View>
 
-        {/* Action icons: Save & Share */}
-        <View style={styles.headerActions}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={saved ? "Remove bookmark" : "Save place"}
-            onPress={handleToggleSave}
-            style={({ pressed }) => [
-              styles.headerActionBtn,
-              saved && styles.headerActionBtnSaved,
-              pressed && styles.pressed,
-            ]}
-          >
-            <Bookmark
-              size={18}
-              color={saved ? colors.signal : colors.text}
-              fill={saved ? colors.signal : "none"}
-            />
-          </Pressable>
+          {/* Action icons: Save & Share */}
+          <View style={styles.headerActions}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={saved ? "Remove bookmark" : "Save place"}
+              onPress={handleToggleSave}
+              style={({ pressed }) => [
+                styles.headerActionBtn,
+                saved && styles.headerActionBtnSaved,
+                pressed && styles.pressed,
+              ]}
+            >
+              <Bookmark
+                size={18}
+                color={saved ? colors.signal : colors.text}
+                fill={saved ? colors.signal : "none"}
+              />
+            </Pressable>
+          </View>
         </View>
-      </View>
+      )}
 
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          hideHeader && styles.scrollContentPopup,
+        ]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         nestedScrollEnabled={true}
@@ -300,6 +307,9 @@ const createStyles = (colors: ColorPalette) =>
       paddingTop: 12,
       paddingBottom: 88,
       gap: 16,
+    },
+    scrollContentPopup: {
+      paddingBottom: 20,
     },
     mapCardWrap: {
       borderRadius: 16,

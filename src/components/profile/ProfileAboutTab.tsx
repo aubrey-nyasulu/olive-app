@@ -15,6 +15,7 @@ import { InstagramIcon } from "../icons/InstagramIcon";
 import { useOlive } from "../../context/OliveProvider";
 import { useThemeStyles, type ColorPalette } from "../../theme";
 import type { UserProfile } from "../../profiles";
+import { useMorphTrigger } from "../popup/MorphTrigger";
 
 interface ProfileAboutTabProps {
   profile: UserProfile;
@@ -28,7 +29,9 @@ export function ProfileAboutTab({
   isFollowing,
 }: ProfileAboutTabProps) {
   const { styles, colors } = useThemeStyles(createStyles);
-  const { openExpandedWindow, startGuidance } = useOlive();
+  const { openPopup, startGuidance } = useOlive();
+  const savedTrigger = useMorphTrigger("profile-about-saved");
+  const settingsTrigger = useMorphTrigger("profile-about-settings");
 
   const followersCount =
     !isMe &&
@@ -91,16 +94,38 @@ export function ProfileAboutTab({
         {/* Integrated 3-Column Core Stats Shelf */}
         <View style={styles.statsShelf}>
           <Pressable
+            ref={savedTrigger.triggerRef}
+            collapsable={false}
             accessibilityRole={isMe ? "button" : undefined}
             accessibilityLabel={isMe ? "View saved places" : undefined}
             onPress={
               isMe
-                ? () => openExpandedWindow({ type: "profile_saved" })
+                ? () =>
+                    savedTrigger.measureAndOpen((rect) =>
+                      openPopup(
+                        { type: "profile_saved" },
+                        {
+                          triggerId: "profile-about-saved",
+                          rect,
+                          style: {
+                            borderRadius: 12,
+                            backgroundColor: colors.surface,
+                            borderColor: colors.line,
+                            borderWidth: 1,
+                          },
+                          headerMorph: {
+                            headerTitle: "Saved Places",
+                            headerSubtitle: "Your bookmarked spots",
+                          },
+                        }
+                      )
+                    )
                 : undefined
             }
             style={({ pressed }) => [
               styles.statItem,
               isMe && pressed && styles.btnPressed,
+              isMe && savedTrigger.isMorphedOut && styles.morphedOut,
             ]}
           >
             <Text style={styles.statValue}>{profile.stats.statA.value}</Text>
@@ -246,12 +271,45 @@ export function ProfileAboutTab({
       {/* 3. Personal Settings & Search Preferences (Only if Me) */}
       {isMe && (
         <Pressable
+          ref={settingsTrigger.triggerRef}
+          collapsable={false}
           accessibilityRole="button"
           accessibilityLabel="Configure app search and preferences"
-          onPress={() => openExpandedWindow({ type: "profile_settings" })}
+          onPress={() =>
+            settingsTrigger.measureAndOpen((rect) =>
+              openPopup(
+                { type: "profile_settings" },
+                {
+                  triggerId: "profile-about-settings",
+                  rect,
+                  style: {
+                    borderRadius: 16,
+                    backgroundColor: colors.surface,
+                    borderColor: colors.line,
+                    borderWidth: 1,
+                  },
+                  headerMorph: {
+                    icon: {
+                      render: (c, s) => (
+                        <SlidersHorizontal size={s} color={c} />
+                      ),
+                      x: 15,
+                      y: 15,
+                      size: 18,
+                      color: colors.signal,
+                      targetBgColor: colors.signalLight,
+                    },
+                    headerTitle: "Preferences & Filters",
+                    headerSubtitle: "Discovery radius, categories & theme",
+                  },
+                }
+              )
+            )
+          }
           style={({ pressed }) => [
             styles.settingsShortcutBtn,
             pressed && styles.btnPressed,
+            settingsTrigger.isMorphedOut && styles.morphedOut,
           ]}
         >
           <View style={styles.settingsShortcutLeft}>
@@ -464,5 +522,8 @@ const createStyles = (colors: ColorPalette) =>
     },
     btnPressed: {
       opacity: 0.72,
+    },
+    morphedOut: {
+      opacity: 0,
     },
   });

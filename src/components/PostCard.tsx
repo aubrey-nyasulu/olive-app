@@ -5,20 +5,16 @@ import {
   useRef,
   useState,
   type ReactNode,
+  type RefObject,
 } from "react";
 import {
   Animated,
   Easing,
   Image,
-  KeyboardAvoidingView,
   Modal,
-  Platform,
   Pressable,
-  ScrollView,
-  Share,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from "react-native";
 import { BlurView } from "expo-blur";
@@ -27,29 +23,19 @@ import Svg, { Circle, Defs, Line, Pattern, Rect } from "react-native-svg";
 import {
   Heart,
   MessageCircle,
-  Flower2,
-  ThumbsUp,
-  Laugh,
-  Flame,
-  Hand,
   Bookmark,
   MapPin,
   ChevronRight,
   Repeat2,
   MoreHorizontal,
-  Share2,
-  User,
-  Flag,
-  X,
-  Quote,
-  ArrowLeft,
-  Trash2,
 } from "lucide-react-native";
 import { router } from "expo-router";
 import type { Post, ReactionType } from "../models";
 import { REVIEWS } from "../places";
 import { useOlive } from "../context/OliveProvider";
 import { useThemeStyles, type ColorPalette } from "../theme";
+import { useMorphTrigger } from "./popup/MorphTrigger";
+import { getReactionDef, REACTION_DEFS } from "./popup/PostPopupViews";
 
 export const POST_MEDIA_ASPECT_RATIO = 1;
 
@@ -61,32 +47,6 @@ function getInitials(name: string): string {
     .join("")
     .slice(0, 2)
     .toUpperCase();
-}
-
-/* ── Reaction definitions & Harmonious Palette ────────────────────── */
-
-const REACTION_DEFS: {
-  type: ReactionType;
-  Icon: typeof Heart;
-  label: string;
-  activeColor: string;
-}[] = [
-  // 1. Love (Deep Ruby Crimson — warm, passionate, avoids harsh digital red)
-  { type: "heart", Icon: Heart, label: "Love", activeColor: "#C83D4A" },
-  // 2. Flowers ("Giving someone their flowers" — soft peony blossom / antique rose)
-  { type: "flower", Icon: Flower2, label: "Flowers", activeColor: "#CE5A84" },
-  // 3. Fire (Ember Vermilion — spicy terracotta flame, aligns with Olive signal)
-  { type: "fire", Icon: Flame, label: "Fire", activeColor: "#E04F22" },
-  // 4. Haha (Warm Amber Gold — golden honey joy, sunny without neon glare)
-  { type: "laugh", Icon: Laugh, label: "Haha", activeColor: "#D9822B" },
-  // 5. Clap (Olive Laurel — earthy botanical sage green, anchors the Olive namesake)
-  { type: "clap", Icon: Hand, label: "Clap", activeColor: "#4F7E5E" },
-  // 6. Like (Aegean Slate Blue — deep mineral water blue, genuine and grounded)
-  { type: "like", Icon: ThumbsUp, label: "Like", activeColor: "#3B7097" },
-];
-
-function getReactionDef(type: ReactionType) {
-  return REACTION_DEFS.find((r) => r.type === type) ?? REACTION_DEFS[0];
 }
 
 /* ── Reaction Picker Bubble ───────────────────────────────────────── */
@@ -241,900 +201,6 @@ const pickerStyles = (colors: ColorPalette) =>
     pickerItemPressed: {
       opacity: 0.65,
       transform: [{ scale: 1.15 }],
-    },
-  });
-
-/* ── Post Options Menu (Editorial Bottom Sheet) ──────────────────── */
-
-function PostOptionsMenu({
-  visible,
-  post,
-  saved,
-  onToggleSave,
-  onShare,
-  onViewPlace,
-  onViewAuthor,
-  onClose,
-  colors,
-}: {
-  visible: boolean;
-  post: Post;
-  saved: boolean;
-  onToggleSave: () => void;
-  onShare: () => void;
-  onViewPlace: () => void;
-  onViewAuthor: () => void;
-  onClose: () => void;
-  colors: ColorPalette;
-}) {
-  const slideAnim = useRef(new Animated.Value(340)).current;
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const [animVisible, setAnimVisible] = useState(false);
-
-  useEffect(() => {
-    if (visible) {
-      setAnimVisible(true);
-      Animated.parallel([
-        Animated.spring(slideAnim, {
-          toValue: 0,
-          friction: 9,
-          tension: 90,
-          useNativeDriver: true,
-        }),
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 180,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    } else if (animVisible) {
-      Animated.parallel([
-        Animated.timing(slideAnim, {
-          toValue: 340,
-          duration: 180,
-          useNativeDriver: true,
-        }),
-        Animated.timing(fadeAnim, {
-          toValue: 0,
-          duration: 140,
-          useNativeDriver: true,
-        }),
-      ]).start(() => setAnimVisible(false));
-    }
-  }, [visible]);
-
-  if (!visible && !animVisible) return null;
-
-  const mStyles = menuStyles(colors);
-
-  const menuActions = [
-    {
-      id: "save",
-      icon: Bookmark,
-      label: saved ? "Saved in Collection" : "Save Place",
-      subLabel: saved
-        ? "Tap to remove from your bookmarks"
-        : "Bookmark this spot for later",
-      iconColor: saved ? colors.signal : colors.text,
-      iconBg: saved ? colors.signalLight : colors.surfaceMuted,
-      fillIcon: saved,
-      onPress: () => {
-        onToggleSave();
-        onClose();
-      },
-    },
-    {
-      id: "share",
-      icon: Share2,
-      label: "Share Post",
-      subLabel: "Send to friends or copy share link",
-      iconColor: colors.text,
-      iconBg: colors.surfaceMuted,
-      fillIcon: false,
-      onPress: () => {
-        onClose();
-        setTimeout(onShare, 200);
-      },
-    },
-    {
-      id: "place",
-      icon: MapPin,
-      label: "Explore Place Details",
-      subLabel: `${post.place} · ${post.distanceKm} km away`,
-      iconColor: colors.signal,
-      iconBg: colors.surfaceMuted,
-      fillIcon: false,
-      onPress: () => {
-        onClose();
-        setTimeout(onViewPlace, 200);
-      },
-    },
-    {
-      id: "author",
-      icon: User,
-      label: `About ${post.author}`,
-      subLabel: "View curator profile, guides & stories",
-      iconColor: colors.text,
-      iconBg: colors.surfaceMuted,
-      fillIcon: false,
-      onPress: () => {
-        onClose();
-        setTimeout(onViewAuthor, 200);
-      },
-    },
-    {
-      id: "report",
-      icon: Flag,
-      label: "Report Post",
-      subLabel: "Flag inappropriate content or inaccuracies",
-      iconColor: colors.error,
-      iconBg: `${colors.error}15`,
-      fillIcon: false,
-      onPress: () => {
-        onClose();
-      },
-    },
-  ];
-
-  return (
-    <Modal
-      transparent
-      visible={visible || animVisible}
-      onRequestClose={onClose}
-      animationType="none"
-      statusBarTranslucent
-    >
-      <View style={mStyles.overlay}>
-        {/* Backdrop dismiss */}
-        <Animated.View
-          style={[
-            StyleSheet.absoluteFill,
-            { backgroundColor: colors.overlay, opacity: fadeAnim },
-          ]}
-        >
-          <Pressable
-            style={StyleSheet.absoluteFill}
-            onPress={onClose}
-            accessibilityLabel="Close menu"
-          />
-        </Animated.View>
-
-        {/* Sliding Menu Sheet */}
-        <Animated.View
-          style={[
-            mStyles.sheet,
-            {
-              transform: [{ translateY: slideAnim }],
-            },
-          ]}
-        >
-          {/* Drag Handle */}
-          <View style={mStyles.handle} />
-
-          {/* Post Header Summary */}
-          <View style={mStyles.header}>
-            <View style={mStyles.thumbnailWrap}>
-              {post.image ? (
-                <Image source={post.image} style={mStyles.thumbnail} />
-              ) : (
-                <View style={mStyles.thumbnailFallback}>
-                  <MapPin size={18} color={colors.signal} />
-                </View>
-              )}
-            </View>
-            <View style={mStyles.headerMeta}>
-              <Text numberOfLines={1} style={mStyles.headerTitle}>
-                {post.place}
-              </Text>
-              <Text numberOfLines={1} style={mStyles.headerSubtitle}>
-                {post.author} · {post.category} · {post.kind}
-              </Text>
-            </View>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Dismiss options"
-              onPress={onClose}
-              style={({ pressed }) => [
-                mStyles.closeButton,
-                pressed && mStyles.pressed,
-              ]}
-            >
-              <X size={16} color={colors.textSecondary} />
-            </Pressable>
-          </View>
-
-          {/* Action List */}
-          <View style={mStyles.actionList}>
-            {menuActions.map((item) => {
-              const IconComponent = item.icon;
-              return (
-                <Pressable
-                  key={item.id}
-                  accessibilityRole="button"
-                  accessibilityLabel={item.label}
-                  onPress={item.onPress}
-                  style={({ pressed }) => [
-                    mStyles.actionRow,
-                    pressed && mStyles.actionRowPressed,
-                  ]}
-                >
-                  <View
-                    style={[
-                      mStyles.iconContainer,
-                      { backgroundColor: item.iconBg },
-                    ]}
-                  >
-                    <IconComponent
-                      size={18}
-                      color={item.iconColor}
-                      fill={item.fillIcon ? item.iconColor : "none"}
-                    />
-                  </View>
-                  <View style={mStyles.actionTextCol}>
-                    <Text
-                      style={[
-                        mStyles.actionLabel,
-                        item.id === "report" && { color: colors.error },
-                      ]}
-                    >
-                      {item.label}
-                    </Text>
-                    <Text numberOfLines={1} style={mStyles.actionSubLabel}>
-                      {item.subLabel}
-                    </Text>
-                  </View>
-                  <ChevronRight size={16} color={colors.muted} />
-                </Pressable>
-              );
-            })}
-          </View>
-
-          {/* Cancel Button */}
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Cancel"
-            onPress={onClose}
-            style={({ pressed }) => [
-              mStyles.cancelButton,
-              pressed && mStyles.pressed,
-            ]}
-          >
-            <Text style={mStyles.cancelText}>Cancel</Text>
-          </Pressable>
-        </Animated.View>
-      </View>
-    </Modal>
-  );
-}
-
-const menuStyles = (colors: ColorPalette) =>
-  StyleSheet.create({
-    overlay: {
-      flex: 1,
-      justifyContent: "flex-end",
-    },
-    sheet: {
-      backgroundColor: colors.surface,
-      borderTopLeftRadius: 28,
-      borderTopRightRadius: 28,
-      borderWidth: 1,
-      borderColor: colors.line,
-      paddingHorizontal: 20,
-      paddingTop: 10,
-      paddingBottom: 28,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: -6 },
-      shadowOpacity: 0.16,
-      shadowRadius: 18,
-      elevation: 16,
-      maxWidth: 600,
-      width: "100%",
-      alignSelf: "center",
-    },
-    handle: {
-      width: 38,
-      height: 4,
-      borderRadius: 2,
-      backgroundColor: colors.line,
-      alignSelf: "center",
-      marginBottom: 12,
-    },
-    header: {
-      flexDirection: "row",
-      alignItems: "center",
-      paddingBottom: 14,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.line,
-      gap: 12,
-    },
-    thumbnailWrap: {
-      width: 44,
-      height: 44,
-      borderRadius: 12,
-      overflow: "hidden",
-      backgroundColor: colors.surfaceMuted,
-    },
-    thumbnail: {
-      width: "100%",
-      height: "100%",
-      resizeMode: "cover",
-    },
-    thumbnailFallback: {
-      width: "100%",
-      height: "100%",
-      alignItems: "center",
-      justifyContent: "center",
-      backgroundColor: colors.surfaceMuted,
-    },
-    headerMeta: {
-      flex: 1,
-    },
-    headerTitle: {
-      fontSize: 16,
-      fontWeight: "700",
-      color: colors.text,
-      letterSpacing: -0.2,
-    },
-    headerSubtitle: {
-      fontSize: 12,
-      color: colors.muted,
-      marginTop: 2,
-    },
-    closeButton: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
-      backgroundColor: colors.surfaceMuted,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    actionList: {
-      paddingVertical: 8,
-      gap: 2,
-    },
-    actionRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      paddingVertical: 10,
-      paddingHorizontal: 8,
-      borderRadius: 14,
-    },
-    actionRowPressed: {
-      backgroundColor: colors.surfaceMuted,
-    },
-    iconContainer: {
-      width: 38,
-      height: 38,
-      borderRadius: 19,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    actionTextCol: {
-      flex: 1,
-      marginLeft: 12,
-    },
-    actionLabel: {
-      fontSize: 15,
-      fontWeight: "600",
-      color: colors.text,
-    },
-    actionSubLabel: {
-      fontSize: 12,
-      color: colors.muted,
-      marginTop: 1,
-    },
-    cancelButton: {
-      marginTop: 6,
-      height: 46,
-      borderRadius: 23,
-      backgroundColor: colors.surfaceMuted,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    cancelText: {
-      fontSize: 15,
-      fontWeight: "700",
-      color: colors.text,
-    },
-    pressed: {
-      opacity: 0.65,
-    },
-  });
-
-/* ── Community Reactors Directory ────────────────────────────────── */
-
-const COMMUNITY_REACTORS = [
-  {
-    name: "Kondwani Banda",
-    handle: "@kondwani",
-    role: "Coffee & Architecture",
-  },
-  { name: "Dalitso Phiri", handle: "@dalitso", role: "Local Food Explorer" },
-  { name: "Puma Energy", handle: "@pumaenergy", role: "Kenyatta Drive Bay" },
-  { name: "Chisomo Banda", handle: "@chisomo", role: "Music & Live Sessions" },
-  { name: "Tamanda Gondwe", handle: "@tamanda", role: "Market Gardener" },
-  {
-    name: "Lingadzi Sessions",
-    handle: "@lingadzi",
-    role: "Acoustic Arts Community",
-  },
-  { name: "Mabu Artisan Bakes", handle: "@mabubakes", role: "Artisan Baker" },
-  {
-    name: "Alinafe Mwale",
-    handle: "@alinafe",
-    role: "Wildlife & Nature Guide",
-  },
-  { name: "Tawonga Phiri", handle: "@tawonga", role: "Weekend Cyclist" },
-  { name: "Chifundo Banda", handle: "@chifundo", role: "Urban Planner" },
-  { name: "Lumbani Chirwa", handle: "@lumbani", role: "Area 10 Resident" },
-  {
-    name: "Madalitso Nyirenda",
-    handle: "@madalitso",
-    role: "Culture & Heritage",
-  },
-  { name: "Sekani Mhone", handle: "@sekani", role: "Specialty Roaster" },
-  { name: "Chimwemwe Tembo", handle: "@chimwemwe", role: "Visual Storyteller" },
-  { name: "Thokozani Kamanga", handle: "@thoko", role: "Craft Brewer" },
-];
-
-/* ── Reactions List Popup Modal (With Reaction Icon Tab Switcher) ── */
-
-function ReactionsListModal({
-  visible,
-  postId,
-  postAuthor,
-  onClose,
-  colors,
-}: {
-  visible: boolean;
-  postId: string;
-  postAuthor: string;
-  onClose: () => void;
-  colors: ColorPalette;
-}) {
-  const { reactionsMap, getUserReaction } = useOlive();
-  const reactions = reactionsMap[postId];
-  const userReaction = getUserReaction(postId);
-  const [selectedTab, setSelectedTab] = useState<"all" | ReactionType>("all");
-
-  const slideAnim = useRef(new Animated.Value(340)).current;
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const [animVisible, setAnimVisible] = useState(false);
-
-  useEffect(() => {
-    if (visible) {
-      setAnimVisible(true);
-      setSelectedTab("all");
-      Animated.parallel([
-        Animated.spring(slideAnim, {
-          toValue: 0,
-          friction: 9,
-          tension: 90,
-          useNativeDriver: true,
-        }),
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 180,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    } else if (animVisible) {
-      Animated.parallel([
-        Animated.timing(slideAnim, {
-          toValue: 340,
-          duration: 180,
-          useNativeDriver: true,
-        }),
-        Animated.timing(fadeAnim, {
-          toValue: 0,
-          duration: 140,
-          useNativeDriver: true,
-        }),
-      ]).start(() => setAnimVisible(false));
-    }
-  }, [visible]);
-
-  if (!visible && !animVisible) return null;
-  if (!reactions) return null;
-
-  // Active reaction types with counts > 0
-  const activeTabs = REACTION_DEFS.filter(
-    (def) => (reactions[def.type] ?? 0) > 0
-  );
-
-  const totalCount = Object.values(reactions).reduce((a, b) => a + b, 0);
-
-  // Generate deterministic reactor items matching the reaction counts
-  const availableCandidates = COMMUNITY_REACTORS.filter(
-    (c) => c.name !== postAuthor
-  );
-
-  // Seed based on postId
-  const seed = Math.abs(
-    postId.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0)
-  );
-
-  type ReactorItem = {
-    id: string;
-    name: string;
-    handle: string;
-    role: string;
-    reaction: ReactionType;
-    isCurrentUser?: boolean;
-  };
-
-  const allReactors: ReactorItem[] = [];
-
-  // 1. Add current user if they reacted
-  if (userReaction) {
-    allReactors.push({
-      id: "current-user",
-      name: "You",
-      handle: "@you",
-      role: "Your reaction",
-      reaction: userReaction,
-      isCurrentUser: true,
-    });
-  }
-
-  // 2. Add community members for each reaction type
-  let candidateOffset = seed;
-  activeTabs.forEach((def) => {
-    const rawCount = reactions[def.type] ?? 0;
-    const countNeeded =
-      userReaction === def.type ? Math.max(0, rawCount - 1) : rawCount;
-
-    for (let i = 0; i < countNeeded; i++) {
-      const candidate =
-        availableCandidates[(candidateOffset + i) % availableCandidates.length];
-      allReactors.push({
-        id: `${candidate.name}-${def.type}-${i}`,
-        name: candidate.name,
-        handle: candidate.handle,
-        role: candidate.role,
-        reaction: def.type,
-      });
-      candidateOffset += 1;
-    }
-  });
-
-  // Filter reactors according to selected tab
-  const displayedReactors =
-    selectedTab === "all"
-      ? allReactors
-      : allReactors.filter((r) => r.reaction === selectedTab);
-
-  const rStyles = reactionsModalStyles(colors);
-
-  return (
-    <Modal
-      transparent
-      visible={visible || animVisible}
-      onRequestClose={onClose}
-      animationType="none"
-      statusBarTranslucent
-    >
-      <View style={rStyles.overlay}>
-        {/* Backdrop dismiss */}
-        <Animated.View
-          style={[
-            StyleSheet.absoluteFill,
-            { backgroundColor: colors.overlay, opacity: fadeAnim },
-          ]}
-        >
-          <Pressable
-            style={StyleSheet.absoluteFill}
-            onPress={onClose}
-            accessibilityLabel="Close reactions modal"
-          />
-        </Animated.View>
-
-        {/* Sliding Sheet */}
-        <Animated.View
-          style={[rStyles.sheet, { transform: [{ translateY: slideAnim }] }]}
-        >
-          {/* Drag Handle */}
-          <View style={rStyles.handle} />
-
-          {/* Header */}
-          <View style={rStyles.header}>
-            <Text style={rStyles.title}>Reactions</Text>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Close reactions modal"
-              onPress={onClose}
-              style={({ pressed }) => [
-                rStyles.closeButton,
-                pressed && { opacity: 0.6 },
-              ]}
-            >
-              <X size={16} color={colors.textSecondary} />
-            </Pressable>
-          </View>
-
-          {/* Tab Switcher */}
-          <View style={rStyles.tabsWrapper}>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={rStyles.tabsContent}
-            >
-              {/* "All" Tab */}
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={`All ${totalCount} reactions`}
-                onPress={() => setSelectedTab("all")}
-                style={[
-                  rStyles.tabPill,
-                  selectedTab === "all" && rStyles.tabPillActive,
-                ]}
-              >
-                <Text
-                  style={[
-                    rStyles.tabLabel,
-                    selectedTab === "all" && rStyles.tabLabelActive,
-                  ]}
-                >
-                  All
-                </Text>
-                <Text
-                  style={[
-                    rStyles.tabCount,
-                    selectedTab === "all" && rStyles.tabCountActive,
-                  ]}
-                >
-                  {totalCount}
-                </Text>
-              </Pressable>
-
-              {/* Reaction Type Tabs */}
-              {activeTabs.map((def) => {
-                const count = reactions[def.type] ?? 0;
-                const isSelected = selectedTab === def.type;
-                const Icon = def.Icon;
-                return (
-                  <Pressable
-                    key={def.type}
-                    accessibilityRole="button"
-                    accessibilityLabel={`${def.label} ${count} reactions`}
-                    onPress={() => setSelectedTab(def.type)}
-                    style={[
-                      rStyles.tabPill,
-                      isSelected && rStyles.tabPillActive,
-                    ]}
-                  >
-                    <Icon size={15} color={def.activeColor} fill="none" />
-                    <Text
-                      style={[
-                        rStyles.tabCount,
-                        isSelected && rStyles.tabCountActive,
-                      ]}
-                    >
-                      {count}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </ScrollView>
-          </View>
-
-          {/* People List */}
-          <ScrollView
-            style={rStyles.listScroll}
-            contentContainerStyle={rStyles.listContent}
-            showsVerticalScrollIndicator={false}
-          >
-            {displayedReactors.map((item) => {
-              const def = getReactionDef(item.reaction);
-              const ReactionIcon = def.Icon;
-              const initials = item.isCurrentUser
-                ? "You"
-                : item.name
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")
-                    .slice(0, 2);
-
-              return (
-                <View key={item.id} style={rStyles.personRow}>
-                  {/* Avatar with miniature reaction icon badge */}
-                  <View style={rStyles.avatarWrap}>
-                    <View style={rStyles.avatar}>
-                      <Text style={rStyles.avatarText}>{initials}</Text>
-                    </View>
-                    <View
-                      style={[
-                        rStyles.miniReactionBadge,
-                        { backgroundColor: colors.surface },
-                      ]}
-                    >
-                      <ReactionIcon
-                        size={11}
-                        color={def.activeColor}
-                        fill="none"
-                      />
-                    </View>
-                  </View>
-
-                  {/* Name and Handle */}
-                  <View style={rStyles.personMeta}>
-                    <Text numberOfLines={1} style={rStyles.personName}>
-                      {item.name}
-                    </Text>
-                    <Text numberOfLines={1} style={rStyles.personSub}>
-                      {item.handle} · {item.role}
-                    </Text>
-                  </View>
-                </View>
-              );
-            })}
-          </ScrollView>
-        </Animated.View>
-      </View>
-    </Modal>
-  );
-}
-
-const reactionsModalStyles = (colors: ColorPalette) =>
-  StyleSheet.create({
-    overlay: {
-      flex: 1,
-      justifyContent: "flex-end",
-    },
-    sheet: {
-      backgroundColor: colors.surface,
-      borderTopLeftRadius: 28,
-      borderTopRightRadius: 28,
-      borderWidth: 1,
-      borderColor: colors.line,
-      paddingTop: 10,
-      paddingBottom: 28,
-      maxHeight: "72%",
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: -6 },
-      shadowOpacity: 0.16,
-      shadowRadius: 18,
-      elevation: 16,
-      maxWidth: 600,
-      width: "100%",
-      alignSelf: "center",
-    },
-    handle: {
-      width: 38,
-      height: 4,
-      borderRadius: 2,
-      backgroundColor: colors.line,
-      alignSelf: "center",
-      marginBottom: 8,
-    },
-    header: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      paddingHorizontal: 20,
-      paddingVertical: 10,
-    },
-    title: {
-      fontSize: 17,
-      fontWeight: "700",
-      color: colors.text,
-      letterSpacing: -0.2,
-    },
-    closeButton: {
-      width: 30,
-      height: 30,
-      borderRadius: 15,
-      backgroundColor: colors.surfaceMuted,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    tabsWrapper: {
-      borderBottomWidth: 1,
-      borderBottomColor: colors.line,
-      paddingBottom: 10,
-    },
-    tabsContent: {
-      paddingHorizontal: 20,
-      gap: 8,
-      alignItems: "center",
-    },
-    tabPill: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 5,
-      paddingHorizontal: 12,
-      paddingVertical: 6,
-      borderRadius: 9999,
-      backgroundColor: colors.surfaceMuted,
-      borderWidth: 1,
-      borderColor: "transparent",
-    },
-    tabPillActive: {
-      backgroundColor: colors.surface,
-      borderColor: colors.line,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.08,
-      shadowRadius: 3,
-      elevation: 2,
-    },
-    tabLabel: {
-      fontSize: 13,
-      fontWeight: "600",
-      color: colors.muted,
-    },
-    tabLabelActive: {
-      color: colors.text,
-      fontWeight: "700",
-    },
-    tabCount: {
-      fontSize: 12,
-      fontWeight: "600",
-      color: colors.muted,
-    },
-    tabCountActive: {
-      color: colors.text,
-      fontWeight: "700",
-    },
-    listScroll: {
-      flexGrow: 0,
-      maxHeight: 360,
-    },
-    listContent: {
-      paddingHorizontal: 20,
-      paddingVertical: 8,
-    },
-    personRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      paddingVertical: 10,
-      gap: 12,
-    },
-    avatarWrap: {
-      position: "relative",
-      width: 40,
-      height: 40,
-    },
-    avatar: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      backgroundColor: colors.surfaceMuted,
-      alignItems: "center",
-      justifyContent: "center",
-      borderWidth: 1,
-      borderColor: colors.line,
-    },
-    avatarText: {
-      fontSize: 13,
-      fontWeight: "700",
-      color: colors.text,
-    },
-    miniReactionBadge: {
-      position: "absolute",
-      bottom: -2,
-      right: -2,
-      width: 18,
-      height: 18,
-      borderRadius: 9,
-      borderWidth: 1.5,
-      borderColor: colors.surface,
-      alignItems: "center",
-      justifyContent: "center",
-      backgroundColor: colors.surface,
-    },
-    personMeta: {
-      flex: 1,
-    },
-    personName: {
-      fontSize: 15,
-      fontWeight: "600",
-      color: colors.text,
-    },
-    personSub: {
-      fontSize: 12,
-      color: colors.muted,
-      marginTop: 2,
     },
   });
 
@@ -1453,21 +519,31 @@ function NoPhotoEditorialCard({
   post,
   colors,
   embedded = false,
+  triggerRef,
+  isMorphedOut = false,
   onPress,
 }: {
   post: Post;
   colors: ColorPalette;
   embedded?: boolean;
+  triggerRef?: RefObject<View | null>;
+  isMorphedOut?: boolean;
   onPress: () => void;
 }) {
   const nStyles = noPhotoStyles(colors, embedded);
 
   return (
     <Pressable
+      ref={triggerRef}
+      collapsable={false}
       accessibilityRole="button"
       accessibilityLabel={`Open ${post.place} details`}
       onPress={onPress}
-      style={({ pressed }) => [nStyles.outer, pressed && { opacity: 0.92 }]}
+      style={({ pressed }) => [
+        nStyles.outer,
+        pressed && { opacity: 0.92 },
+        isMorphedOut && { opacity: 0 },
+      ]}
     >
       <LinearGradient
         colors={[colors.surface, colors.surfaceMuted, colors.actionPillBg]}
@@ -1590,422 +666,6 @@ const noPhotoStyles = (colors: ColorPalette, embedded: boolean) =>
     },
   });
 
-/* ── Reshare Options Sheet (Instant Repost / Quote / Share) ──────── */
-
-function ReshareOptionsSheet({
-  visible,
-  post,
-  isRepostedByMe,
-  existingQuoteNote,
-  onInstantRepost,
-  onSaveQuoteRepost,
-  onRemoveRepost,
-  onShareExternal,
-  onClose,
-  colors,
-}: {
-  visible: boolean;
-  post: Post;
-  isRepostedByMe: boolean;
-  existingQuoteNote: string | null;
-  onInstantRepost: () => void;
-  onSaveQuoteRepost: (note: string) => void;
-  onRemoveRepost: () => void;
-  onShareExternal: () => void;
-  onClose: () => void;
-  colors: ColorPalette;
-}) {
-  const slideAnim = useRef(new Animated.Value(360)).current;
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const [animVisible, setAnimVisible] = useState(false);
-  const [mode, setMode] = useState<"menu" | "quote">("menu");
-  const [quoteText, setQuoteText] = useState("");
-
-  useEffect(() => {
-    if (visible) {
-      setMode("menu");
-      setQuoteText(existingQuoteNote ?? "");
-      setAnimVisible(true);
-      Animated.parallel([
-        Animated.spring(slideAnim, {
-          toValue: 0,
-          friction: 9,
-          tension: 90,
-          useNativeDriver: true,
-        }),
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 180,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    } else if (animVisible) {
-      Animated.parallel([
-        Animated.timing(slideAnim, {
-          toValue: 360,
-          duration: 180,
-          useNativeDriver: true,
-        }),
-        Animated.timing(fadeAnim, {
-          toValue: 0,
-          duration: 140,
-          useNativeDriver: true,
-        }),
-      ]).start(() => setAnimVisible(false));
-    }
-  }, [visible]);
-
-  if (!visible && !animVisible) return null;
-
-  const mStyles = menuStyles(colors);
-  const rStyles = reshareSheetStyles(colors);
-
-  const actions = [
-    {
-      id: "instant",
-      icon: Repeat2,
-      label:
-        isRepostedByMe && !existingQuoteNote
-          ? "Undo Instant Repost"
-          : isRepostedByMe
-          ? "Switch to Instant Repost"
-          : "Instant Repost",
-      subLabel:
-        isRepostedByMe && !existingQuoteNote
-          ? "Remove this post from your reposts"
-          : "Share directly to your followers' feed",
-      iconColor:
-        isRepostedByMe && !existingQuoteNote ? colors.signal : colors.text,
-      iconBg:
-        isRepostedByMe && !existingQuoteNote
-          ? colors.signalLight
-          : colors.surfaceMuted,
-      onPress: () => {
-        if (isRepostedByMe && !existingQuoteNote) {
-          onRemoveRepost();
-        } else {
-          onInstantRepost();
-        }
-        onClose();
-      },
-    },
-    {
-      id: "quote",
-      icon: Quote,
-      label: existingQuoteNote ? "Edit Quote Repost" : "Quote Repost",
-      subLabel: existingQuoteNote
-        ? "Update your commentary on this post"
-        : "Add your own thoughts above the post",
-      iconColor: existingQuoteNote ? colors.signal : colors.text,
-      iconBg: existingQuoteNote ? colors.signalLight : colors.surfaceMuted,
-      onPress: () => {
-        setQuoteText(existingQuoteNote ?? "");
-        setMode("quote");
-      },
-    },
-    ...(isRepostedByMe && existingQuoteNote
-      ? [
-          {
-            id: "remove",
-            icon: Trash2,
-            label: "Remove Repost",
-            subLabel: "Remove this quote repost from your profile",
-            iconColor: colors.error,
-            iconBg: `${colors.error}15`,
-            onPress: () => {
-              onRemoveRepost();
-              onClose();
-            },
-          },
-        ]
-      : []),
-    {
-      id: "share",
-      icon: Share2,
-      label: "Share Externally",
-      subLabel: "Send via system share sheet or copy link",
-      iconColor: colors.text,
-      iconBg: colors.surfaceMuted,
-      onPress: () => {
-        onClose();
-        setTimeout(onShareExternal, 200);
-      },
-    },
-  ];
-
-  const canPublish = quoteText.trim().length > 0;
-
-  return (
-    <Modal
-      transparent
-      visible={visible || animVisible}
-      onRequestClose={onClose}
-      animationType="none"
-      statusBarTranslucent
-    >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={mStyles.overlay}
-      >
-        <Animated.View
-          style={[
-            StyleSheet.absoluteFill,
-            { backgroundColor: colors.overlay, opacity: fadeAnim },
-          ]}
-        >
-          <Pressable
-            style={StyleSheet.absoluteFill}
-            onPress={onClose}
-            accessibilityLabel="Close reshare sheet"
-          />
-        </Animated.View>
-
-        <Animated.View
-          style={[mStyles.sheet, { transform: [{ translateY: slideAnim }] }]}
-        >
-          <View style={mStyles.handle} />
-
-          {mode === "menu" ? (
-            <>
-              <View style={mStyles.header}>
-                <View style={mStyles.thumbnailWrap}>
-                  {post.image ? (
-                    <Image source={post.image} style={mStyles.thumbnail} />
-                  ) : (
-                    <View style={mStyles.thumbnailFallback}>
-                      <MapPin size={18} color={colors.signal} />
-                    </View>
-                  )}
-                </View>
-                <View style={mStyles.headerMeta}>
-                  <Text numberOfLines={1} style={mStyles.headerTitle}>
-                    Reshare Post
-                  </Text>
-                  <Text numberOfLines={1} style={mStyles.headerSubtitle}>
-                    {post.author} · {post.place}
-                  </Text>
-                </View>
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel="Dismiss reshare sheet"
-                  onPress={onClose}
-                  style={({ pressed }) => [
-                    mStyles.closeButton,
-                    pressed && mStyles.pressed,
-                  ]}
-                >
-                  <X size={16} color={colors.textSecondary} />
-                </Pressable>
-              </View>
-
-              <View style={mStyles.actionList}>
-                {actions.map((item) => {
-                  const IconComponent = item.icon;
-                  return (
-                    <Pressable
-                      key={item.id}
-                      accessibilityRole="button"
-                      accessibilityLabel={item.label}
-                      onPress={item.onPress}
-                      style={({ pressed }) => [
-                        mStyles.actionRow,
-                        pressed && mStyles.actionRowPressed,
-                      ]}
-                    >
-                      <View
-                        style={[
-                          mStyles.iconContainer,
-                          { backgroundColor: item.iconBg },
-                        ]}
-                      >
-                        <IconComponent size={18} color={item.iconColor} />
-                      </View>
-                      <View style={mStyles.actionTextCol}>
-                        <Text
-                          style={[
-                            mStyles.actionLabel,
-                            item.id === "remove" && { color: colors.error },
-                          ]}
-                        >
-                          {item.label}
-                        </Text>
-                        <Text numberOfLines={1} style={mStyles.actionSubLabel}>
-                          {item.subLabel}
-                        </Text>
-                      </View>
-                      <ChevronRight size={16} color={colors.muted} />
-                    </Pressable>
-                  );
-                })}
-              </View>
-
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Cancel"
-                onPress={onClose}
-                style={({ pressed }) => [
-                  mStyles.cancelButton,
-                  pressed && mStyles.pressed,
-                ]}
-              >
-                <Text style={mStyles.cancelText}>Cancel</Text>
-              </Pressable>
-            </>
-          ) : (
-            <View style={rStyles.composerWrap}>
-              <View style={rStyles.composerHeader}>
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel="Back to reshare options"
-                  onPress={() => setMode("menu")}
-                  style={({ pressed }) => [
-                    mStyles.closeButton,
-                    pressed && mStyles.pressed,
-                  ]}
-                >
-                  <ArrowLeft size={16} color={colors.textSecondary} />
-                </Pressable>
-                <Text style={rStyles.composerTitle}>Quote Repost</Text>
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel="Close quote composer"
-                  onPress={onClose}
-                  style={({ pressed }) => [
-                    mStyles.closeButton,
-                    pressed && mStyles.pressed,
-                  ]}
-                >
-                  <X size={16} color={colors.textSecondary} />
-                </Pressable>
-              </View>
-
-              <TextInput
-                value={quoteText}
-                onChangeText={setQuoteText}
-                placeholder="Add your thoughts about this spot..."
-                placeholderTextColor={colors.muted}
-                multiline
-                maxLength={280}
-                autoFocus
-                style={rStyles.quoteInput}
-              />
-
-              <View style={rStyles.quotePreview}>
-                <Text numberOfLines={1} style={rStyles.quotePreviewAuthor}>
-                  {post.author} · {post.place}
-                </Text>
-                <Text numberOfLines={2} style={rStyles.quotePreviewTitle}>
-                  {post.title}
-                </Text>
-              </View>
-
-              <View style={rStyles.composerFooter}>
-                <Text style={rStyles.charCount}>{quoteText.length}/280</Text>
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel="Publish quote repost"
-                  disabled={!canPublish}
-                  onPress={() => {
-                    if (!canPublish) return;
-                    onSaveQuoteRepost(quoteText.trim());
-                    onClose();
-                  }}
-                  style={({ pressed }) => [
-                    rStyles.publishBtn,
-                    !canPublish && rStyles.publishBtnDisabled,
-                    pressed && canPublish && mStyles.pressed,
-                  ]}
-                >
-                  <Text style={rStyles.publishBtnText}>
-                    {existingQuoteNote ? "Update Quote" : "Post Quote"}
-                  </Text>
-                </Pressable>
-              </View>
-            </View>
-          )}
-        </Animated.View>
-      </KeyboardAvoidingView>
-    </Modal>
-  );
-}
-
-const reshareSheetStyles = (colors: ColorPalette) =>
-  StyleSheet.create({
-    composerWrap: {
-      gap: 12,
-      paddingTop: 2,
-    },
-    composerHeader: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      paddingBottom: 6,
-    },
-    composerTitle: {
-      fontSize: 16,
-      fontWeight: "700",
-      color: colors.text,
-    },
-    quoteInput: {
-      minHeight: 96,
-      maxHeight: 160,
-      borderRadius: 16,
-      borderWidth: 1,
-      borderColor: colors.line,
-      backgroundColor: colors.surfaceMuted,
-      padding: 14,
-      fontSize: 14,
-      lineHeight: 20,
-      color: colors.text,
-      textAlignVertical: "top",
-    },
-    quotePreview: {
-      borderRadius: 14,
-      borderWidth: 1,
-      borderColor: colors.line,
-      backgroundColor: colors.bg,
-      paddingHorizontal: 12,
-      paddingVertical: 10,
-      gap: 2,
-    },
-    quotePreviewAuthor: {
-      fontSize: 12,
-      fontWeight: "700",
-      color: colors.text,
-    },
-    quotePreviewTitle: {
-      fontSize: 12.5,
-      lineHeight: 17,
-      color: colors.muted,
-    },
-    composerFooter: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      paddingTop: 2,
-    },
-    charCount: {
-      fontSize: 12,
-      color: colors.muted,
-    },
-    publishBtn: {
-      paddingHorizontal: 18,
-      height: 40,
-      borderRadius: 20,
-      backgroundColor: colors.signal,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    publishBtnDisabled: {
-      opacity: 0.45,
-    },
-    publishBtnText: {
-      fontSize: 14,
-      fontWeight: "700",
-      color: colors.signalForeground,
-    },
-  });
-
 /* ── PostCard Component ───────────────────────────────────────────── */
 
 export function PostCard({
@@ -2020,30 +680,61 @@ export function PostCard({
     isSaved,
     toggleSave,
     closeSearch,
-    openExpandedWindow,
+    openPopup,
     reviewsMap,
     getUserReaction,
     setReaction,
     removeReaction,
     reactionsMap,
     isReposted,
-    toggleRepost,
     getUserQuoteNote,
-    setQuoteRepost,
-    removeRepost,
   } = useOlive();
 
+  const instanceId = useId();
   const userReaction = getUserReaction(post.id);
   const userReposted = isReposted(post.id);
-  const userQuoteNote = getUserQuoteNote(post.id);
   const [pickerVisible, setPickerVisible] = useState(false);
-  const [menuVisible, setMenuVisible] = useState(false);
-  const [reshareSheetVisible, setReshareSheetVisible] = useState(false);
-  const [reactionsModalVisible, setReactionsModalVisible] = useState(false);
   const [anchorY, setAnchorY] = useState(300);
   const reactionButtonRef = useRef<View>(null);
   const longPressedRef = useRef(false);
   const [captionExpanded, setCaptionExpanded] = useState(false);
+
+  // Morph triggers for every non-dock pressable
+  const imageTriggerId = `post-${post.id}-${instanceId}-image`;
+  const noPhotoTriggerId = `post-${post.id}-${instanceId}-nophoto`;
+  const commentsTriggerId = `post-${post.id}-${instanceId}-comments`;
+  const reviewTriggerId = `post-${post.id}-${instanceId}-review`;
+  const detailsTriggerId = `post-${post.id}-${instanceId}-details`;
+  const venueTriggerId = `post-${post.id}-${instanceId}-venue`;
+  const moreTriggerId = `post-${post.id}-${instanceId}-more`;
+  const reshareTriggerId = `post-${post.id}-${instanceId}-reshare`;
+  const reactionsTriggerId = `post-${post.id}-${instanceId}-reactions`;
+
+  const imageTrigger = useMorphTrigger(imageTriggerId);
+  const noPhotoTrigger = useMorphTrigger(noPhotoTriggerId);
+  const commentsTrigger = useMorphTrigger(commentsTriggerId);
+  const reviewTrigger = useMorphTrigger(reviewTriggerId);
+  const detailsTrigger = useMorphTrigger(detailsTriggerId);
+  const venueTrigger = useMorphTrigger(venueTriggerId);
+  const moreTrigger = useMorphTrigger(moreTriggerId);
+  const reshareTrigger = useMorphTrigger(reshareTriggerId);
+  const reactionsTrigger = useMorphTrigger(reactionsTriggerId);
+
+  // Resolve & track natural image dimensions so clicked image scales to its original aspect/size
+  const getInitialNaturalDims = () => {
+    const resolved = post.image
+      ? (Image as any).resolveAssetSource?.(post.image)
+      : null;
+    if (resolved?.width && resolved?.height) {
+      return { width: resolved.width, height: resolved.height };
+    }
+    if (post.ratio === "4/3") return { width: 1200, height: 900 };
+    if (post.ratio === "4/5") return { width: 960, height: 1200 };
+    return { width: 1200, height: 1200 };
+  };
+  const naturalDimsRef = useRef<{ width: number; height: number }>(
+    getInitialNaturalDims()
+  );
 
   const reviews = reviewsMap[post.id] ?? REVIEWS[post.id] ?? [];
   const latestReview = reviews.length > 0 ? reviews[0] : null;
@@ -2070,11 +761,6 @@ export function PostCard({
   const reshareCount =
     baseReshareCount + (userReposted && !post.repostedBy ? 1 : 0);
 
-  const openPlace = () => {
-    closeSearch();
-    openExpandedWindow({ type: "details", post });
-  };
-
   const openProfileByName = (name: string) => {
     closeSearch();
     router.push({
@@ -2084,6 +770,279 @@ export function PostCard({
   };
 
   const openAuthorProfile = () => openProfileByName(post.author);
+
+  /* ── Morphing Pop-Up Openers ──────────────────────────────────── */
+
+  const handleOpenImage = (embedded: boolean) => {
+    if (!post.image) return;
+    imageTrigger.measureAndOpen((rect) =>
+      openPopup(
+        {
+          type: "image_viewer",
+          image: post.image!,
+          naturalWidth: naturalDimsRef.current.width,
+          naturalHeight: naturalDimsRef.current.height,
+          place: post.place,
+          author: post.author,
+        },
+        {
+          triggerId: imageTriggerId,
+          rect,
+          style: {
+            borderRadius: embedded ? 24 : 32,
+            backgroundColor: colors.surfaceMuted,
+            borderColor: "transparent",
+            borderWidth: 0,
+          },
+        }
+      )
+    );
+  };
+
+  const handleOpenNoPhotoDetails = (embedded: boolean) => {
+    noPhotoTrigger.measureAndOpen((rect) =>
+      openPopup(
+        { type: "details", post },
+        {
+          triggerId: noPhotoTriggerId,
+          rect,
+          style: {
+            borderRadius: embedded ? 24 : 32,
+            backgroundColor: colors.surface,
+            borderColor: colors.line,
+            borderWidth: 1,
+          },
+          headerMorph: {
+            headerTitle: post.place,
+            headerSubtitle: `${post.author} · ${post.category} · ${post.distanceKm} km`,
+          },
+        }
+      )
+    );
+  };
+
+  const handleOpenDetailsPill = () => {
+    detailsTrigger.measureAndOpen((rect) =>
+      openPopup(
+        { type: "details", post },
+        {
+          triggerId: detailsTriggerId,
+          rect,
+          style: {
+            borderRadius: 16,
+            backgroundColor: colors.surfaceMuted,
+            borderColor: colors.line,
+            borderWidth: 1,
+          },
+          headerMorph: {
+            title: {
+              text: "Details",
+              x: 9,
+              y: 5,
+              fontSize: 12,
+              fontWeight: "600",
+              color: colors.textSecondary,
+            },
+            headerSubtitle: `${post.author} · ${post.category} · ${post.distanceKm} km`,
+            ghostContent: (
+              <View style={styles.ghostDetailsRight}>
+                <ChevronRight size={11} color={colors.muted} />
+              </View>
+            ),
+          },
+        }
+      )
+    );
+  };
+
+  const handleOpenVenue = () => {
+    venueTrigger.measureAndOpen((rect) =>
+      openPopup(
+        { type: "details", post },
+        {
+          triggerId: venueTriggerId,
+          rect,
+          style: {
+            borderRadius: 16,
+            backgroundColor: colors.surfaceMuted,
+            borderColor: colors.line,
+            borderWidth: 1,
+          },
+          headerMorph: {
+            icon: {
+              render: (c, s) => <MapPin size={s} color={c} />,
+              x: 9,
+              y: 6,
+              size: 12,
+              color: colors.signal,
+              targetBgColor: colors.signalLight,
+            },
+            headerTitle: post.place,
+            headerSubtitle: `${post.author} · ${post.category} · ${post.distanceKm} km`,
+          },
+        }
+      )
+    );
+  };
+
+  const handleOpenComments = () => {
+    commentsTrigger.measureAndOpen((rect) =>
+      openPopup(
+        { type: "comments", post },
+        {
+          triggerId: commentsTriggerId,
+          rect,
+          style: {
+            borderRadius: 16,
+            backgroundColor: colors.actionPillBg,
+            borderColor: colors.actionPillBorder,
+            borderWidth: 1,
+          },
+          headerMorph: {
+            icon: {
+              render: (c, s) => <MessageCircle size={s} color={c} />,
+              x: 9,
+              y: 6,
+              size: 20,
+              color: colors.text,
+              targetBgColor: colors.surfaceMuted,
+            },
+            headerTitle: "Reviews & Comments",
+            headerSubtitle: `${post.author} · ${post.place}`,
+            ghostContent:
+              reviews.length > 0 ? (
+                <View style={styles.ghostPillCountWrap}>
+                  <Text style={styles.actionCount}>{reviews.length}</Text>
+                </View>
+              ) : undefined,
+          },
+        }
+      )
+    );
+  };
+
+  const handleOpenReviewHighlight = () => {
+    reviewTrigger.measureAndOpen((rect) =>
+      openPopup(
+        { type: "comments", post },
+        {
+          triggerId: reviewTriggerId,
+          rect,
+          style: {
+            borderRadius: 8,
+            backgroundColor: colors.surface,
+            borderColor: colors.signal,
+            borderWidth: 1,
+          },
+          headerMorph: {
+            headerTitle: "Reviews & Comments",
+            headerSubtitle: `${post.author} · ${post.place}`,
+          },
+        }
+      )
+    );
+  };
+
+  const handleOpenMoreOptions = () => {
+    moreTrigger.measureAndOpen((rect) =>
+      openPopup(
+        { type: "post_options", post },
+        {
+          triggerId: moreTriggerId,
+          rect,
+          style: {
+            borderRadius: 16,
+            backgroundColor: colors.surfaceMuted,
+            borderColor: colors.line,
+            borderWidth: 1,
+          },
+          headerMorph: {
+            icon: {
+              render: (c, s) => <MoreHorizontal size={s} color={c} />,
+              x: 6,
+              y: 6,
+              size: 20,
+              color: colors.textSecondary,
+              targetBgColor: colors.surfaceMuted,
+            },
+            headerTitle: "Post Options",
+            headerSubtitle: `${post.author} · ${post.place}`,
+          },
+        }
+      )
+    );
+  };
+
+  const handleOpenReshare = () => {
+    reshareTrigger.measureAndOpen((rect) =>
+      openPopup(
+        { type: "reshare", post },
+        {
+          triggerId: reshareTriggerId,
+          rect,
+          style: {
+            borderRadius: 16,
+            backgroundColor: colors.actionPillBg,
+            borderColor: colors.actionPillBorder,
+            borderWidth: 1,
+          },
+          headerMorph: {
+            icon: {
+              render: (c, s) => <Repeat2 size={s} color={c} />,
+              x: 9,
+              y: 6,
+              size: 20,
+              color: userReposted ? colors.signal : colors.text,
+              targetBgColor: userReposted
+                ? colors.signalLight
+                : colors.surfaceMuted,
+            },
+            headerTitle: "Reshare Post",
+            headerSubtitle: `${post.author} · ${post.place}`,
+            ghostContent:
+              reshareCount > 0 ? (
+                <View style={styles.ghostPillCountWrap}>
+                  <Text
+                    style={[
+                      styles.actionCount,
+                      userReposted && { color: colors.signal },
+                    ]}
+                  >
+                    {reshareCount}
+                  </Text>
+                </View>
+              ) : undefined,
+          },
+        }
+      )
+    );
+  };
+
+  const handleOpenReactionsList = () => {
+    reactionsTrigger.measureAndOpen((rect) =>
+      openPopup(
+        {
+          type: "reactions_list",
+          postId: post.id,
+          postAuthor: post.author,
+        },
+        {
+          triggerId: reactionsTriggerId,
+          rect,
+          style: {
+            borderRadius: 14,
+            backgroundColor: colors.surface,
+            borderColor: colors.line,
+            borderWidth: 1,
+          },
+          headerMorph: {
+            headerTitle: "Reactions",
+            headerSubtitle: post.author,
+          },
+        }
+      )
+    );
+  };
 
   /* ── Reaction handlers ────────────────────────────────────────── */
 
@@ -2133,26 +1092,6 @@ export function PostCard({
     [userReaction, post.id]
   );
 
-  const handleShare = () => {
-    Share.share({
-      message: `${post.title} — ${post.author} (${post.place}) on Olive!`,
-    });
-  };
-
-  const handleMoreOptions = () => {
-    setMenuVisible(true);
-  };
-
-  const handleInstantRepost = () => {
-    if (!userReposted) {
-      toggleRepost(post.id);
-    } else if (userQuoteNote) {
-      // Switch from quote repost back to instant repost
-      removeRepost(post.id);
-      toggleRepost(post.id);
-    }
-  };
-
   /* ── Determine which icon to show for the reaction button ────── */
   const currentReactionDef = userReaction
     ? getReactionDef(userReaction)
@@ -2161,11 +1100,17 @@ export function PostCard({
 
   const moreButton = (
     <Pressable
+      ref={moreTrigger.triggerRef}
+      collapsable={false}
       accessibilityRole="button"
       accessibilityLabel="More options"
       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-      onPress={handleMoreOptions}
-      style={({ pressed }) => [styles.moreButton, pressed && styles.pressed]}
+      onPress={handleOpenMoreOptions}
+      style={({ pressed }) => [
+        styles.moreButton,
+        pressed && styles.pressed,
+        moreTrigger.isMorphedOut && styles.morphedOut,
+      ]}
     >
       <MoreHorizontal size={20} color={colors.textSecondary} />
     </Pressable>
@@ -2203,19 +1148,39 @@ export function PostCard({
   const renderMedia = (embedded: boolean) =>
     post.image ? (
       <Pressable
+        ref={imageTrigger.triggerRef}
+        collapsable={false}
         accessibilityRole="button"
-        accessibilityLabel={`Open ${post.place} details`}
-        onPress={openPlace}
-        style={[styles.imageWrap, embedded && styles.embeddedImageWrap]}
+        accessibilityLabel={`View ${post.place} photo`}
+        onPress={() => handleOpenImage(embedded)}
+        style={[
+          styles.imageWrap,
+          embedded && styles.embeddedImageWrap,
+          imageTrigger.isMorphedOut && styles.morphedOut,
+        ]}
       >
-        <Image source={post.image} style={styles.postImage} />
+        <Image
+          source={post.image}
+          style={styles.postImage}
+          onLoad={(e) => {
+            const src = (e.nativeEvent as any)?.source;
+            const target = (e.nativeEvent as any)?.target;
+            const w = src?.width ?? target?.naturalWidth;
+            const h = src?.height ?? target?.naturalHeight;
+            if (typeof w === "number" && typeof h === "number" && w > 0 && h > 0) {
+              naturalDimsRef.current = { width: w, height: h };
+            }
+          }}
+        />
       </Pressable>
     ) : (
       <NoPhotoEditorialCard
         post={post}
         colors={colors}
         embedded={embedded}
-        onPress={openPlace}
+        triggerRef={noPhotoTrigger.triggerRef}
+        isMorphedOut={noPhotoTrigger.isMorphedOut}
+        onPress={() => handleOpenNoPhotoDetails(embedded)}
       />
     );
 
@@ -2247,10 +1212,15 @@ export function PostCard({
       {/* Venue Capsule & Details Trigger */}
       <View style={styles.venueRow}>
         <Pressable
+          ref={venueTrigger.triggerRef}
+          collapsable={false}
           accessibilityRole="button"
           accessibilityLabel={`Location: ${post.place}`}
-          onPress={openPlace}
-          style={styles.venueCapsule}
+          onPress={handleOpenVenue}
+          style={[
+            styles.venueCapsule,
+            venueTrigger.isMorphedOut && styles.morphedOut,
+          ]}
         >
           <MapPin size={12} color={colors.signal} />
           <Text numberOfLines={1} style={styles.venueCapsuleText}>
@@ -2259,10 +1229,15 @@ export function PostCard({
         </Pressable>
 
         <Pressable
+          ref={detailsTrigger.triggerRef}
+          collapsable={false}
           accessibilityRole="button"
           accessibilityLabel="Open details sheet"
-          onPress={() => openExpandedWindow({ type: "details", post })}
-          style={styles.detailsChip}
+          onPress={handleOpenDetailsPill}
+          style={[
+            styles.detailsChip,
+            detailsTrigger.isMorphedOut && styles.morphedOut,
+          ]}
         >
           <Text style={styles.detailsChipText}>Details</Text>
           <ChevronRight size={11} color={colors.muted} />
@@ -2272,10 +1247,15 @@ export function PostCard({
       {/* Community Review Highlight */}
       {latestReview && (
         <Pressable
+          ref={reviewTrigger.triggerRef}
+          collapsable={false}
           accessibilityRole="button"
           accessibilityLabel={`Community review from ${latestReview.by}`}
-          onPress={() => openExpandedWindow({ type: "comments", post })}
-          style={styles.reviewHighlight}
+          onPress={handleOpenReviewHighlight}
+          style={[
+            styles.reviewHighlight,
+            reviewTrigger.isMorphedOut && styles.morphedOut,
+          ]}
         >
           <Text numberOfLines={1} style={styles.reviewQuote}>
             <Text style={styles.reviewAuthorPrefix}>{latestReview.by}: </Text>
@@ -2410,12 +1390,15 @@ export function PostCard({
 
           {/* Comments */}
           <Pressable
+            ref={commentsTrigger.triggerRef}
+            collapsable={false}
             accessibilityRole="button"
             accessibilityLabel={`View ${reviews.length} comments`}
-            onPress={() => openExpandedWindow({ type: "comments", post })}
+            onPress={handleOpenComments}
             style={({ pressed }) => [
               styles.actionItem,
               pressed && styles.pressed,
+              commentsTrigger.isMorphedOut && styles.morphedOut,
             ]}
           >
             <MessageCircle size={20} color={colors.text} />
@@ -2426,12 +1409,15 @@ export function PostCard({
 
           {/* Reshare */}
           <Pressable
+            ref={reshareTrigger.triggerRef}
+            collapsable={false}
             accessibilityRole="button"
             accessibilityLabel="Reshare options"
-            onPress={() => setReshareSheetVisible(true)}
+            onPress={handleOpenReshare}
             style={({ pressed }) => [
               styles.actionItem,
               pressed && styles.pressed,
+              reshareTrigger.isMorphedOut && styles.morphedOut,
             ]}
           >
             <Repeat2
@@ -2472,12 +1458,15 @@ export function PostCard({
       {/* Social Proof Row: Badges + Reaction Names Text */}
       {otherReactorsCount > 0 && (
         <Pressable
+          ref={reactionsTrigger.triggerRef}
+          collapsable={false}
           accessibilityRole="button"
           accessibilityLabel="View community reactions"
-          onPress={() => setReactionsModalVisible(true)}
+          onPress={handleOpenReactionsList}
           style={({ pressed }) => [
             styles.socialProofRow,
             pressed && { opacity: 0.7 },
+            reactionsTrigger.isMorphedOut && styles.morphedOut,
           ]}
         >
           <CommunityReactionBadges postId={post.id} colors={colors} />
@@ -2495,42 +1484,6 @@ export function PostCard({
 
       {/* Editorial Post Content & Story Narrative (for non-repost posts) */}
       {!isAnyRepost && renderPostBody(false)}
-
-      {/* Post Options Menu Modal Sheet */}
-      <PostOptionsMenu
-        visible={menuVisible}
-        post={post}
-        saved={saved}
-        onToggleSave={() => toggleSave(post.id)}
-        onShare={handleShare}
-        onViewPlace={openPlace}
-        onViewAuthor={openAuthorProfile}
-        onClose={() => setMenuVisible(false)}
-        colors={colors}
-      />
-
-      {/* Reshare Options Sheet (Instant Repost / Quote Repost / Share) */}
-      <ReshareOptionsSheet
-        visible={reshareSheetVisible}
-        post={post}
-        isRepostedByMe={userReposted}
-        existingQuoteNote={userQuoteNote}
-        onInstantRepost={handleInstantRepost}
-        onSaveQuoteRepost={(note) => setQuoteRepost(post.id, note)}
-        onRemoveRepost={() => removeRepost(post.id)}
-        onShareExternal={handleShare}
-        onClose={() => setReshareSheetVisible(false)}
-        colors={colors}
-      />
-
-      {/* Reactions List Modal Sheet */}
-      <ReactionsListModal
-        visible={reactionsModalVisible}
-        postId={post.id}
-        postAuthor={post.author}
-        onClose={() => setReactionsModalVisible(false)}
-        colors={colors}
-      />
     </View>
   );
 }
@@ -2708,6 +1661,21 @@ const createStyles = (colors: ColorPalette) =>
     },
     pressed: {
       opacity: 0.65,
+    },
+    morphedOut: {
+      opacity: 0,
+    },
+    ghostPillCountWrap: {
+      height: "100%",
+      paddingLeft: 33,
+      paddingRight: 8,
+      justifyContent: "center",
+    },
+    ghostDetailsRight: {
+      height: "100%",
+      paddingRight: 8,
+      alignItems: "flex-end",
+      justifyContent: "center",
     },
     postBodySection: {
       paddingTop: 4,

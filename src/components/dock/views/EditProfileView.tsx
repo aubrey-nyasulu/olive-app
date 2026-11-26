@@ -13,9 +13,14 @@ import { useThemeStyles, type ColorPalette } from "../../../theme";
 interface EditProfileViewProps {
   profile: UserProfile;
   onSave: (patch: { name: string; neighborhood: string; bio: string }) => void;
+  hideHeader?: boolean;
 }
 
-export function EditProfileView({ profile, onSave }: EditProfileViewProps) {
+export function EditProfileView({
+  profile,
+  onSave,
+  hideHeader = false,
+}: EditProfileViewProps) {
   const { styles, colors } = useThemeStyles(createStyles);
   const [name, setName] = useState(profile.name);
   const [neighborhood, setNeighborhood] = useState(profile.neighborhood);
@@ -34,16 +39,21 @@ export function EditProfileView({ profile, onSave }: EditProfileViewProps) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Edit Profile Info</Text>
-        <Text style={styles.subtitle}>
-          Update how your name, neighborhood, and bio appear
-        </Text>
-      </View>
+      {!hideHeader && (
+        <View style={styles.header}>
+          <Text style={styles.title}>Edit Profile Info</Text>
+          <Text style={styles.subtitle}>
+            Update how your name, neighborhood, and bio appear
+          </Text>
+        </View>
+      )}
 
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          hideHeader && { paddingTop: 14 },
+        ]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >

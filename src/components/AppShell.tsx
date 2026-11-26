@@ -4,7 +4,6 @@ import {
   Dimensions,
   Keyboard,
   type KeyboardEvent,
-  LayoutChangeEvent,
   Platform,
   Pressable,
   StyleSheet,
@@ -12,6 +11,7 @@ import {
   View,
 } from "react-native";
 import { CheckCircle2 } from "lucide-react-native";
+import { BlurTargetView } from "expo-blur";
 import { useGlobalSearchParams, usePathname } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useOlive } from "../context/OliveProvider";
@@ -20,6 +20,7 @@ import { getProfile } from "../profiles";
 import { GuidanceModal } from "./GuidanceModal";
 import { TypeSearch, VisualSearch } from "./SearchModes";
 import { FloatingDock } from "./dock/FloatingDock";
+import { MorphPopupOverlay } from "./popup/MorphPopupOverlay";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { styles, colors } = useThemeStyles(createStyles);
@@ -32,13 +33,17 @@ export function AppShell({ children }: { children: ReactNode }) {
     setIsSearching,
     expandedWindow,
     closeExpandedWindow,
+    rootContainerRef,
+    toastMessage,
+    showToast,
   } = useOlive();
+
+  const appBlurTargetRef = useRef<View | null>(null);
 
   const insets = useSafeAreaInsets();
   const [screenHeight, setScreenHeight] = useState(
     Dimensions.get("window").height
   );
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
 
   const keyboardShiftAnim = useRef(new Animated.Value(0)).current;
   const normalDockBottom = Math.max(20, insets.bottom + 8);
@@ -62,14 +67,6 @@ export function AppShell({ children }: { children: ReactNode }) {
   const isExpanded = expandedWindow !== null;
 
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const showToast = (msg: string) => {
-    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
-    setToastMessage(msg);
-    toastTimerRef.current = setTimeout(() => setToastMessage(null), 2400);
-  };
 
   useEffect(() => {
     const sub = Dimensions.addEventListener("change", ({ window }) => {
@@ -83,7 +80,6 @@ export function AppShell({ children }: { children: ReactNode }) {
     const handleShow = (e: KeyboardEvent) => {
       const kh = e.endCoordinates.height;
       if (!kh || kh <= 0) return;
-      setKeyboardHeight(kh);
       const shift = Math.max(0, kh + 28 - normalDockBottom);
       const duration = Platform.OS === "ios" ? e.duration ?? 250 : 180;
 
@@ -95,7 +91,6 @@ export function AppShell({ children }: { children: ReactNode }) {
     };
 
     const handleHide = (e: KeyboardEvent) => {
-      setKeyboardHeight(0);
       const duration = Platform.OS === "ios" ? e.duration ?? 250 : 180;
 
       Animated.timing(keyboardShiftAnim, {
@@ -128,8 +123,14 @@ export function AppShell({ children }: { children: ReactNode }) {
   };
 
   return (
-    <View style={styles.root}>
-      <View style={styles.contentWrap}>{children}</View>
+    <View ref={rootContainerRef} collapsable={false} style={styles.root}>
+      <BlurTargetView
+        ref={appBlurTargetRef}
+        collapsable={false}
+        style={styles.contentWrap}
+      >
+        {children}
+      </BlurTargetView>
 
       {/* Dimmed backdrop when expanded dock, search, panel, or profile menu is active */}
       {(isExpanded || searchOpen || panelOpen || profileMenuOpen) && (
@@ -184,6 +185,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           showToast={showToast}
         />
       )}
+
+      {/* Standalone Morphing Pop-Up Windows (non-dock pressables & image lightbox) */}
+      <MorphPopupOverlay appBlurTargetRef={appBlurTargetRef} />
 
       {/* Floating In-App Toast */}
       {toastMessage && (
@@ -252,7 +256,7 @@ const createStyles = (colors: ColorPalette) =>
       paddingHorizontal: 16,
       paddingVertical: 8,
       borderRadius: 20,
-      zIndex: 60,
+      zIndex: 140,
       backgroundColor: colors.text,
       shadowColor: "#000",
       shadowOffset: { width: 0, height: 4 },

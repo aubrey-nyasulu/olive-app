@@ -11,7 +11,7 @@ const MODES: { key: TravelMode; label: string }[] = [
   { key: "driving", label: "Driving" },
 ];
 
-export function SettingsView() {
+export function SettingsView({ hideHeader = false }: { hideHeader?: boolean }) {
   const { styles, colors } = useThemeStyles(createStyles);
   const { config, updateSettings, resetSettings } = useOlive();
 
@@ -25,18 +25,23 @@ export function SettingsView() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>
-          Preferences & Filters
-        </Text>
-        <Text style={styles.subtitle}>
-          Discovery radius, transport modes, and alerts
-        </Text>
-      </View>
+      {!hideHeader && (
+        <View style={styles.header}>
+          <Text style={styles.title}>
+            Preferences & Filters
+          </Text>
+          <Text style={styles.subtitle}>
+            Discovery radius, transport modes, and alerts
+          </Text>
+        </View>
+      )}
 
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          hideHeader && { paddingTop: 14, paddingBottom: 24 },
+        ]}
         showsVerticalScrollIndicator={false}
       >
         {/* Search Radius */}

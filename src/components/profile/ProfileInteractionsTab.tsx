@@ -12,6 +12,7 @@ import { useOlive } from "../../context/OliveProvider";
 import { useThemeStyles, type ColorPalette } from "../../theme";
 import { PostCard } from "../PostCard";
 import type { Post, Review } from "../../models";
+import { useMorphTrigger } from "../popup/MorphTrigger";
 
 export interface UserInteraction {
   post: Post;
@@ -61,6 +62,105 @@ function parseMinutesFallback(timeAgo: string): number {
   return 4320;
 }
 
+function InteractionReviewCard({
+  entryKey,
+  post,
+  review,
+  timeAgo,
+  userName,
+  isMe,
+}: {
+  entryKey: string;
+  post: Post;
+  review: Review;
+  timeAgo: string;
+  userName: string;
+  isMe: boolean;
+}) {
+  const { styles, colors } = useThemeStyles(createStyles);
+  const { openPopup } = useOlive();
+  const cardTrigger = useMorphTrigger(`interaction-${entryKey}`);
+
+  return (
+    <Pressable
+      ref={cardTrigger.triggerRef}
+      collapsable={false}
+      accessibilityRole="button"
+      accessibilityLabel={`Interaction on ${post.title}`}
+      onPress={() =>
+        cardTrigger.measureAndOpen((rect) =>
+          openPopup(
+            { type: "details", post },
+            {
+              triggerId: `interaction-${entryKey}`,
+              rect,
+              style: {
+                borderRadius: 16,
+                backgroundColor: colors.surface,
+                borderColor: colors.line,
+                borderWidth: 1,
+              },
+              headerMorph: {
+                headerTitle: post.place,
+                headerSubtitle: `${post.author} · ${post.category} · ${post.distanceKm} km`,
+              },
+            }
+          )
+        )
+      }
+      style={({ pressed }) => [
+        styles.card,
+        pressed && styles.cardPressed,
+        cardTrigger.isMorphedOut && styles.morphedOut,
+      ]}
+    >
+      <View style={styles.targetPostRow}>
+        {post.image ? (
+          <Image source={post.image} style={styles.placeThumb} />
+        ) : (
+          <View style={styles.placeThumbPlaceholder}>
+            <MapPin size={16} color={colors.signal} />
+          </View>
+        )}
+        <View style={styles.placeMeta}>
+          <Text numberOfLines={1} style={styles.placeTitle}>
+            {post.title}
+          </Text>
+          <Text numberOfLines={1} style={styles.placeSub}>
+            {post.author} · {post.place}
+          </Text>
+        </View>
+        <ChevronRight size={16} color={colors.muted} />
+      </View>
+
+      <View style={styles.commentBubble}>
+        <View style={styles.bubbleHeaderRow}>
+          <View style={styles.starsRow}>
+            {[1, 2, 3, 4, 5].map((star) => (
+              <Star
+                key={`star-${star}`}
+                size={12}
+                color={star <= review.stars ? colors.signal : colors.muted}
+                fill={star <= review.stars ? colors.signal : "none"}
+              />
+            ))}
+          </View>
+          <Text style={styles.timeAgo}>{timeAgo}</Text>
+        </View>
+
+        <Text style={styles.reviewText}>"{review.text}"</Text>
+
+        <View style={styles.reviewFooter}>
+          <MessageSquareMore size={12} color={colors.muted} />
+          <Text style={styles.authorBadge}>
+            {isMe ? "You reviewed" : `${userName} reviewed`}
+          </Text>
+        </View>
+      </View>
+    </Pressable>
+  );
+}
+
 export function ProfileInteractionsTab({
   likedPosts,
   interactions,
@@ -68,7 +168,6 @@ export function ProfileInteractionsTab({
   isMe,
 }: ProfileInteractionsTabProps) {
   const { styles, colors } = useThemeStyles(createStyles);
-  const { openExpandedWindow } = useOlive();
 
   const timeline = useMemo<TimelineEntry[]>(() => {
     const entries: TimelineEntry[] = [
@@ -118,62 +217,15 @@ export function ProfileInteractionsTab({
         if (entry.kind === "review") {
           const { post, review, timeAgo } = entry.interaction;
           return (
-            <Pressable
+            <InteractionReviewCard
               key={entry.key}
-              accessibilityRole="button"
-              accessibilityLabel={`Interaction on ${post.title}`}
-              onPress={() => openExpandedWindow({ type: "details", post })}
-              style={({ pressed }) => [
-                styles.card,
-                pressed && styles.cardPressed,
-              ]}
-            >
-              <View style={styles.targetPostRow}>
-                {post.image ? (
-                  <Image source={post.image} style={styles.placeThumb} />
-                ) : (
-                  <View style={styles.placeThumbPlaceholder}>
-                    <MapPin size={16} color={colors.signal} />
-                  </View>
-                )}
-                <View style={styles.placeMeta}>
-                  <Text numberOfLines={1} style={styles.placeTitle}>
-                    {post.title}
-                  </Text>
-                  <Text numberOfLines={1} style={styles.placeSub}>
-                    {post.author} · {post.place}
-                  </Text>
-                </View>
-                <ChevronRight size={16} color={colors.muted} />
-              </View>
-
-              <View style={styles.commentBubble}>
-                <View style={styles.bubbleHeaderRow}>
-                  <View style={styles.starsRow}>
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <Star
-                        key={`star-${star}`}
-                        size={12}
-                        color={
-                          star <= review.stars ? colors.signal : colors.muted
-                        }
-                        fill={star <= review.stars ? colors.signal : "none"}
-                      />
-                    ))}
-                  </View>
-                  <Text style={styles.timeAgo}>{timeAgo}</Text>
-                </View>
-
-                <Text style={styles.reviewText}>"{review.text}"</Text>
-
-                <View style={styles.reviewFooter}>
-                  <MessageSquareMore size={12} color={colors.muted} />
-                  <Text style={styles.authorBadge}>
-                    {isMe ? "You reviewed" : `${userName} reviewed`}
-                  </Text>
-                </View>
-              </View>
-            </Pressable>
+              entryKey={entry.key}
+              post={post}
+              review={review}
+              timeAgo={timeAgo}
+              userName={userName}
+              isMe={isMe}
+            />
           );
         }
 
@@ -213,6 +265,9 @@ const createStyles = (colors: ColorPalette) =>
     },
     cardPressed: {
       opacity: 0.85,
+    },
+    morphedOut: {
+      opacity: 0,
     },
     targetPostRow: {
       flexDirection: "row",

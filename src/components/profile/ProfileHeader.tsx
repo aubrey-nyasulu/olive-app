@@ -16,6 +16,7 @@ import { useState } from "react";
 import { useThemeStyles, type ColorPalette } from "../../theme";
 import { PROFILES, type UserProfile } from "../../profiles";
 import { useOlive } from "../../context/OliveProvider";
+import { useMorphTrigger } from "../popup/MorphTrigger";
 
 export const COVER_EXPANDED_HEIGHT = 160;
 export const NAVBAR_HEIGHT = 64;
@@ -45,7 +46,10 @@ export function ProfileHeader({
   collapseDistance,
 }: ProfileHeaderProps) {
   const { styles, colors, isDark } = useThemeStyles(createStyles);
-  const { openExpandedWindow } = useOlive();
+  const { openPopup } = useOlive();
+  const editTrigger = useMorphTrigger("profile-edit-info");
+  const visitorsTrigger = useMorphTrigger("profile-visitors");
+  const messageTrigger = useMorphTrigger(`profile-message-${profile.id}`);
   const insets = useSafeAreaInsets();
   const insetsTop = insets.top;
   const { width: windowWidth } = useWindowDimensions();
@@ -313,15 +317,43 @@ export function ProfileHeader({
         >
           {isMe ? (
             <Pressable
+              ref={editTrigger.triggerRef}
+              collapsable={false}
               accessibilityRole="button"
               accessibilityLabel="Edit profile info"
               onPress={() =>
-                openExpandedWindow({ type: "edit_profile", profile })
+                editTrigger.measureAndOpen((rect) =>
+                  openPopup(
+                    { type: "edit_profile", profile },
+                    {
+                      triggerId: "profile-edit-info",
+                      rect,
+                      style: {
+                        borderRadius: FOLLOW_BTN_HEIGHT / 2,
+                        backgroundColor: colors.surfaceMuted,
+                        borderColor: colors.line,
+                        borderWidth: 1,
+                      },
+                      headerMorph: {
+                        title: {
+                          text: "Edit Info",
+                          x: 17,
+                          y: 10,
+                          fontSize: 13,
+                          fontWeight: "700",
+                          color: colors.text,
+                        },
+                        headerSubtitle: "Name, neighborhood & bio",
+                      },
+                    }
+                  )
+                )
               }
               style={({ pressed }) => [
                 styles.headerActionBtn,
                 styles.headerActionBtnSecondary,
                 pressed && styles.btnPressed,
+                editTrigger.isMorphedOut && styles.morphedOut,
               ]}
             >
               <Text
@@ -384,15 +416,43 @@ export function ProfileHeader({
           >
             {isMe ? (
               <Pressable
+                ref={visitorsTrigger.triggerRef}
+                collapsable={false}
                 accessibilityRole="button"
                 accessibilityLabel="See who visited your profile"
                 onPress={() =>
-                  openExpandedWindow({ type: "profile_visitors" })
+                  visitorsTrigger.measureAndOpen((rect) =>
+                    openPopup(
+                      { type: "profile_visitors" },
+                      {
+                        triggerId: "profile-visitors",
+                        rect,
+                        style: {
+                          borderRadius: FOLLOW_BTN_HEIGHT / 2,
+                          backgroundColor: colors.surfaceMuted,
+                          borderColor: colors.line,
+                          borderWidth: 1,
+                        },
+                        headerMorph: {
+                          title: {
+                            text: "Visitors",
+                            x: 17,
+                            y: 10,
+                            fontSize: 13,
+                            fontWeight: "700",
+                            color: colors.text,
+                          },
+                          headerSubtitle: "Recent profile activity",
+                        },
+                      }
+                    )
+                  )
                 }
                 style={({ pressed }) => [
                   styles.headerActionBtn,
                   styles.headerActionBtnSecondary,
                   pressed && styles.btnPressed,
+                  visitorsTrigger.isMorphedOut && styles.morphedOut,
                 ]}
               >
                 <Text
@@ -407,15 +467,43 @@ export function ProfileHeader({
               </Pressable>
             ) : (
               <Pressable
+                ref={messageTrigger.triggerRef}
+                collapsable={false}
                 accessibilityRole="button"
                 accessibilityLabel={`Message ${profile.name}`}
                 onPress={() =>
-                  openExpandedWindow({ type: "message", recipient: profile })
+                  messageTrigger.measureAndOpen((rect) =>
+                    openPopup(
+                      { type: "message", recipient: profile },
+                      {
+                        triggerId: `profile-message-${profile.id}`,
+                        rect,
+                        style: {
+                          borderRadius: FOLLOW_BTN_HEIGHT / 2,
+                          backgroundColor: colors.surfaceMuted,
+                          borderColor: colors.line,
+                          borderWidth: 1,
+                        },
+                        headerMorph: {
+                          title: {
+                            text: "Message",
+                            x: 17,
+                            y: 10,
+                            fontSize: 13,
+                            fontWeight: "700",
+                            color: colors.text,
+                          },
+                          headerSubtitle: profile.name,
+                        },
+                      }
+                    )
+                  )
                 }
                 style={({ pressed }) => [
                   styles.headerActionBtn,
                   styles.headerActionBtnSecondary,
                   pressed && styles.btnPressed,
+                  messageTrigger.isMorphedOut && styles.morphedOut,
                 ]}
               >
                 <Text
@@ -714,6 +802,9 @@ const createStyles = (colors: ColorPalette) =>
     },
     btnPressed: {
       opacity: 0.72,
+    },
+    morphedOut: {
+      opacity: 0,
     },
     heroMetaContainer: {
       width: "100%",

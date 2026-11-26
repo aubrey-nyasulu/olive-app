@@ -7,9 +7,15 @@ interface SavedViewProps {
   savedPosts: Post[];
   onSelectPlace: (placeId: string) => void;
   onRemove: (placeId: string) => void;
+  hideHeader?: boolean;
 }
 
-export function SavedView({ savedPosts, onSelectPlace, onRemove }: SavedViewProps) {
+export function SavedView({
+  savedPosts,
+  onSelectPlace,
+  onRemove,
+  hideHeader = false,
+}: SavedViewProps) {
   const { styles, colors } = useThemeStyles(createStyles);
   const handleShare = () => {
     Share.share({
@@ -19,30 +25,35 @@ export function SavedView({ savedPosts, onSelectPlace, onRemove }: SavedViewProp
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.title}>
-            Saved Places
-          </Text>
-          <Text style={styles.subtitle}>
-            {savedPosts.length} places saved for quick access
-          </Text>
+      {!hideHeader && (
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.title}>
+              Saved Places
+            </Text>
+            <Text style={styles.subtitle}>
+              {savedPosts.length} places saved for quick access
+            </Text>
+          </View>
+          {savedPosts.length > 0 && (
+            <Pressable
+              accessibilityRole="button"
+              onPress={handleShare}
+              style={styles.shareBtn}
+            >
+              <Share2 size={14} color={colors.text} />
+              <Text style={styles.shareText}>Share</Text>
+            </Pressable>
+          )}
         </View>
-        {savedPosts.length > 0 && (
-          <Pressable
-            accessibilityRole="button"
-            onPress={handleShare}
-            style={styles.shareBtn}
-          >
-            <Share2 size={14} color={colors.text} />
-            <Text style={styles.shareText}>Share</Text>
-          </Pressable>
-        )}
-      </View>
+      )}
 
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          hideHeader && { paddingTop: 14, paddingBottom: 20 },
+        ]}
         showsVerticalScrollIndicator={false}
       >
         {savedPosts.length === 0 ? (

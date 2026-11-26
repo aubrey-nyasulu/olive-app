@@ -39,29 +39,38 @@ const RECENT_VISITORS: VisitorEntry[] = [
 
 interface VisitorsViewProps {
   onSelectVisitor: (visitor: UserProfile) => void;
+  hideHeader?: boolean;
 }
 
-export function VisitorsView({ onSelectVisitor }: VisitorsViewProps) {
+export function VisitorsView({
+  onSelectVisitor,
+  hideHeader = false,
+}: VisitorsViewProps) {
   const { styles, colors } = useThemeStyles(createStyles);
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.headerMeta}>
-          <Text style={styles.title}>Profile Visitors</Text>
-          <Text style={styles.subtitle}>
-            Neighbors and places that recently checked your profile
-          </Text>
+      {!hideHeader && (
+        <View style={styles.header}>
+          <View style={styles.headerMeta}>
+            <Text style={styles.title}>Profile Visitors</Text>
+            <Text style={styles.subtitle}>
+              Neighbors and places that recently checked your profile
+            </Text>
+          </View>
+          <View style={styles.badge}>
+            <Eye size={12} color={colors.signal} />
+            <Text style={styles.badgeText}>{RECENT_VISITORS.length} recent</Text>
+          </View>
         </View>
-        <View style={styles.badge}>
-          <Eye size={12} color={colors.signal} />
-          <Text style={styles.badgeText}>{RECENT_VISITORS.length} recent</Text>
-        </View>
-      </View>
+      )}
 
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          hideHeader && { paddingTop: 14, paddingBottom: 20 },
+        ]}
         showsVerticalScrollIndicator={false}
       >
         {RECENT_VISITORS.map(({ profile, visitedAgo, visitCount }) => (
