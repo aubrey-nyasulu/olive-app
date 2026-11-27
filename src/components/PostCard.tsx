@@ -457,9 +457,13 @@ function ReactionSummary({
 
 function RepostStripedFrame({
   colors,
+  stripeColor,
+  stripeOpacity,
   children,
 }: {
   colors: ColorPalette;
+  stripeColor?: string;
+  stripeOpacity?: number;
   children: ReactNode;
 }) {
   const rawId = useId();
@@ -482,7 +486,8 @@ function RepostStripedFrame({
                 y1="0"
                 x2="12"
                 y2="24"
-                stroke={colors.repostStripe}
+                stroke={stripeColor ?? colors.repostStripe}
+                strokeOpacity={stripeOpacity ?? 1}
                 strokeWidth="1"
               />
             </Pattern>
@@ -743,6 +748,11 @@ export function PostCard({
   const isInstantRepost = Boolean(post.repostedBy && !post.quoteNote);
   const isQuoteRepost = Boolean(post.repostedBy && post.quoteNote);
   const isAnyRepost = isInstantRepost || isQuoteRepost;
+  const isReactedPost = Boolean(post.reactedBy && !isAnyRepost);
+  const reactedDef = post.reactedBy
+    ? getReactionDef(post.reactedBy.reaction)
+    : null;
+  const ReactedBadgeIcon = reactedDef?.Icon ?? null;
 
   // Compute total reaction count for display
   const postReactions = reactionsMap[post.id];
@@ -1323,16 +1333,56 @@ export function PostCard({
         </View>
       )}
 
-      {/* Normal Post Author Header */}
-      {!isAnyRepost && !hideAuthor && renderOriginalAuthorHeader(true)}
+      {/* Reaction Footprint Banner (mirrors Instant Repost Banner) */}
+      {isReactedPost && post.reactedBy && reactedDef && ReactedBadgeIcon && (
+        <View style={styles.repostBanner}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`View ${post.reactedBy.name}'s profile`}
+            onPress={() => openProfileByName(post.reactedBy!.name)}
+            style={({ pressed }) => [
+              styles.repostBannerLeft,
+              pressed && styles.pressed,
+            ]}
+          >
+            <View style={styles.repostMiniAvatar}>
+              <ReactedBadgeIcon
+                size={12}
+                color={reactedDef.activeColor}
+                fill={reactedDef.activeColor}
+              />
+            </View>
+            <Text numberOfLines={1} style={styles.repostBannerText}>
+              <Text style={styles.repostBannerAuthor}>
+                {post.reactedBy.name}
+              </Text>{" "}
+              {post.reactedBy.reaction === "heart" ||
+              post.reactedBy.reaction === "like"
+                ? "liked this"
+                : `reacted (${reactedDef.label})`}
+              {post.reactedBy.time ? ` · ${post.reactedBy.time}` : ""}
+            </Text>
+          </Pressable>
+          {moreButton}
+        </View>
+      )}
 
-      {/* Media or Embedded Repost Container */}
-      {isAnyRepost ? (
+      {/* Normal Post Author Header */}
+      {!isAnyRepost && !isReactedPost && !hideAuthor && renderOriginalAuthorHeader(true)}
+
+      {/* Media or Embedded Repost / Reaction Container */}
+      {isAnyRepost || isReactedPost ? (
         <>
           {isQuoteRepost && post.quoteNote && (
             <Text style={styles.quoteRepostCommentary}>{post.quoteNote}</Text>
           )}
-          <RepostStripedFrame colors={colors}>
+          <RepostStripedFrame
+            colors={colors}
+            stripeColor={
+              isReactedPost && reactedDef ? reactedDef.activeColor : undefined
+            }
+            stripeOpacity={isReactedPost ? 0.34 : undefined}
+          >
             <View style={styles.innerOriginalPost}>
               {renderOriginalAuthorHeader(false)}
               {renderMedia(true)}

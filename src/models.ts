@@ -9,6 +9,12 @@ export type RepostMeta = {
   time?: string;
 };
 
+export type ReactedMeta = {
+  name: string;
+  reaction: ReactionType;
+  time?: string;
+};
+
 export type Post = {
   id: string;
   author: string;
@@ -25,6 +31,7 @@ export type Post = {
   ratio?: "1/1" | "4/3" | "4/5";
   repostedBy?: RepostMeta | null;
   quoteNote?: string | null;
+  reactedBy?: ReactedMeta | null;
 };
 
 export type Review = {

@@ -3,7 +3,6 @@ import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import {
   ChevronRight,
   Footprints,
-  Heart,
   MapPin,
   MessageSquareMore,
   Star,
@@ -11,7 +10,7 @@ import {
 import { useOlive } from "../../context/OliveProvider";
 import { useThemeStyles, type ColorPalette } from "../../theme";
 import { PostCard } from "../PostCard";
-import type { Post, Review } from "../../models";
+import type { Post, ReactionType, Review } from "../../models";
 import { useMorphTrigger } from "../popup/MorphTrigger";
 
 export interface UserInteraction {
@@ -50,6 +49,12 @@ const LIKED_SCHEDULES = [
   { timeAgo: "6d ago", minutesAgo: 8640 },
 ];
 
+const OTHER_USER_REACTIONS: Record<string, ReactionType> = {
+  forno: "heart",
+  "kuchawe-chambo": "flower",
+  "park-live": "fire",
+};
+
 function parseMinutesFallback(timeAgo: string): number {
   const match = timeAgo.match(/^(\d+)\s*([mhdw])/i);
   if (!match) return 4320;
@@ -82,59 +87,72 @@ function InteractionReviewCard({
   const cardTrigger = useMorphTrigger(`interaction-${entryKey}`);
 
   return (
-    <Pressable
-      ref={cardTrigger.triggerRef}
-      collapsable={false}
-      accessibilityRole="button"
-      accessibilityLabel={`Interaction on ${post.title}`}
-      onPress={() =>
-        cardTrigger.measureAndOpen((rect) =>
-          openPopup(
-            { type: "details", post },
-            {
-              triggerId: `interaction-${entryKey}`,
-              rect,
-              style: {
-                borderRadius: 16,
-                backgroundColor: colors.surface,
-                borderColor: colors.line,
-                borderWidth: 1,
-              },
-              headerMorph: {
-                headerTitle: post.place,
-                headerSubtitle: `${post.author} · ${post.category} · ${post.distanceKm} km`,
-              },
-            }
-          )
-        )
-      }
-      style={({ pressed }) => [
-        styles.card,
-        pressed && styles.cardPressed,
-        cardTrigger.isMorphedOut && styles.morphedOut,
-      ]}
-    >
-      <View style={styles.targetPostRow}>
-        {post.image ? (
-          <Image source={post.image} style={styles.placeThumb} />
-        ) : (
-          <View style={styles.placeThumbPlaceholder}>
-            <MapPin size={16} color={colors.signal} />
-          </View>
-        )}
-        <View style={styles.placeMeta}>
-          <Text numberOfLines={1} style={styles.placeTitle}>
-            {post.title}
-          </Text>
-          <Text numberOfLines={1} style={styles.placeSub}>
-            {post.author} · {post.place}
-          </Text>
+    <View style={styles.reviewWrap}>
+      {/* Banner matching PostCard's repost/reaction banner */}
+      <View style={styles.activityBanner}>
+        <View style={styles.activityMiniAvatar}>
+          <MessageSquareMore size={12} color={colors.signal} />
         </View>
-        <ChevronRight size={16} color={colors.muted} />
+        <Text numberOfLines={1} style={styles.activityBannerText}>
+          <Text style={styles.activityBannerAuthor}>
+            {isMe ? "You" : userName}
+          </Text>{" "}
+          reviewed · {timeAgo}
+        </Text>
       </View>
 
-      <View style={styles.commentBubble}>
-        <View style={styles.bubbleHeaderRow}>
+      <Pressable
+        ref={cardTrigger.triggerRef}
+        collapsable={false}
+        accessibilityRole="button"
+        accessibilityLabel={`Interaction on ${post.title}`}
+        onPress={() =>
+          cardTrigger.measureAndOpen((rect) =>
+            openPopup(
+              { type: "details", post },
+              {
+                triggerId: `interaction-${entryKey}`,
+                rect,
+                style: {
+                  borderRadius: 24,
+                  backgroundColor: colors.surface,
+                  borderColor: colors.line,
+                  borderWidth: 1,
+                },
+                headerMorph: {
+                  headerTitle: post.place,
+                  headerSubtitle: `${post.author} · ${post.category} · ${post.distanceKm} km`,
+                },
+              }
+            )
+          )
+        }
+        style={({ pressed }) => [
+          styles.card,
+          pressed && styles.cardPressed,
+          cardTrigger.isMorphedOut && styles.morphedOut,
+        ]}
+      >
+        <View style={styles.targetPostRow}>
+          {post.image ? (
+            <Image source={post.image} style={styles.placeThumb} />
+          ) : (
+            <View style={styles.placeThumbPlaceholder}>
+              <MapPin size={16} color={colors.signal} />
+            </View>
+          )}
+          <View style={styles.placeMeta}>
+            <Text numberOfLines={1} style={styles.placeTitle}>
+              {post.title}
+            </Text>
+            <Text numberOfLines={1} style={styles.placeSub}>
+              {post.author} · {post.place}
+            </Text>
+          </View>
+          <ChevronRight size={16} color={colors.muted} />
+        </View>
+
+        <View style={styles.quoteBlock}>
           <View style={styles.starsRow}>
             {[1, 2, 3, 4, 5].map((star) => (
               <Star
@@ -145,19 +163,10 @@ function InteractionReviewCard({
               />
             ))}
           </View>
-          <Text style={styles.timeAgo}>{timeAgo}</Text>
+          <Text style={styles.reviewText}>&ldquo;{review.text}&rdquo;</Text>
         </View>
-
-        <Text style={styles.reviewText}>"{review.text}"</Text>
-
-        <View style={styles.reviewFooter}>
-          <MessageSquareMore size={12} color={colors.muted} />
-          <Text style={styles.authorBadge}>
-            {isMe ? "You reviewed" : `${userName} reviewed`}
-          </Text>
-        </View>
-      </View>
-    </Pressable>
+      </Pressable>
+    </View>
   );
 }
 
@@ -168,6 +177,7 @@ export function ProfileInteractionsTab({
   isMe,
 }: ProfileInteractionsTabProps) {
   const { styles, colors } = useThemeStyles(createStyles);
+  const { getUserReaction } = useOlive();
 
   const timeline = useMemo<TimelineEntry[]>(() => {
     const entries: TimelineEntry[] = [
@@ -229,22 +239,22 @@ export function ProfileInteractionsTab({
           );
         }
 
-        return (
-          <View key={entry.key} style={styles.likedPostWrap}>
-            <View style={styles.likedHeader}>
-              <View style={styles.likedHeaderLeft}>
-                <Heart size={13} color="#FF3B30" fill="#FF3B30" />
-                <Text style={styles.likedHeaderText}>
-                  {isMe
-                    ? "You liked this place"
-                    : `${userName} liked this place`}
-                </Text>
-              </View>
-              <Text style={styles.timeAgo}>{entry.timeAgo}</Text>
-            </View>
-            <PostCard post={entry.post} />
-          </View>
-        );
+        const reaction: ReactionType = isMe
+          ? getUserReaction(entry.post.id) ?? "heart"
+          : OTHER_USER_REACTIONS[entry.post.id] ?? "heart";
+
+        const reactedPost: Post = {
+          ...entry.post,
+          repostedBy: null,
+          quoteNote: null,
+          reactedBy: {
+            name: userName,
+            reaction,
+            time: entry.timeAgo,
+          },
+        };
+
+        return <PostCard key={entry.key} post={reactedPost} />;
       })}
     </View>
   );
@@ -253,15 +263,44 @@ export function ProfileInteractionsTab({
 const createStyles = (colors: ColorPalette) =>
   StyleSheet.create({
     container: {
-      gap: 14,
+      gap: 0,
+    },
+    reviewWrap: {
+      marginBottom: 36,
+    },
+    activityBanner: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      paddingHorizontal: 4,
+      paddingBottom: 10,
+    },
+    activityMiniAvatar: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      backgroundColor: colors.surfaceMuted,
+      borderWidth: 1,
+      borderColor: colors.line,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    activityBannerText: {
+      fontSize: 12.5,
+      color: colors.muted,
+      flexShrink: 1,
+    },
+    activityBannerAuthor: {
+      color: colors.text,
+      fontWeight: "700",
     },
     card: {
-      borderRadius: 16,
+      borderRadius: 24,
       borderWidth: 1,
       borderColor: colors.line,
       backgroundColor: colors.surface,
-      padding: 12,
-      gap: 10,
+      padding: 16,
+      gap: 12,
     },
     cardPressed: {
       opacity: 0.85,
@@ -272,18 +311,18 @@ const createStyles = (colors: ColorPalette) =>
     targetPostRow: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 10,
+      gap: 12,
     },
     placeThumb: {
       width: 44,
       height: 44,
-      borderRadius: 8,
+      borderRadius: 12,
       backgroundColor: colors.surfaceMuted,
     },
     placeThumbPlaceholder: {
       width: 44,
       height: 44,
-      borderRadius: 8,
+      borderRadius: 12,
       backgroundColor: colors.surfaceMuted,
       alignItems: "center",
       justifyContent: "center",
@@ -293,10 +332,10 @@ const createStyles = (colors: ColorPalette) =>
       justifyContent: "center",
     },
     placeTitle: {
-      fontSize: 14,
+      fontSize: 15,
       fontWeight: "700",
       color: colors.text,
-      lineHeight: 18,
+      lineHeight: 20,
     },
     placeSub: {
       fontSize: 12,
@@ -305,64 +344,22 @@ const createStyles = (colors: ColorPalette) =>
       lineHeight: 16,
       marginTop: 2,
     },
-    commentBubble: {
-      backgroundColor: colors.surfaceMuted,
-      borderRadius: 12,
-      padding: 12,
+    quoteBlock: {
+      borderLeftWidth: 2,
+      borderLeftColor: colors.signal,
+      paddingLeft: 12,
+      paddingVertical: 2,
       gap: 6,
-    },
-    bubbleHeaderRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
     },
     starsRow: {
       flexDirection: "row",
       gap: 2,
     },
-    timeAgo: {
-      fontSize: 12,
-      color: colors.muted,
-    },
     reviewText: {
       fontSize: 14,
       lineHeight: 20,
-      color: colors.text,
+      color: colors.textSecondary,
       fontStyle: "italic",
-    },
-    reviewFooter: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 6,
-      marginTop: 2,
-    },
-    authorBadge: {
-      fontSize: 12,
-      fontWeight: "600",
-      color: colors.muted,
-    },
-    likedPostWrap: {
-      marginBottom: 4,
-    },
-    likedHeader: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      paddingHorizontal: 16,
-      paddingVertical: 8,
-      backgroundColor: colors.surfaceMuted,
-      borderRadius: 8,
-      marginBottom: 4,
-    },
-    likedHeaderLeft: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 6,
-    },
-    likedHeaderText: {
-      fontSize: 12,
-      fontWeight: "600",
-      color: colors.text,
     },
     emptyWrap: {
       alignItems: "center",
