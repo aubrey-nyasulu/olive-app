@@ -141,7 +141,7 @@ export function FloatingDock({
       Animated.timing(keyboardShiftAnim, {
         toValue: shift,
         duration,
-        useNativeDriver: true,
+        useNativeDriver: false,
       }).start();
     };
 
@@ -152,7 +152,7 @@ export function FloatingDock({
       Animated.timing(keyboardShiftAnim, {
         toValue: 0,
         duration,
-        useNativeDriver: true,
+        useNativeDriver: false,
       }).start();
     };
 

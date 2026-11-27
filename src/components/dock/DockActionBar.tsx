@@ -120,7 +120,7 @@ export function DockActionBar({
       toValue: onProfile ? 1 : 0,
       friction: 9,
       tension: 75,
-      useNativeDriver: true,
+      useNativeDriver: false,
     }).start();
   }, [onProfile, profileAnim]);
 
@@ -129,7 +129,7 @@ export function DockActionBar({
       toValue: isOtherUser ? 1 : 0,
       friction: 9,
       tension: 75,
-      useNativeDriver: true,
+      useNativeDriver: false,
     }).start();
   }, [isOtherUser, otherUserAnim]);
 
@@ -138,7 +138,7 @@ export function DockActionBar({
       toValue: panelOpen ? 1 : 0,
       friction: 9,
       tension: 75,
-      useNativeDriver: true,
+      useNativeDriver: false,
     }).start();
   }, [panelOpen, searchActiveAnim]);
 
@@ -147,7 +147,7 @@ export function DockActionBar({
       toValue: profileMenuOpen ? 1 : 0,
       friction: 9,
       tension: 75,
-      useNativeDriver: true,
+      useNativeDriver: false,
     }).start();
   }, [profileMenuOpen, profileMenuAnim]);
 

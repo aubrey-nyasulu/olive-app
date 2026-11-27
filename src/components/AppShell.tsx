@@ -86,7 +86,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       Animated.timing(keyboardShiftAnim, {
         toValue: shift,
         duration,
-        useNativeDriver: true,
+        useNativeDriver: false,
       }).start();
     };
 
@@ -96,7 +96,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       Animated.timing(keyboardShiftAnim, {
         toValue: 0,
         duration,
-        useNativeDriver: true,
+        useNativeDriver: false,
       }).start();
     };
 
