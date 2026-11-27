@@ -7,7 +7,13 @@ import {
   Text,
   View,
 } from "react-native";
-import { MessageSquareMore, ChevronRight, Bell, Bookmark, Settings } from "lucide-react-native";
+import {
+  MessageSquareMore,
+  ChevronRight,
+  Bell,
+  Bookmark,
+  Settings,
+} from "lucide-react-native";
 import { router } from "expo-router";
 import { useOlive } from "../../../context/OliveProvider";
 import { useThemeStyles, type ColorPalette } from "../../../theme";
@@ -67,21 +73,14 @@ export function UserMenuView({ onClose }: UserMenuViewProps) {
         accessibilityRole="button"
         accessibilityLabel="Go to your profile"
         onPress={handleGoProfile}
-        style={({ pressed }) => [
-          styles.profileCard,
-          pressed && styles.pressed,
-        ]}
+        style={({ pressed }) => [styles.profileCard, pressed && styles.pressed]}
       >
         <Image source={userAvatar} style={styles.avatar} />
         <View style={styles.profileMeta}>
           <View style={styles.nameRow}>
-            <Text style={styles.name}>
-              Chisomo Banda
-            </Text>
+            <Text style={styles.name}>Chisomo Banda</Text>
           </View>
-          <Text style={styles.handle}>
-            Area 10 & Old Town
-          </Text>
+          <Text style={styles.handle}>Area 10 & Old Town</Text>
         </View>
       </Pressable>
 
@@ -92,22 +91,14 @@ export function UserMenuView({ onClose }: UserMenuViewProps) {
           accessibilityRole="button"
           accessibilityLabel="Open messages"
           onPress={handleOpenMessages}
-          style={({ pressed }) => [
-            styles.menuRow,
-            pressed && styles.pressed,
-          ]}
+          style={({ pressed }) => [styles.menuRow, pressed && styles.pressed]}
         >
           <View style={styles.iconCircle}>
-            <MessageSquareMore
-              size={24}
-              color={colors.badgeText}
-            />
+            <MessageSquareMore size={24} color={colors.badgeText} />
           </View>
           <View style={styles.rowText}>
             <View style={styles.labelBadgeRow}>
-              <Text style={styles.rowTitle}>
-                Messages
-              </Text>
+              <Text style={styles.rowTitle}>Messages</Text>
               <View style={styles.unreadBadge}>
                 <Text style={styles.unreadBadgeText}>2 new</Text>
               </View>
@@ -124,22 +115,14 @@ export function UserMenuView({ onClose }: UserMenuViewProps) {
           accessibilityRole="button"
           accessibilityLabel="Open notifications"
           onPress={handleOpenNotifications}
-          style={({ pressed }) => [
-            styles.menuRow,
-            pressed && styles.pressed,
-          ]}
+          style={({ pressed }) => [styles.menuRow, pressed && styles.pressed]}
         >
           <View style={styles.iconCircle}>
-            <Bell
-              size={24}
-              color={colors.badgeText}
-            />
+            <Bell size={24} color={colors.badgeText} />
           </View>
           <View style={styles.rowText}>
             <View style={styles.labelBadgeRow}>
-              <Text style={styles.rowTitle}>
-                Notifications
-              </Text>
+              <Text style={styles.rowTitle}>Notifications</Text>
               <View style={styles.unreadBadge}>
                 <Text style={styles.unreadBadgeText}>3 new</Text>
               </View>
@@ -156,21 +139,13 @@ export function UserMenuView({ onClose }: UserMenuViewProps) {
           accessibilityRole="button"
           accessibilityLabel="View saved places"
           onPress={() => openExpandedWindow({ type: "profile_saved" })}
-          style={({ pressed }) => [
-            styles.menuRow,
-            pressed && styles.pressed,
-          ]}
+          style={({ pressed }) => [styles.menuRow, pressed && styles.pressed]}
         >
           <View style={styles.iconCircle}>
-            <Bookmark
-              size={24}
-              color={colors.badgeText}
-            />
+            <Bookmark size={24} color={colors.badgeText} />
           </View>
           <View style={styles.rowText}>
-            <Text style={styles.rowTitle}>
-              Saved Places
-            </Text>
+            <Text style={styles.rowTitle}>Saved Places</Text>
             <Text style={styles.rowSubtitle}>
               Bookmarks, favorite cafes & venues
             </Text>
@@ -183,21 +158,13 @@ export function UserMenuView({ onClose }: UserMenuViewProps) {
           accessibilityRole="button"
           accessibilityLabel="Open settings"
           onPress={() => openExpandedWindow({ type: "profile_settings" })}
-          style={({ pressed }) => [
-            styles.menuRow,
-            pressed && styles.pressed,
-          ]}
+          style={({ pressed }) => [styles.menuRow, pressed && styles.pressed]}
         >
           <View style={styles.iconCircle}>
-            <Settings
-              size={24}
-              color={colors.badgeText}
-            />
+            <Settings size={24} color={colors.badgeText} />
           </View>
           <View style={styles.rowText}>
-            <Text style={styles.rowTitle}>
-              Settings & Preferences
-            </Text>
+            <Text style={styles.rowTitle}>Settings & Preferences</Text>
             <Text style={styles.rowSubtitle}>
               Discovery radius, categories & dark theme
             </Text>
@@ -212,101 +179,101 @@ export function UserMenuView({ onClose }: UserMenuViewProps) {
 const createStyles = (colors: ColorPalette) =>
   StyleSheet.create({
     container: {
-    flex: 1,
-  },
-  content: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 110,
-    gap: 12,
-  },
-  profileCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 8,
-    borderRadius: 32,
-    borderWidth: 1,
-    gap: 12,
-    backgroundColor: colors.surfaceMuted,
-    borderColor: colors.line,
-  },
-  pressed: {
-    opacity: 0.75,
-  },
-  avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-  },
-  profileMeta: {
-    flex: 1,
-  },
-  nameRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  name: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: colors.text,
-  },
-  handle: {
-    fontSize: 12,
-    marginTop: 2,
-    color: colors.muted,
-  },
-  menuGroup: {
-    gap: 8,
-  },
-  menuRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 8,
-    paddingRight: 12,
-    borderRadius: 32,
-    borderWidth: 1,
-    gap: 12,
-    backgroundColor: colors.surfaceMuted,
-    borderColor: colors.line,
-  },
-  iconCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    borderWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.surface,
-    borderColor: colors.line,
-  },
-  rowText: {
-    flex: 1,
-  },
-  labelBadgeRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  rowTitle: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: colors.text,
-  },
-  unreadBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 12,
-    backgroundColor: colors.signal,
-  },
-  unreadBadgeText: {
-    color: "#FFFFFF",
-    fontSize: 10,
-    fontWeight: "700",
-  },
-  rowSubtitle: {
-    fontSize: 12,
-    marginTop: 2,
-    color: colors.muted,
-  },
-});
+      flex: 1,
+    },
+    content: {
+      paddingHorizontal: 16,
+      paddingTop: 8,
+      paddingBottom: 110,
+      gap: 12,
+    },
+    profileCard: {
+      flexDirection: "row",
+      alignItems: "center",
+      padding: 8,
+      borderRadius: 32,
+      borderWidth: 1,
+      gap: 12,
+      backgroundColor: colors.surfaceMuted,
+      borderColor: colors.line,
+    },
+    pressed: {
+      opacity: 0.75,
+    },
+    avatar: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+    },
+    profileMeta: {
+      flex: 1,
+    },
+    nameRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+    },
+    name: {
+      fontSize: 16,
+      fontWeight: "700",
+      color: colors.text,
+    },
+    handle: {
+      fontSize: 12,
+      marginTop: 2,
+      color: colors.muted,
+    },
+    menuGroup: {
+      gap: 8,
+    },
+    menuRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      padding: 8,
+      paddingRight: 12,
+      borderRadius: 32,
+      borderWidth: 1,
+      gap: 12,
+      backgroundColor: colors.surfaceMuted,
+      borderColor: colors.line,
+    },
+    iconCircle: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      borderWidth: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.surface,
+      borderColor: colors.line,
+    },
+    rowText: {
+      flex: 1,
+    },
+    labelBadgeRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+    },
+    rowTitle: {
+      fontSize: 14,
+      fontWeight: "700",
+      color: colors.text,
+    },
+    unreadBadge: {
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      borderRadius: 12,
+      backgroundColor: colors.signal,
+    },
+    unreadBadgeText: {
+      color: "#FFFFFF",
+      fontSize: 10,
+      fontWeight: "700",
+    },
+    rowSubtitle: {
+      fontSize: 12,
+      marginTop: 2,
+      color: colors.muted,
+    },
+  });

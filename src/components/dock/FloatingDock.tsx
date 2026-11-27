@@ -110,7 +110,7 @@ export function FloatingDock({
   const normalDockBottom = Math.max(20, insets.bottom + 8);
 
   const dockWidth = Math.min(screenWidth - 32, 420);
-  const drawerWidth = dockWidth - 32;
+  const drawerWidth = dockWidth - 16;
 
   // Initial load timer (shows animating line on app launch)
   useEffect(() => {
